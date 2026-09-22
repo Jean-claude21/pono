@@ -25,7 +25,6 @@ Rien de tout cela n'est réécrit : ce sont des acquis, avec leur preuve.
 | **Livio** | La pile éprouvée (TanStack Start, Drizzle, base serverless, hébergement), le manifeste de projet, les garde-fous avant production, le retour arrière | 1, 2, 5 |
 | **KYA-Platform** | **Le code** : le courtier OAuth pour connecteurs MCP avec enregistrement dynamique de client, l'autorisation, le port de secrets, les workers, l'observabilité, le découpage domaine / application / infrastructure | 1, 3, 5 |
 | **Firmo** | La discipline visuelle de la famille (D-011), le bandeau de verdict, un service FastAPI éprouvé en production | 0, 2 |
-| **vtt-template** | Spec Kit épinglé, la constitution, le registre de skills, les gates scriptées | toutes |
 
 > **Même auteur, même architecture.** Le code de KYA-Platform est repris tel quel quand il sert, puis
 > adapté : ce qui est propre à KYA — unités, catalogue d'artefacts, gouvernance interne — reste dehors.
