@@ -44,7 +44,7 @@ const PROJETS = [
     nom: "lectio",
     etat: "cours",
     vedette: true,
-    resume: "Preview #12 ouverte par l’agent. Deux migrations attendent ta validation.",
+    resume: "Preview #12 ouverte par l’agent. Deux migrations additives attendent ta validation.",
     meta: "prod · preview · dev",
     quota: { libelle: "Crédits d’hébergement", valeur: 34, texte: "102 / 300" },
   },
@@ -90,7 +90,6 @@ function carteHtml(projet) {
       <button class="project-card featured" data-project="${projet.nom}">
         <span class="card-title">${pastille(projet.etat)}${projet.nom}</span>
         <p class="description">${projet.resume}</p>
-        ${quotaHtml(projet.quota)}
       </button>`;
   }
   return `
@@ -100,9 +99,17 @@ function carteHtml(projet) {
     </button>`;
 }
 
+/* Les pages de ce dossier ne portent pas toutes les mêmes blocs : chaque rendu
+   vérifie que sa cible existe, pour qu'une page puisse n'en montrer qu'une partie. */
 function rendre() {
-  document.getElementById("main-projects").innerHTML = PROJETS.map(carteHtml).join("");
-  document.getElementById("deployments").innerHTML = DEPLOIEMENTS.map(
+  const grille = document.getElementById("main-projects");
+  const deploiements = document.getElementById("deployments");
+  if (!grille || !deploiements) {
+    poserIcones();
+    return;
+  }
+  grille.innerHTML = PROJETS.map(carteHtml).join("");
+  deploiements.innerHTML = DEPLOIEMENTS.map(
     (ligne) => `
       <button class="project-card" data-project="${ligne.nom}">
         ${pastille(ligne.etat)}
@@ -117,6 +124,7 @@ function rendre() {
 const resultats = document.getElementById("state-results");
 
 function filtrer(etat) {
+  if (!resultats) return;
   const liste = PROJETS.filter((projet) => projet.etat === etat);
   document.getElementById("state-title").textContent = `${ETATS[etat]} · ${liste.length} projet${liste.length > 1 ? "s" : ""}`;
   document.getElementById("results").innerHTML = liste.length
@@ -145,15 +153,17 @@ document.querySelectorAll(".chip[data-state]").forEach((puce) => {
 });
 
 const menuEtats = document.getElementById("state-menu");
-menuEtats.innerHTML = `<button data-state="veille">En veille <span>2</span></button>`;
-menuEtats.querySelector("button").addEventListener("click", () => {
-  menuEtats.hidden = true;
-  filtrer("veille");
-});
-document.getElementById("more-states").addEventListener("click", (evenement) => {
-  evenement.stopPropagation();
-  menuEtats.hidden = !menuEtats.hidden;
-});
+if (menuEtats) {
+  menuEtats.innerHTML = `<button data-state="veille">En veille <span>2</span></button>`;
+  menuEtats.querySelector("button").addEventListener("click", () => {
+    menuEtats.hidden = true;
+    filtrer("veille");
+  });
+  document.getElementById("more-states").addEventListener("click", (evenement) => {
+    evenement.stopPropagation();
+    menuEtats.hidden = !menuEtats.hidden;
+  });
+}
 
 /* ── Mettre en ligne : le refus et la validation ─────────────── */
 
@@ -200,26 +210,28 @@ function ouvrirCas(cle) {
   dialogue.showModal();
 }
 
-document.getElementById("deploy-button").addEventListener("click", (evenement) => {
-  evenement.stopPropagation();
-  const ouvert = menuDeploiement.hidden;
-  menuDeploiement.hidden = !ouvert;
-  evenement.currentTarget.setAttribute("aria-expanded", String(ouvert));
-});
-
-menuDeploiement.querySelectorAll("button").forEach((bouton) => {
-  bouton.addEventListener("click", () => {
-    menuDeploiement.hidden = true;
-    ouvrirCas(bouton.dataset.case);
+if (menuDeploiement && dialogue) {
+  document.getElementById("deploy-button").addEventListener("click", (evenement) => {
+    evenement.stopPropagation();
+    const ouvert = menuDeploiement.hidden;
+    menuDeploiement.hidden = !ouvert;
+    evenement.currentTarget.setAttribute("aria-expanded", String(ouvert));
   });
-});
 
-dialogue.addEventListener("click", (evenement) => {
-  const cible = evenement.target;
-  if (!(cible instanceof HTMLElement) || !cible.hasAttribute("data-fermer")) return;
-  dialogue.close();
-  if (cible.hasAttribute("data-notifier")) notifier("lectio est en ligne · déploiement 6ab2d0d");
-});
+  menuDeploiement.querySelectorAll("button").forEach((bouton) => {
+    bouton.addEventListener("click", () => {
+      menuDeploiement.hidden = true;
+      ouvrirCas(bouton.dataset.case);
+    });
+  });
+
+  dialogue.addEventListener("click", (evenement) => {
+    const cible = evenement.target;
+    if (!(cible instanceof HTMLElement) || !cible.hasAttribute("data-fermer")) return;
+    dialogue.close();
+    if (cible.hasAttribute("data-notifier")) notifier("lectio est en ligne · déploiement 6ab2d0d");
+  });
+}
 
 /* ── Notification ────────────────────────────────────────────── */
 
@@ -227,6 +239,7 @@ const notification = document.getElementById("toast");
 let minuterie;
 
 function notifier(message) {
+  if (!notification) return;
   notification.textContent = message;
   notification.hidden = false;
   clearTimeout(minuterie);
@@ -247,13 +260,13 @@ document.querySelectorAll("[data-project]").forEach((element) => {
   element.addEventListener("click", () => notifier(`${element.dataset.project} · ouvert`));
 });
 
-document.getElementById("all-projects").addEventListener("click", () => {
+document.getElementById("all-projects")?.addEventListener("click", () => {
   notifier("Neuf projets posés dans l’atelier.");
 });
 
 document.addEventListener("click", () => {
-  menuDeploiement.hidden = true;
-  menuEtats.hidden = true;
+  if (menuDeploiement) menuDeploiement.hidden = true;
+  if (menuEtats) menuEtats.hidden = true;
 });
 
 /* ── Démarrage ───────────────────────────────────────────────── */

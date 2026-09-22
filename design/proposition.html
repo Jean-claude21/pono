@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projets · Pono — proposition en lignes</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <header class="brand">
+    <strong>Pono</strong>
+    <div>
+      <button class="icon-button" aria-label="Tous les projets" data-icon="grid"></button>
+      <button class="icon-button" aria-label="Journal des preuves" data-icon="check"></button>
+      <button class="icon-button" data-action="sidebar" aria-label="Réduire le panneau" data-icon="panel"></button>
+    </div>
+  </header>
+
+  <nav aria-label="Navigation principale">
+    <button><i data-icon="plus"></i>Nouveau projet</button>
+    <button><i data-icon="search"></i>Rechercher</button>
+    <button><i data-icon="books"></i>Déploiements</button>
+    <button><i data-icon="teach"></i>Quotas</button>
+  </nav>
+
+  <p class="nav-label">Atelier</p>
+  <nav aria-label="Atelier">
+    <button><i data-icon="graduate" class="colored"></i>Projets</button>
+    <button><i data-icon="agent"></i>Connexions</button>
+    <button><i data-icon="more"></i>Plus d’outils</button>
+  </nav>
+
+  <div class="palette" aria-label="Palette de la charte">
+    <span style="--swatch:#1ca18c"></span>
+    <span style="--swatch:#f99d32"></span>
+    <span style="--swatch:#ffffff"></span>
+    <span style="--swatch:#e8e748"></span>
+    <span style="--swatch:#875028"></span>
+    <small>Couleurs de la charte</small>
+  </div>
+</aside>
+
+<main>
+  <div class="toolbar">
+    <a class="deploy" href="index.html" style="text-decoration:none">Voir la vue en tuiles</a>
+  </div>
+
+  <div class="content">
+    <h1 style="font-size:28px;line-height:36px;margin-bottom:28px">Projets</h1>
+
+    <!-- Ce qui attend une décision passe avant tout le reste. -->
+    <div class="panel" style="border-color:var(--orange);display:flex;align-items:center;gap:16px;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:14px">
+        <i class="state-dot state-panne"><span></span></i>
+        <div>
+          <strong>nyatefe · mise en ligne refusée</strong>
+          <p style="margin-top:2px;color:var(--muted);font-size:12px">
+            Migration destructrice détectée · rien n’a été exécuté
+          </p>
+        </div>
+      </div>
+      <button class="ghost" style="margin:0">Examiner</button>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:32px;flex-wrap:wrap">
+      <div class="segmented" role="group" aria-label="Filtrer">
+        <button aria-pressed="true">Tous · 9</button>
+        <button aria-pressed="false">Posés · 5</button>
+        <button aria-pressed="false">Attention · 1</button>
+        <button aria-pressed="false">En veille · 2</button>
+      </div>
+      <button class="launch" style="margin:0">Mettre en ligne</button>
+    </div>
+
+    <div class="rows">
+      <div class="row head">
+        <span>État</span><span>Projet</span><span>Environnements</span><span>Dernier déploiement</span><span>Quota</span>
+      </div>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-cours"><span></span></i>En cours</span>
+        <span>lectio</span>
+        <span class="env"><span class="on">prod</span><span class="on">preview</span><span class="on">dev</span></span>
+        <span class="when">il y a 12 min · l’agent</span>
+        <span class="quota" data-level="normal">
+          <span class="quota-head"><span>crédits</span><strong>102/300</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:34%"></span></span>
+        </span>
+      </button>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-pose"><span></span></i>Posé</span>
+        <span>vestio</span>
+        <span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span>
+        <span class="when">il y a 3 jours · toi</span>
+        <span class="quota" data-level="normal">
+          <span class="quota-head"><span>crédits</span><strong>186/300</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:62%"></span></span>
+        </span>
+      </button>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-attention"><span></span></i>Attention</span>
+        <span>boutiqflow</span>
+        <span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span>
+        <span class="when">il y a 26 jours · toi</span>
+        <span class="quota" data-level="attention">
+          <span class="quota-head"><span>crédits</span><strong>264/300</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:88%"></span></span>
+        </span>
+      </button>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-panne"><span></span></i>En panne</span>
+        <span>nyatefe</span>
+        <span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span>
+        <span class="when">échec il y a 5 h</span>
+        <span class="quota" data-level="critique">
+          <span class="quota-head"><span>crédits</span><strong>291/300</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:97%"></span></span>
+        </span>
+      </button>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-pose"><span></span></i>Posé</span>
+        <span>nettio</span>
+        <span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span>
+        <span class="when">il y a 9 jours · toi</span>
+        <span class="quota" data-level="normal">
+          <span class="quota-head"><span>crédits</span><strong>77/300</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:26%"></span></span>
+        </span>
+      </button>
+
+      <button class="row">
+        <span class="name"><i class="state-dot state-veille"><span></span></i>En veille</span>
+        <span>barflow</span>
+        <span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span>
+        <span class="when">il y a 6 semaines</span>
+        <span class="quota" data-level="normal">
+          <span class="quota-head"><span>compute</span><strong>12/100</strong></span>
+          <span class="quota-rail"><span class="quota-bar" style="width:12%"></span></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="all-link"><button>Tous les projets <i data-icon="arrow"></i></button></div>
+  </div>
+</main>
+
+<div id="toast" role="status" hidden></div>
+</body>
+</html>

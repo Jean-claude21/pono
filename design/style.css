@@ -26,6 +26,7 @@ body { margin: 0; }
 button, input, a { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { color: inherit; cursor: pointer; border: 0; background: none; }
+a { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible {
   outline: 2px solid var(--orange);
   outline-offset: 4px;
@@ -119,10 +120,19 @@ h3 { font-size: 16px; font-weight: 600; }
 .project-card:hover { background: #30302e; border-color: var(--green); }
 .project-card .state-dot { width: 28px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .state-dot span { width: 12px; height: 12px; border-radius: 50%; background: currentColor; }
-.project-card.featured { grid-row: span 2; display: block; padding: 18px 15px; }
+.project-card.featured {
+  grid-row: span 2;
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: 0; padding: 18px 15px; overflow: hidden;
+}
+.featured .description { flex: 1; overflow: hidden; }
 .featured .card-title { display: flex; align-items: center; gap: 21px; padding-left: 8px; }
 .featured .state-dot { width: 34px; height: 35px; }
-.description { font-weight: 400; font-size: 12px; line-height: 17px; margin: 14px 0 0; color: #bbb; }
+.description { font-weight: 400; font-size: 12px; line-height: 17px; margin: 10px 0 0; color: #bbb; }
+/* Deux lignes au plus dans la carte en vedette : au-delà, le texte passerait sous le quota. */
+.featured .description {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+}
 .project-card > span { min-width: 0; overflow: hidden; }
 .card-meta {
   display: block;
@@ -182,9 +192,17 @@ h3 { font-size: 16px; font-weight: 600; }
 
 /* ── Quotas ──────────────────────────────────────────────────── */
 
-.quota { display: grid; gap: 5px; margin-top: 12px; font-weight: 400; }
-.quota-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-.quota-rail { height: 4px; border-radius: 999px; background: #343434; overflow: hidden; }
+.quota { display: grid; gap: 5px; margin-top: 12px; font-weight: 400; flex-shrink: 0; }
+.quota-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  font-size: 12px; color: var(--muted); white-space: nowrap;
+}
+.quota-head span { overflow: hidden; text-overflow: ellipsis; }
+.quota-head strong { flex-shrink: 0; }
+/* En lignes, ces éléments sont des <span> : sans display block, la largeur ne s'applique pas. */
+.quota-rail { display: block; height: 4px; border-radius: 999px; background: #343434; overflow: hidden; }
+.quota-head { display: flex; }
+.quota-bar { display: block; }
 .quota-bar { height: 100%; border-radius: 999px; background: var(--green); }
 .quota[data-level="attention"] .quota-bar { background: var(--yellow); }
 .quota[data-level="critique"] .quota-bar { background: var(--orange); }
@@ -270,6 +288,87 @@ dialog p { line-height: 1.6; color: #bbb; }
   .palette { padding-bottom: 12px; }
   .all-link { margin-top: 15px; }
 }
+
+/* ── Landing publique ────────────────────────────────────────── */
+
+.page { max-width: 1050px; margin: 0 auto; padding: 0 32px 80px; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px; margin-bottom: 40px;
+}
+.topbar strong { font-size: 20px; font-weight: 600; }
+.hero { padding: 40px 0 56px; border-bottom: 1px solid var(--line); }
+.hero h1 { font-size: 46px; line-height: 56px; font-weight: 650; margin: 0 0 20px; max-width: 18ch; }
+.hero .lede { font-size: 18px; line-height: 28px; color: #bbb; max-width: 62ch; margin: 0 0 28px; }
+.hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid #424242; border-radius: 24px; padding: 4px 12px;
+  font-size: 12px; color: var(--muted); margin-bottom: 24px;
+}
+.tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+.block { padding: 50px 0; border-bottom: 1px solid var(--line); }
+.block:last-of-type { border-bottom: 0; }
+.block h2 { margin-bottom: 20px; }
+.block p { color: #bbb; line-height: 24px; max-width: 70ch; margin: 0 0 12px; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 20px; }
+.panel h3 { margin: 0 0 8px; }
+.panel p { font-size: 13px; line-height: 20px; margin: 0; }
+.steps { display: grid; gap: 10px; margin-top: 20px; counter-reset: pas; }
+.step { display: flex; gap: 16px; align-items: baseline; }
+.step::before {
+  counter-increment: pas; content: counter(pas);
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1px solid var(--green); color: var(--green);
+  font-size: 12px; font-weight: 600;
+}
+.limits { display: grid; gap: 10px; margin-top: 20px; }
+.limit { display: flex; gap: 12px; color: #bbb; font-size: 14px; }
+.limit::before { content: "—"; color: var(--muted); }
+.faq { display: grid; gap: 18px; margin-top: 24px; }
+.faq dt { font-weight: 600; margin-bottom: 4px; }
+.faq dd { margin: 0; color: #bbb; font-size: 13px; line-height: 20px; }
+.cta {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 32px; margin-top: 50px;
+}
+.cta h2 { margin-bottom: 12px; }
+.demo-frame {
+  margin-top: 24px; border: 1px solid var(--line); border-radius: 10px;
+  background: #1f1f1f; padding: 28px;
+}
+.foot { margin-top: 56px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ── Vue en lignes (proposition) ─────────────────────────────── */
+
+.segmented { display: inline-flex; border: 1px solid #444; border-radius: 24px; padding: 3px; gap: 2px; }
+.segmented button { height: 32px; padding: 0 14px; border-radius: 20px; font-size: 13px; color: var(--muted); }
+.segmented button[aria-pressed="true"] { background: #424242; color: var(--text); font-weight: 600; }
+
+.rows { border: 1px solid var(--line); border-radius: 5px; background: var(--surface); overflow: hidden; margin-top: 20px; }
+.row {
+  display: grid; grid-template-columns: 150px 1fr 160px 150px 120px;
+  gap: 20px; align-items: center; padding: 14px 20px;
+  border-top: 1px solid var(--line); width: 100%; text-align: left;
+}
+.row:first-child { border-top: 0; }
+.row.head {
+  background: #202020; font-size: 12px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; padding: 10px 20px;
+}
+.row:not(.head):hover { background: #2b2b2b; }
+.row .name { font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.row .env { display: flex; gap: 6px; }
+.row .env span {
+  border: 1px solid #3d3d3d; border-radius: 4px; padding: 1px 7px;
+  font-size: 11px; color: var(--muted);
+}
+.row .env span.on { border-color: var(--green); color: var(--green); }
+.row .when { font-size: 13px; color: var(--muted); }
+.row .quota { margin: 0; }
 
 .mobile-menu { display: none; }
 .toolbar .mobile-menu { margin-right: auto; }
