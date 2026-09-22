@@ -17,7 +17,7 @@
       <nav>
         <a href="#" aria-current="page">Projets <span class="figures">9</span></a>
         <a href="#">Déploiements <span class="figures">24</span></a>
-        <a href="#">Quotas <span class="figures" style="color:var(--attention)">2</span></a>
+        <a href="#">Quotas <span class="figures" style="color:var(--warning)">2</span></a>
         <a href="#">Journal des preuves</a>
       </nav>
     </div>
@@ -44,8 +44,8 @@
         <div class="counts mute">
           <span><b>5</b>posés</span>
           <span><b>1</b>en cours</span>
-          <span><b style="color:var(--attention)">1</b>attention</span>
-          <span><b style="color:var(--panne)">1</b>en panne</span>
+          <span><b style="color:var(--warning)">1</b>attention</span>
+          <span><b style="color:var(--failing)">1</b>en panne</span>
           <span><b>1</b>en veille</span>
         </div>
       </div>
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <!-- Ce qui attend une décision passe avant tout le reste. -->
+    <!-- Whatever needs a decision comes before everything else. -->
     <div class="verdict">
       <div>
         <span class="mono-label">Mise en ligne refusée · nyatefe · il y a 5 h</span>
@@ -86,52 +86,52 @@
       <tbody>
         <tr>
           <td class="project">lectio<small>lectio-reads.app</small></td>
-          <td><span class="state state-cours">En cours</span></td>
+          <td><span class="state state-active">En cours</span></td>
           <td><span class="env"><span class="on">prod</span><span class="on">preview</span><span class="on">dev</span></span></td>
           <td>il y a 12 min <span class="mute">· l’agent</span></td>
-          <td class="num"><span class="meter" style="--v:34%"><span class="figures">102 / 300</span><i></i></span></td>
+          <td class="num"><span class="meter" style="--value:34%"><span class="figures">102 / 300</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">nyatefe<small>nyatefe.app</small></td>
-          <td><span class="state state-panne">En panne</span></td>
+          <td><span class="state state-failing">En panne</span></td>
           <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
           <td>refusé il y a 5 h</td>
-          <td class="num"><span class="meter crit" style="--v:97%"><span class="figures">291 / 300</span><i></i></span></td>
+          <td class="num"><span class="meter crit" style="--value:97%"><span class="figures">291 / 300</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">boutiqflow<small>boutiqflow.app</small></td>
-          <td><span class="state state-attention">Attention</span></td>
+          <td><span class="state state-warning">Attention</span></td>
           <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
           <td>il y a 26 jours <span class="mute">· toi</span></td>
-          <td class="num"><span class="meter warn" style="--v:88%"><span class="figures">264 / 300</span><i></i></span></td>
+          <td class="num"><span class="meter warn" style="--value:88%"><span class="figures">264 / 300</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">vestio<small>vestio.app</small></td>
-          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="state state-healthy">Posé</span></td>
           <td><span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span></td>
           <td>il y a 3 jours <span class="mute">· toi</span></td>
-          <td class="num"><span class="meter" style="--v:62%"><span class="figures">186 / 300</span><i></i></span></td>
+          <td class="num"><span class="meter" style="--value:62%"><span class="figures">186 / 300</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">nettio<small>nettio.app</small></td>
-          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="state state-healthy">Posé</span></td>
           <td><span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span></td>
           <td>il y a 9 jours <span class="mute">· toi</span></td>
-          <td class="num"><span class="meter" style="--v:26%"><span class="figures">77 / 300</span><i></i></span></td>
+          <td class="num"><span class="meter" style="--value:26%"><span class="figures">77 / 300</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">firmo<small>domaine Coolify par défaut</small></td>
-          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="state state-healthy">Posé</span></td>
           <td><span class="env"><span class="on">prod</span><span class="on">preview</span><span class="on">dev</span></span></td>
           <td>il y a 3 semaines <span class="mute">· toi</span></td>
-          <td class="num"><span class="meter" style="--v:18%"><span class="figures">18 / 100</span><i></i></span></td>
+          <td class="num"><span class="meter" style="--value:18%"><span class="figures">18 / 100</span><i></i></span></td>
         </tr>
         <tr>
           <td class="project">barflow<small>barflow.app</small></td>
-          <td><span class="state state-veille">En veille</span></td>
+          <td><span class="state state-idle">En veille</span></td>
           <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
           <td>il y a 6 semaines</td>
-          <td class="num"><span class="meter" style="--v:12%"><span class="figures">12 / 100</span><i></i></span></td>
+          <td class="num"><span class="meter" style="--value:12%"><span class="figures">12 / 100</span><i></i></span></td>
         </tr>
       </tbody>
     </table>

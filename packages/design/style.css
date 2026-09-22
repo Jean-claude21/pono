@@ -1,16 +1,16 @@
-/* Pono — système de design, validé le 2026-09-22 (D-011).
-   Source unique : la console (`apps/web`) et les maquettes (`design/`) importent ce fichier.
-   Même discipline que Firmo, la famille de marque de l'atelier :
-   base achromatique, typographie Inter Tight + JetBrains Mono, filets horizontaux seuls,
-   chiffres en chasse fixe alignés à droite, et le bandeau de verdict qui répond avant de détailler.
-   Pono n'a pas de couleur de marque : la couleur ne sert qu'à dire l'état d'un projet.
-   Deux ambiances, un seul système : la page publique en clair, la console en sombre. */
+/* Pono — design system, validated on 2026-09-22 (D-011).
+   Single source: the console (`apps/web`) and the mockups (`design/`) both import this file.
+   Same discipline as Firmo, the studio's brand family:
+   achromatic base, Inter Tight + JetBrains Mono, horizontal hairlines only,
+   right-aligned tabular figures, and the verdict banner that answers before it explains.
+   Pono has no brand colour: colour only states a project's condition.
+   Two moods, one system: the public page is light, the console is dark. */
 
 @font-face { font-family: "Inter Tight"; src: url("fonts/InterTight-400.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Inter Tight"; src: url("fonts/InterTight-600.ttf") format("truetype"); font-weight: 600 700; font-display: swap; }
 @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-400.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 
-/* ── Jetons : clair (page publique) ───────────────────────────── */
+/* ── Tokens: light (public page) ─────────────────────────────── */
 
 :root {
   color-scheme: light;
@@ -23,14 +23,14 @@
   --hairline: #dcd8d0;
   --hairline-strong: #15171a;
 
-  /* Les états — la seule couleur du système. */
-  --pose: #1d6b45;
-  --cours: #15171a;
-  --attention: #93600f;
-  --panne: #a3261c;
-  --veille: #8a8f95;
-  --wash-panne: rgb(163 38 28 / 7%);
-  --wash-pose: rgb(29 107 69 / 7%);
+  /* Project states — the only colour in the system. */
+  --healthy: #1d6b45;
+  --active: #15171a;
+  --warning: #93600f;
+  --failing: #a3261c;
+  --idle: #8a8f95;
+  --wash-failing: rgb(163 38 28 / 7%);
+  --wash-healthy: rgb(29 107 69 / 7%);
 
   --sans: "Inter Tight", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, monospace;
@@ -39,7 +39,7 @@
   --s-xs: 4px; --s-sm: 8px; --s-md: 16px; --s-lg: 24px; --s-xl: 40px; --s-section: 88px;
 }
 
-/* ── Jetons : sombre (console) ─────────────────────────────────── */
+/* ── Tokens: dark (console) ──────────────────────────────────── */
 
 [data-theme="console"] {
   color-scheme: dark;
@@ -52,13 +52,13 @@
   --hairline: #2b2d31;
   --hairline-strong: #ecebe7;
 
-  --pose: #5fb183;
-  --cours: #ecebe7;
-  --attention: #d9a645;
-  --panne: #e3715f;
-  --veille: #6e7176;
-  --wash-panne: rgb(227 113 95 / 9%);
-  --wash-pose: rgb(95 177 131 / 9%);
+  --healthy: #5fb183;
+  --active: #ecebe7;
+  --warning: #d9a645;
+  --failing: #e3715f;
+  --idle: #6e7176;
+  --wash-failing: rgb(227 113 95 / 9%);
+  --wash-healthy: rgb(95 177 131 / 9%);
 }
 
 /* ── Base ──────────────────────────────────────────────────────── */
@@ -82,7 +82,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .figures { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .mute { color: var(--ink-mute); }
 
-/* ── Monogramme ────────────────────────────────────────────────── */
+/* ── Monogram ──────────────────────────────────────────────────── */
 
 .monogram { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; font-size: 20px; letter-spacing: -0.01em; text-decoration: none; }
 .monogram b {
@@ -91,7 +91,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   font-size: 14px; font-weight: 600; line-height: 1;
 }
 
-/* ── Boutons ───────────────────────────────────────────────────── */
+/* ── Buttons ───────────────────────────────────────────────────── */
 
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
@@ -105,30 +105,30 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .btn-ghost:hover { border-color: var(--ink-mute); color: var(--ink); }
 .btn-sm { padding: 8px 14px; font-size: 14px; }
 
-/* ── Le bandeau de verdict — le composant fondateur de la famille ─ */
+/* ── Verdict banner — the founding component of the family ────── */
 
 .verdict {
-  background: var(--wash-panne); border-left: 3px solid var(--panne);
+  background: var(--wash-failing); border-left: 3px solid var(--failing);
   padding: var(--s-md) var(--s-md) var(--s-md) 18px;
 }
-.verdict.pose { background: var(--wash-pose); border-left-color: var(--pose); }
-.verdict .mono-label { color: var(--panne); }
-.verdict.pose .mono-label { color: var(--pose); }
+.verdict.healthy { background: var(--wash-healthy); border-left-color: var(--healthy); }
+.verdict .mono-label { color: var(--failing); }
+.verdict.healthy .mono-label { color: var(--healthy); }
 .verdict h3 { font-size: 20px; line-height: 26px; font-weight: 600; margin-top: 6px; }
 .verdict p { font-size: 15px; line-height: 23px; color: var(--ink-soft); margin-top: 6px; }
 
-/* ── États ─────────────────────────────────────────────────────── */
+/* ── States ────────────────────────────────────────────────────── */
 
-/* Le libellé reste à l'encre : seule la pastille porte la couleur, pour que la page reste calme. */
+/* The label stays in ink; only the dot carries colour, so the page stays calm. */
 .state { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; white-space: nowrap; color: var(--ink); }
 .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); flex-shrink: 0; }
-.state-pose { --dot: var(--pose); }
-.state-cours { --dot: var(--cours); }
-.state-attention { --dot: var(--attention); }
-.state-panne { --dot: var(--panne); }
-.state-veille { --dot: var(--veille); color: var(--ink-mute); }
+.state-healthy { --dot: var(--healthy); }
+.state-active { --dot: var(--active); }
+.state-warning { --dot: var(--warning); }
+.state-failing { --dot: var(--failing); }
+.state-idle { --dot: var(--idle); color: var(--ink-mute); }
 
-/* ════════════════════════ PAGE PUBLIQUE ════════════════════════ */
+/* ════════════════════════ PUBLIC PAGE ════════════════════════ */
 
 .site-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -154,7 +154,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .hero .fine { font-size: 14px; color: var(--ink-mute); margin-top: 18px; }
 .hero .fine b { color: var(--ink-soft); font-weight: 600; }
 
-/* La preuve, dans le premier écran : une vraie vue de l'atelier. */
+/* The proof, in the first screen: a real view of the workshop. */
 .proof {
   background: var(--paper); border: 1px solid var(--hairline);
   box-shadow: 0 24px 60px rgb(21 23 26 / 10%);
@@ -246,14 +246,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .table .num { text-align: right; }
 .table .project { font-weight: 600; }
 .table .project small { display: block; font-weight: 400; font-size: 13px; color: var(--ink-mute); margin-top: 2px; }
-.env { display: flex; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--veille); }
+.env { display: flex; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--idle); }
 .env .on { color: var(--ink-soft); }
-.env .on::before { content: "● "; color: var(--pose); }
+.env .on::before { content: "● "; color: var(--healthy); }
 .meter { display: grid; gap: 6px; justify-items: end; }
 .meter .figures { font-size: 13px; }
 .meter i { display: block; width: 96px; height: 3px; background: var(--hairline); position: relative; }
-.meter i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--ink-mute); }
-.meter.warn .figures { color: var(--attention); }
-.meter.warn i::after { background: var(--attention); }
-.meter.crit .figures { color: var(--panne); }
-.meter.crit i::after { background: var(--panne); }
+.meter i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--value); background: var(--ink-mute); }
+.meter.warn .figures { color: var(--warning); }
+.meter.warn i::after { background: var(--warning); }
+.meter.crit .figures { color: var(--failing); }
+.meter.crit i::after { background: var(--failing); }

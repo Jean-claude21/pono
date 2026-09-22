@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// Sonde de santé du conteneur, interrogée par Coolify et par le HEALTHCHECK du Dockerfile.
+// Container health probe, polled by the Dockerfile HEALTHCHECK.
 export const Route = createFileRoute("/health")({
-  component: Sante,
+  component: Health,
 });
 
-function Sante() {
+function Health() {
   return <span className="sr-only">ok</span>;
 }

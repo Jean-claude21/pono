@@ -55,6 +55,8 @@ dépend jamais de la politique d'un fournisseur d'intelligence artificielle. *(D
 
 ## Additional Constraints — propres à Pono
 
+- **Le code est en anglais**, la documentation de `docs/` en français. **Aucune chaîne visible
+  en dur** : l'interface passe par les catalogues d'i18n, français et anglais dès la phase 1. *(D-013)*
 - **Un seul chemin technique en V1.** Aucun second fournisseur ni canevas métier avant que le
   premier chemin soit éprouvé de bout en bout. *(D-009)*
 - **Jamais de secret en dur.** Aucune clé commitée, aucune clé exposée au client, aucun secret
@@ -89,4 +91,4 @@ Cette constitution prime sur toute autre pratique. Toute complexité doit être 
 utilisateur réel, jamais par une élégance technique ni par une intuition. Les amendements sont
 documentés et datés dans `docs/DECISIONS.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-22 | **Last Amended**: 2026-09-22
+**Version**: 1.1.0 | **Ratified**: 2026-09-22 | **Last Amended**: 2026-09-22

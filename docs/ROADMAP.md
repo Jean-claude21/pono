@@ -40,6 +40,7 @@ Le produit est complet quand, pour un utilisateur qui n'a que son agent et ses c
 5. Il met en ligne, et le système **refuse** tant qu'un humain n'a pas validé.
 6. Il invite quelqu'un, avec des droits qui tiennent.
 7. Il peut partir : tout est sur ses comptes, l'export est un geste.
+8. Il utilise Pono en français ou en anglais.
 
 ## Advanced Options
 
@@ -95,8 +96,9 @@ le moindre écran définitif.
 - La validation se fait dans `design/` en HTML, CSS et JS, sans framework.
 
 ### Deliverables
-- `design/index.html`, `design/style.css`, `design/app.js`.
-- Les jetons portés ensuite dans le `@theme` de Tailwind, source unique.
+- `packages/design/style.css` — la source unique du système, en paquet `@pono/design`.
+- `design/landing.html` et `design/admin.html` — les maquettes de référence.
+- Les jetons exposés au `@theme` de Tailwind dans la console.
 
 ### Dependencies
 - Le mandat et le positionnement approuvés.
@@ -115,6 +117,8 @@ le moindre écran définitif.
 Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'eux sans rien chercher.
 
 ### Scope
+- **Socle d'internationalisation** (D-013) : catalogues français et anglais, choix de la langue,
+  formats localisés, codes d'erreur stables ; les textes de la landing y migrent.
 - Modèle de domaine : organisation, membre, rôle, projet, environnement, connexion, déploiement.
   Ancre : le **projet**. Frontière dure : l'**organisation**.
 - Première migration avec RLS, base serverless.

@@ -1,12 +1,12 @@
-# Console de Pono — construite depuis la racine du dépôt (contexte « / » dans Coolify),
-# parce qu'elle dépend du paquet de l'espace de travail @pono/design.
-# Reprend la recette éprouvée par Firmo : build Vite, puis srvx sert le rendu serveur et le statique.
+# Pono console — built from the repository root (context "/" in Coolify)
+# because it depends on the @pono/design workspace package.
+# Follows the recipe proven by Firmo: Vite build, then srvx serves SSR and static files.
 
 FROM node:22.14.0-bookworm-slim AS build
 WORKDIR /app
 
-# pnpm est installé explicitement : la vérification de signature de corepack a déjà cassé des
-# builds de l'atelier (leçon Fluxio).
+# pnpm is installed explicitly: corepack signature verification has already broken
+# studio builds (Fluxio lesson).
 RUN npm install -g pnpm@11.25.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -36,5 +36,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=12 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
 
-# Le répertoire statique est donné en chemin absolu : srvx ne résout pas toujours un chemin relatif.
+# The static directory is an absolute path: srvx does not always resolve a relative one.
 CMD ["node_modules/.bin/srvx", "serve", "--entry", "dist/server/server.js", "--static", "/app/apps/web/dist/client", "--prod", "--host", "0.0.0.0", "--port", "3000"]

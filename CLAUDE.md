@@ -40,6 +40,13 @@ proposée (D-011).
 3. **Le RLS dans la migration créatrice**, jamais dans une migration suivante.
 4. **Le registre de vérité avant toute affirmation publique.** Aucun chiffre non mesuré.
 
+## La langue du code et du produit
+
+- **Le code est en anglais** : identifiants, variables, classes, jetons, commentaires, noms de
+  fichiers, messages de commit. Seule la documentation de `docs/` est en français (D-013).
+- **Aucune chaîne visible en dur** dans un composant : tout passe par les catalogues d'i18n,
+  français par défaut et anglais (D-013).
+
 ## Gestes interdits à l'agent
 
 - Écrire un nom de fournisseur (GitHub, Neon, Netlify, Coolify, Claude…) dans le domaine. Ils

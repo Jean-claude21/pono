@@ -106,7 +106,7 @@ réponse directe aux factures imprévisibles du marché.
 
 ## D-010 — Le serveur en FastAPI, la console en TanStack Start
 
-**Proposé, en attente de validation humaine.** Remplace la première version de cette décision, qui
+**Validé le 2026-09-22.** Remplace la première version de cette décision, qui
 proposait tout en TypeScript sur un argument faux.
 
 **Tranché ainsi.** Le poste de contrôle — API de la console, serveur MCP, serveur d'autorisation
@@ -159,6 +159,30 @@ L'hébergement serverless — Netlify aujourd'hui — n'est qu'un **adaptateur p
 pour leurs propres applications.
 
 **Pourquoi.** Pono a besoin d'un serveur permanent (D-010), et l'infrastructure existe déjà.
+
+---
+
+## D-013 — Le code est en anglais, le produit est international
+
+**Validé le 2026-09-22.**
+
+**Tranché.**
+
+1. **Tout le code est en anglais** : identifiants, variables, fonctions, classes CSS, jetons,
+   commentaires, noms de fichiers, messages de commit. La documentation humaine de `docs/` reste
+   en français.
+2. **L'internationalisation est posée dès la phase 1**, avant le premier écran produit :
+   - aucune chaîne visible écrite en dur dans un composant — tout passe par des catalogues ;
+   - deux langues dès le départ : **français** par défaut, **anglais** ;
+   - la langue se choisit par l'utilisateur, sinon par le navigateur ;
+   - dates, nombres et montants formatés selon la langue, jamais à la main ;
+   - le serveur renvoie des **codes d'erreur stables**, traduits côté interface.
+
+**Pourquoi.** Le produit vise un public international (D-001). Rattraper l'i18n après coup veut dire
+reprendre chaque écran ; la poser dès la première tranche ne coûte presque rien.
+
+**Ce que ça implique aujourd'hui.** Les textes de la landing sont encore en français dans le code :
+la phase 1 les déplace dans les catalogues.
 
 ---
 
