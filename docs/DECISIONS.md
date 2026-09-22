@@ -132,6 +132,25 @@ réécriture.
 
 ---
 
+## D-011 — Le système visuel est la charte déjà validée
+
+**Tranché.** Pono reprend la charte visuelle validée : interface sombre `#282828` / `#242424`,
+ligne `#494949`, texte `#dedede`, Segoe UI 14 px, panneau latéral de 262 px, cartes à rayon 5 et
+hauteur 66, puces de 43 px, accent vert `#1ca18c`, focus orange `#f99d32`, jaune `#e8e748`, café
+`#875028`.
+
+**Pourquoi.** Elle est déjà arrêtée et éprouvée. Repartir d'une direction neuve aurait coûté un
+cycle d'approbation pour un gain nul.
+
+**Ce que ça implique.** Les cinq états s'expriment dans cette palette : posé en vert, en cours en
+blanc, attention en jaune, en panne en orange, en veille en gris. Aucune couleur hors charte n'est
+introduite.
+
+**Règle de travail qui en découle.** Toute proposition visuelle est **rendue et regardée** avant
+d'être présentée. Une maquette jamais affichée n'est pas une proposition.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

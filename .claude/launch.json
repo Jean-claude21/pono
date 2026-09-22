@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pono-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pono/web", "exec", "vite", "--port", "3000", "--strictPort"],
+      "port": 3000
+    },
+    {
+      "name": "pono-design",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@pono/web",
+        "exec",
+        "vite",
+        "../../design",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "port": 4173
+    }
+  ]
+}

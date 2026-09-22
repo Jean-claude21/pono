@@ -1,93 +1,72 @@
 /* Pono — page de validation du système de design.
-   Les données sont fictives mais réalistes : elles viennent des projets de l'atelier,
-   pour éprouver les composants sur des cas vrais plutôt que sur du remplissage. */
+   Mêmes mécanismes que la maquette de référence : icônes injectées par data-icon,
+   cartes rendues depuis des données, puces filtrantes, dialogue, notification.
+   Les projets sont ceux de l'atelier, pour éprouver les composants sur du vrai. */
+
+/* ── Icônes ──────────────────────────────────────────────────── */
+
+const ICONES = {
+  grid: '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>',
+  check: '<path d="M5 12.5 9.5 17 19 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  panel: '<rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 4.5v15" stroke="currentColor" stroke-width="1.6"/>',
+  plus: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  search: '<circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  books: '<path d="M5 5h4v14H5zM11 5h3v14h-3zM16.5 6l3 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  teach: '<path d="M4 18V7a2 2 0 0 1 2-2h5v13H6a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 18V7a2 2 0 0 0-2-2h-5v13h5a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  graduate: '<path d="M12 5 3 9l9 4 9-4-9-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 11.5V16c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  agent: '<rect x="4.5" y="7.5" width="15" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 4.5v3" stroke="currentColor" stroke-width="1.6"/><circle cx="9.5" cy="13" r="1.2"/><circle cx="14.5" cy="13" r="1.2"/>',
+  more: '<circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/>',
+  download: '<path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  chevron: '<path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  arrow: '<path d="M4 12h15m0 0-5-5m5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+
+function poserIcones(racine = document) {
+  racine.querySelectorAll("[data-icon]").forEach((element) => {
+    const dessin = ICONES[element.dataset.icon];
+    if (!dessin) return;
+    element.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${dessin}</svg>`;
+  });
+}
+
+/* ── Les données de l'atelier ────────────────────────────────── */
+
+const ETATS = {
+  pose: "Posé",
+  cours: "En cours",
+  attention: "Attention",
+  panne: "En panne",
+  veille: "En veille",
+};
 
 const PROJETS = [
   {
-    nom: "vestio",
-    etat: "pose",
-    etatTexte: "Posé",
-    prod: "vestio.netlify.app",
-    preview: null,
-    dev: "vestio-dev.coolify.app",
-    dernier: "il y a 3 jours · par toi",
-    quota: { libelle: "Crédits d'hébergement", valeur: 62, texte: "186 / 300" },
-  },
-  {
     nom: "lectio",
     etat: "cours",
-    etatTexte: "En cours",
-    prod: "lectio-reads.netlify.app",
-    preview: "deploy-preview-12",
-    dev: "lectio-dev.coolify.app",
-    dernier: "il y a 12 minutes · par l'agent",
-    quota: { libelle: "Crédits d'hébergement", valeur: 34, texte: "102 / 300" },
+    vedette: true,
+    resume: "Preview #12 ouverte par l’agent. Deux migrations attendent ta validation.",
+    meta: "prod · preview · dev",
+    quota: { libelle: "Crédits d’hébergement", valeur: 34, texte: "102 / 300" },
   },
-  {
-    nom: "boutiqflow",
-    etat: "attention",
-    etatTexte: "Attention",
-    prod: "boutiqflow.netlify.app",
-    preview: null,
-    dev: null,
-    dernier: "il y a 26 jours",
-    quota: { libelle: "Crédits d'hébergement", valeur: 88, texte: "264 / 300" },
-  },
-  {
-    nom: "barflow",
-    etat: "veille",
-    etatTexte: "En veille",
-    prod: "barflow.netlify.app",
-    preview: null,
-    dev: null,
-    dernier: "il y a 2 mois",
-    quota: { libelle: "Compute de la base", valeur: 12, texte: "12 / 100 CU-h" },
-  },
-  {
-    nom: "nyatefe",
-    etat: "panne",
-    etatTexte: "En panne",
-    prod: "nyatefe.netlify.app",
-    preview: null,
-    dev: null,
-    dernier: "échec il y a 5 h · migration refusée",
-    quota: { libelle: "Crédits d'hébergement", valeur: 97, texte: "291 / 300" },
-  },
+  { nom: "vestio", etat: "pose", meta: "en ligne il y a 3 jours" },
+  { nom: "nettio", etat: "pose", meta: "en ligne il y a 9 jours" },
+  { nom: "fakti", etat: "veille", meta: "aucun déploiement depuis 2 mois" },
+  { nom: "kairos", etat: "pose", meta: "en ligne il y a 5 jours" },
+  { nom: "boutiqflow", etat: "attention", meta: "264 / 300 crédits" },
+  { nom: "nyatefe", etat: "panne", meta: "migration refusée il y a 5 h" },
+  { nom: "barflow", etat: "veille", meta: "en veille depuis 6 semaines" },
+  { nom: "firmo", etat: "pose", meta: "en ligne il y a 3 semaines" },
 ];
 
 const DEPLOIEMENTS = [
-  ["il y a 12 min", "lectio · preview #12", "l'agent", "cours", "En cours"],
-  ["il y a 5 h", "nyatefe · production", "toi", "panne", "Refusé"],
-  ["il y a 3 j", "vestio · production", "toi", "pose", "En ligne"],
-  ["il y a 6 j", "lectio · production", "toi", "pose", "En ligne"],
+  { nom: "lectio · preview #12", etat: "cours", meta: "par l’agent · il y a 12 min" },
+  { nom: "nyatefe · production", etat: "panne", meta: "refusé · migration destructrice" },
+  { nom: "vestio · production", etat: "pose", meta: "par toi · il y a 3 jours" },
 ];
 
-const QUOTAS = [
-  { libelle: "Crédits d'hébergement · nyatefe", valeur: 97, texte: "291 / 300" },
-  { libelle: "Crédits d'hébergement · boutiqflow", valeur: 88, texte: "264 / 300" },
-  { libelle: "Compute de la base · lectio", valeur: 41, texte: "41 / 100 CU-h" },
-];
+/* ── Rendu ───────────────────────────────────────────────────── */
 
-const NUANCES = [
-  ["--fond", "Fond"],
-  ["--surface", "Surface"],
-  ["--surface-creuse", "Surface creuse"],
-  ["--ligne", "Ligne"],
-  ["--encre", "Encre"],
-  ["--encre-douce", "Encre douce"],
-  ["--accent", "Accent"],
-  ["--pose", "Posé"],
-  ["--cours", "En cours"],
-  ["--attention", "Attention"],
-  ["--panne", "En panne"],
-  ["--veille", "En veille"],
-];
-
-const ESPACEMENTS = ["--e1", "--e2", "--e3", "--e4", "--e5", "--e6", "--e7", "--e8"];
-
-/* ─────────────── Rendu ─────────────── */
-
-function niveauQuota(valeur) {
+function niveau(valeur) {
   if (valeur >= 90) return "critique";
   if (valeur >= 80) return "attention";
   return "normal";
@@ -95,140 +74,143 @@ function niveauQuota(valeur) {
 
 function quotaHtml({ libelle, valeur, texte }) {
   return `
-    <div class="quota" data-niveau="${niveauQuota(valeur)}">
-      <div class="quota__tete"><span>${libelle}</span><strong>${texte}</strong></div>
-      <div class="quota__rail"><div class="quota__jauge" style="width:${valeur}%"></div></div>
+    <div class="quota" data-level="${niveau(valeur)}">
+      <div class="quota-head"><span>${libelle}</span><strong>${texte}</strong></div>
+      <div class="quota-rail"><div class="quota-bar" style="width:${valeur}%"></div></div>
     </div>`;
 }
 
-function lienEnv(libelle, cible) {
-  if (!cible) return `<span class="lien-env" data-muet>${libelle} · absent</span>`;
-  return `<a class="lien-env" href="#" title="${cible}">${libelle}</a>`;
+function pastille(etat) {
+  return `<i class="state-dot state-${etat}" title="${ETATS[etat]}"><span></span></i>`;
 }
 
 function carteHtml(projet) {
+  if (projet.vedette) {
+    return `
+      <button class="project-card featured" data-project="${projet.nom}">
+        <span class="card-title">${pastille(projet.etat)}${projet.nom}</span>
+        <p class="description">${projet.resume}</p>
+        ${quotaHtml(projet.quota)}
+      </button>`;
+  }
   return `
-    <article class="carte">
-      <div class="carte__tete">
-        <span class="carte__nom">${projet.nom}</span>
-        <span class="etat etat--${projet.etat}">${projet.etatTexte}</span>
-      </div>
-      <div class="carte__liens">
-        ${lienEnv("prod", projet.prod)}
-        ${lienEnv("preview", projet.preview)}
-        ${lienEnv("dev", projet.dev)}
-      </div>
-      ${quotaHtml(projet.quota)}
-      <div class="carte__pied">
-        <span>${projet.dernier}</span>
-        <button class="bouton bouton--fantome">Ouvrir</button>
-      </div>
-    </article>`;
+    <button class="project-card" data-project="${projet.nom}">
+      ${pastille(projet.etat)}
+      <span>${projet.nom}<span class="card-meta">${projet.meta}</span></span>
+    </button>`;
 }
 
 function rendre() {
-  document.getElementById("projets").innerHTML = PROJETS.map(carteHtml).join("");
-
-  document.getElementById("deploiements").innerHTML = DEPLOIEMENTS.map(
-    ([quand, quoi, qui, etat, texte]) => `
-      <div class="liste__ligne">
-        <span class="faible">${quand}</span>
-        <span>${quoi}</span>
-        <span class="faible">${qui}</span>
-        <span class="etat etat--${etat}">${texte}</span>
-      </div>`,
+  document.getElementById("main-projects").innerHTML = PROJETS.map(carteHtml).join("");
+  document.getElementById("deployments").innerHTML = DEPLOIEMENTS.map(
+    (ligne) => `
+      <button class="project-card" data-project="${ligne.nom}">
+        ${pastille(ligne.etat)}
+        <span>${ligne.nom}<span class="card-meta">${ligne.meta}</span></span>
+      </button>`,
   ).join("");
-
-  document.getElementById("quotas").innerHTML = QUOTAS.map(quotaHtml).join("");
-
-  document.getElementById("nuancier").innerHTML = NUANCES.map(
-    ([jeton, nom]) => `
-      <div class="nuance">
-        <div class="nuance__pastille" style="background: var(${jeton})"></div>
-        <span>${nom}</span>
-        <span class="faible mono">${jeton}</span>
-      </div>`,
-  ).join("");
-
-  document.getElementById("espacement").innerHTML = ESPACEMENTS.map(
-    (jeton) => `
-      <div class="nuance">
-        <div style="width: var(${jeton}); height: 44px; background: var(--accent); border-radius: 2px"></div>
-        <span class="faible mono">${jeton}</span>
-      </div>`,
-  ).join("");
+  poserIcones();
 }
 
-/* ─────────────── Le thème ─────────────── */
+/* ── Les puces d'état ────────────────────────────────────────── */
 
-const bascule = document.getElementById("bascule-theme");
+const resultats = document.getElementById("state-results");
 
-function appliquerTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  bascule.textContent = theme === "sombre" ? "Mode clair" : "Mode sombre";
-  bascule.setAttribute("aria-pressed", String(theme === "sombre"));
-  try {
-    localStorage.setItem("pono-theme", theme);
-  } catch {
-    /* Un navigateur privé refuse le stockage : le thème reste valable pour la session. */
-  }
+function filtrer(etat) {
+  const liste = PROJETS.filter((projet) => projet.etat === etat);
+  document.getElementById("state-title").textContent = `${ETATS[etat]} · ${liste.length} projet${liste.length > 1 ? "s" : ""}`;
+  document.getElementById("results").innerHTML = liste.length
+    ? liste
+        .map(
+          (projet) => `
+        <button class="project-card" data-project="${projet.nom}">
+          ${pastille(projet.etat)}
+          <span>${projet.nom}<span class="card-meta">${projet.meta ?? ""}</span></span>
+        </button>`,
+        )
+        .join("")
+    : `<p class="description">Aucun projet dans cet état.</p>`;
+  resultats.hidden = false;
+  poserIcones(resultats);
 }
 
-bascule.addEventListener("click", () => {
-  appliquerTheme(document.documentElement.dataset.theme === "sombre" ? "clair" : "sombre");
+document.querySelectorAll(".chip[data-state]").forEach((puce) => {
+  puce.addEventListener("click", () => {
+    document.querySelectorAll(".chip[data-state]").forEach((autre) => {
+      autre.classList.toggle("active", autre === puce);
+      autre.setAttribute("aria-pressed", String(autre === puce));
+    });
+    filtrer(puce.dataset.state);
+  });
 });
 
-/* ─────────────── Le dialogue de mise en ligne ─────────────── */
+const menuEtats = document.getElementById("state-menu");
+menuEtats.innerHTML = `<button data-state="veille">En veille <span>2</span></button>`;
+menuEtats.querySelector("button").addEventListener("click", () => {
+  menuEtats.hidden = true;
+  filtrer("veille");
+});
+document.getElementById("more-states").addEventListener("click", (evenement) => {
+  evenement.stopPropagation();
+  menuEtats.hidden = !menuEtats.hidden;
+});
 
-const dialogue = document.getElementById("dialogue");
+/* ── Mettre en ligne : le refus et la validation ─────────────── */
+
+const dialogue = document.getElementById("detail");
+const menuDeploiement = document.getElementById("deploy-menu");
 
 const CAS = {
   refus: {
     etat: "panne",
-    etatTexte: "Refusé",
-    titre: "La mise en ligne est refusée",
+    titre: "nyatefe · mise en ligne refusée",
     corps: `
-      <p>La migration <span class="mono">0007_drop_orders.sql</span> supprime une table qui contient
-      des données en production.</p>
-      <div class="verdict verdict--refus">
+      <p>La migration <strong>0007_drop_orders.sql</strong> supprime une table qui contient des
+      données en production.</p>
+      <div class="verdict refus">
         <strong>Ce que le système a bloqué</strong>
-        <span>Une suppression de table. Rien n'a été exécuté, la production n'a pas bougé.</span>
+        <span>Une suppression de table. Rien n’a été exécuté, la production n’a pas bougé.</span>
       </div>
-      <p class="faible">Ce refus vient du système, pas de l'agent. Il ne se contourne pas par une
-      instruction.</p>`,
-    actions: `
-      <button class="bouton bouton--fantome" data-fermer>Fermer</button>
-      <button class="bouton bouton--contour" data-fermer>Voir la migration</button>`,
+      <p>Ce refus vient du système, pas de l’agent. Il ne se contourne pas par une instruction.</p>
+      <button class="ghost" data-fermer>Voir la migration</button>`,
   },
   accord: {
     etat: "pose",
-    etatTexte: "Prêt",
-    titre: "Mettre lectio en ligne",
+    titre: "lectio · prêt pour la production",
     corps: `
-      <p>Deux migrations additives, aucune suppression. La preview a répondu, les secrets sont
-      absents du dépôt.</p>
-      <div class="verdict verdict--accord">
+      <p>Deux migrations additives, aucune suppression. La preview a répondu, aucun secret dans le
+      dépôt.</p>
+      <div class="verdict accord">
         <strong>Les trois garde-fous sont verts</strong>
         <span>Secrets · preview vérifiée · migrations additives.</span>
       </div>
-      <p class="faible">Après ta validation, la production est déployée et la migration rejouée sur
-      la base principale.</p>`,
-    actions: `
-      <button class="bouton bouton--fantome" data-fermer>Annuler</button>
-      <button class="bouton bouton--premier" data-fermer data-notifier>Valider et mettre en ligne</button>`,
+      <p>Après ta validation, la production est déployée et les migrations rejouées sur la base
+      principale.</p>
+      <button class="launch" data-fermer data-notifier>Valider et mettre en ligne</button>`,
   },
 };
 
-document.querySelectorAll("[data-ouvrir-dialogue]").forEach((bouton) => {
+function ouvrirCas(cle) {
+  const cas = CAS[cle];
+  document.getElementById("detail-content").innerHTML = `
+    <div class="card-title">${pastille(cas.etat)}</div>
+    <h2>${cas.titre}</h2>
+    ${cas.corps}`;
+  poserIcones(dialogue);
+  dialogue.showModal();
+}
+
+document.getElementById("deploy-button").addEventListener("click", (evenement) => {
+  evenement.stopPropagation();
+  const ouvert = menuDeploiement.hidden;
+  menuDeploiement.hidden = !ouvert;
+  evenement.currentTarget.setAttribute("aria-expanded", String(ouvert));
+});
+
+menuDeploiement.querySelectorAll("button").forEach((bouton) => {
   bouton.addEventListener("click", () => {
-    const cas = CAS[bouton.dataset.ouvrirDialogue];
-    const badge = document.getElementById("dialogue-etat");
-    badge.className = `etat etat--${cas.etat}`;
-    badge.textContent = cas.etatTexte;
-    document.getElementById("dialogue-titre").textContent = cas.titre;
-    document.getElementById("dialogue-corps").innerHTML = cas.corps;
-    document.getElementById("dialogue-actions").innerHTML = cas.actions;
-    dialogue.showModal();
+    menuDeploiement.hidden = true;
+    ouvrirCas(bouton.dataset.case);
   });
 });
 
@@ -236,16 +218,16 @@ dialogue.addEventListener("click", (evenement) => {
   const cible = evenement.target;
   if (!(cible instanceof HTMLElement) || !cible.hasAttribute("data-fermer")) return;
   dialogue.close();
-  if (cible.hasAttribute("data-notifier")) notifier("lectio est en ligne. Déploiement 6ab2d0d.");
+  if (cible.hasAttribute("data-notifier")) notifier("lectio est en ligne · déploiement 6ab2d0d");
 });
 
-/* ─────────────── La notification ─────────────── */
+/* ── Notification ────────────────────────────────────────────── */
 
-const notification = document.getElementById("notification");
+const notification = document.getElementById("toast");
 let minuterie;
 
 function notifier(message) {
-  notification.innerHTML = `<span class="etat etat--pose">Fait</span><span>${message}</span>`;
+  notification.textContent = message;
   notification.hidden = false;
   clearTimeout(minuterie);
   minuterie = setTimeout(() => {
@@ -253,17 +235,28 @@ function notifier(message) {
   }, 4000);
 }
 
-document.getElementById("voir-notification").addEventListener("click", () => {
-  notifier("nyatefe : il te reste 9 crédits d'hébergement ce mois-ci.");
+/* ── Panneau et actions secondaires ──────────────────────────── */
+
+document.querySelectorAll('[data-action="sidebar"]').forEach((bouton) => {
+  bouton.addEventListener("click", () => {
+    document.body.classList.toggle("sidebar-collapsed");
+  });
 });
 
-/* ─────────────── Démarrage ─────────────── */
+document.querySelectorAll("[data-project]").forEach((element) => {
+  element.addEventListener("click", () => notifier(`${element.dataset.project} · ouvert`));
+});
 
-let themeInitial = "clair";
-try {
-  themeInitial = localStorage.getItem("pono-theme") ?? "clair";
-} catch {
-  /* Stockage indisponible : on démarre en clair. */
-}
-appliquerTheme(themeInitial);
+document.getElementById("all-projects").addEventListener("click", () => {
+  notifier("Neuf projets posés dans l’atelier.");
+});
+
+document.addEventListener("click", () => {
+  menuDeploiement.hidden = true;
+  menuEtats.hidden = true;
+});
+
+/* ── Démarrage ───────────────────────────────────────────────── */
+
 rendre();
+filtrer("attention");

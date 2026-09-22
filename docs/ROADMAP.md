@@ -84,8 +84,11 @@ Un système de design éprouvé sur les cas réels du produit — états, quotas
 le moindre écran définitif.
 
 ### Scope
-- Jetons : couleur, typographie, espacement, rayon, élévation, en clair **et** en sombre.
-- Six composants : carte de projet, badge d'état, barre de quota, liste, bouton, confirmation.
+- Les jetons de la **charte validée** : fonds `#282828` et `#242424`, ligne `#494949`, texte
+  `#dedede`, accent vert `#1ca18c`, focus orange `#f99d32`, jaune `#e8e748`, café `#875028`.
+  Segoe UI, base 14 px, panneau de 262 px, cartes à rayon 5, puces de 43 px.
+- Les composants : carte de projet, carte en vedette, pastille d'état, barre de quota, puces
+  filtrantes, dialogue de mise en ligne, notification.
 - La validation se fait dans `design/` en HTML, CSS et JS, sans framework.
 
 ### Deliverables
@@ -96,8 +99,10 @@ le moindre écran définitif.
 - Le mandat et le positionnement approuvés.
 
 ### Verification
-- `[agent]` La page rend les six composants dans les deux thèmes, sans valeur hors échelle.
-- `[bloquant]` La direction visuelle et le symbole sont approuvés par un humain.
+- `[agent]` La page est rendue et **regardée** avant d'être proposée : capture à 1440 px, plus les
+  états du dialogue. Une maquette non regardée n'est pas livrée.
+- `[agent]` Aucune valeur de couleur, de taille ou d'espacement hors de la charte.
+- `[bloquant]` La direction visuelle est approuvée par un humain.
 
 ---
 
