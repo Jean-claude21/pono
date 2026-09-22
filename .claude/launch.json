@@ -15,7 +15,7 @@
         "@pono/web",
         "exec",
         "vite",
-        "../../design",
+        "../..",
         "--port",
         "4173",
         "--strictPort"

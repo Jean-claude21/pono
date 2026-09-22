@@ -133,7 +133,7 @@ partagés nativement entre web et serveur : le SDK généré depuis l'OpenAPI y 
 
 ## D-011 — Le système visuel suit la discipline de la famille Firmo
 
-**Proposé, en attente de validation humaine.** Remplace la première version, qui reprenait la
+**Validé le 2026-09-22.** Remplace la première version, qui reprenait la
 charte de KYA-Energy Group — une marque qui n'est pas celle de Pono.
 
 **Tranché ainsi.** Pono hérite de la **discipline** de Firmo, pas de sa couleur :

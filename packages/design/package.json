@@ -1,0 +1,11 @@
+{
+  "name": "@pono/design",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Le système de design de Pono : jetons, typographie et composants de la famille Firmo.",
+  "type": "module",
+  "exports": {
+    "./style.css": "./style.css"
+  },
+  "files": ["style.css", "fonts"]
+}

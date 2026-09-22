@@ -1,5 +1,24 @@
 @import "tailwindcss";
+@import "@pono/design/style.css";
 
-:root {
-  color-scheme: light;
+/* Les jetons du système de design, exposés à Tailwind. Ils pointent vers les variables du paquet
+   `@pono/design` : la bascule clair / sombre se fait là-bas, les utilitaires suivent. */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-alt: var(--canvas-alt);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-mute: var(--ink-mute);
+  --color-hairline: var(--hairline);
+  --color-pose: var(--pose);
+  --color-cours: var(--cours);
+  --color-attention: var(--attention);
+  --color-panne: var(--panne);
+  --color-veille: var(--veille);
+
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+
+  --radius-sm: var(--r-sm);
 }
