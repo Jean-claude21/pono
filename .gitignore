@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.output/
+.netlify/
+.vinxi/
+.tanstack/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+coverage/
+.turbo/

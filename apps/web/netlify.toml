@@ -1,0 +1,4 @@
+# Le plugin officiel Netlify pour TanStack Start produit le client et la fonction SSR.
+[build]
+  command = "pnpm build"
+  publish = "dist/client"

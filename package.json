@@ -1,0 +1,14 @@
+{
+  "name": "pono",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @pono/web dev",
+    "build": "pnpm --filter @pono/web build",
+    "typecheck": "pnpm --filter @pono/web typecheck"
+  }
+}
