@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr" data-theme="clair">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pono — validation du système de design</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<div class="console">
+
+  <aside class="lateral">
+    <div class="marque"><span class="symbole">P</span><strong>Pono</strong></div>
+
+    <div>
+      <p class="menu-titre">Atelier</p>
+      <nav class="menu" aria-label="Navigation principale">
+        <button aria-current="page"><span class="puce"></span>Projets</button>
+        <button><span class="puce"></span>Déploiements</button>
+        <button><span class="puce"></span>Quotas</button>
+        <button><span class="puce"></span>Connexions</button>
+      </nav>
+    </div>
+
+    <div class="bas">
+      <button class="bouton bouton--contour" id="bascule-theme" aria-pressed="false">Mode sombre</button>
+      <p class="faible">Validation du système de design · septembre 2026</p>
+    </div>
+  </aside>
+
+  <main class="vue">
+
+    <header class="entete">
+      <div>
+        <h1>Projets</h1>
+        <p class="muet">Cinq projets posés. Un demande ton attention.</p>
+      </div>
+      <div class="rangee">
+        <button class="bouton bouton--contour">Importer</button>
+        <button class="bouton bouton--premier" data-ouvrir-dialogue="refus">Mettre en ligne</button>
+      </div>
+    </header>
+
+    <section class="grille" id="projets" aria-label="Projets"></section>
+
+    <section class="bloc">
+      <h2>Déploiements récents</h2>
+      <div class="liste" id="deploiements"></div>
+    </section>
+
+    <!-- ───────────── Galerie : la preuve que les jetons tiennent ───────────── -->
+
+    <section class="bloc">
+      <h2>Les états</h2>
+      <p class="muet">Ils comptent plus que la couleur de marque : c'est ce qu'on lit en premier.</p>
+      <div class="rangee">
+        <span class="etat etat--pose">Posé</span>
+        <span class="etat etat--cours">En cours</span>
+        <span class="etat etat--attention">Attention</span>
+        <span class="etat etat--panne">En panne</span>
+        <span class="etat etat--veille">En veille</span>
+      </div>
+    </section>
+
+    <section class="bloc">
+      <h2>Les boutons</h2>
+      <p class="muet">Une seule action dominante par écran. L'accent est réservé à ce qui engage.</p>
+      <div class="rangee">
+        <button class="bouton bouton--premier">Mettre en ligne</button>
+        <button class="bouton bouton--contour">Voir la preview</button>
+        <button class="bouton">Secondaire</button>
+        <button class="bouton bouton--fantome">Annuler</button>
+        <button class="bouton bouton--risque">Supprimer l'environnement</button>
+        <button class="bouton bouton--premier" disabled>Indisponible</button>
+      </div>
+    </section>
+
+    <section class="bloc">
+      <h2>Les quotas</h2>
+      <p class="muet">Prévenir avant la pause, jamais après.</p>
+      <div class="grille" id="quotas"></div>
+    </section>
+
+    <section class="bloc">
+      <h2>La confirmation, et le refus</h2>
+      <p class="muet">
+        Le refus est le moment le plus important du produit : il doit être lisible, calme, et ne
+        jamais ressembler à une erreur du système.
+      </p>
+      <div class="rangee">
+        <button class="bouton bouton--contour" data-ouvrir-dialogue="refus">Voir le refus</button>
+        <button class="bouton bouton--contour" data-ouvrir-dialogue="accord">Voir la validation</button>
+        <button class="bouton bouton--contour" id="voir-notification">Voir la notification</button>
+      </div>
+    </section>
+
+    <section class="bloc">
+      <h2>Les couleurs</h2>
+      <div class="nuancier" id="nuancier"></div>
+    </section>
+
+    <section class="bloc">
+      <h2>La typographie</h2>
+      <div class="echelle">
+        <p style="font-size: var(--t-3xl); font-weight: 600; letter-spacing: -0.02em;">Pose. Ça tient.</p>
+        <p style="font-size: var(--t-xl); font-weight: 600;">Un titre de section</p>
+        <p style="font-size: var(--t-l);">Un sous-titre, pour porter une idée</p>
+        <p>Le corps de texte : celui qui dit l'état réel d'un projet, sans effet.</p>
+        <p class="faible">Le détail secondaire, daté, chiffré.</p>
+        <p class="mono">pono-app · déploiement 6ab2d0d · il y a 2 h</p>
+      </div>
+    </section>
+
+    <section class="bloc">
+      <h2>L'espacement</h2>
+      <p class="muet">Huit pas. Aucune valeur en dehors de cette échelle.</p>
+      <div class="rangee" id="espacement"></div>
+    </section>
+
+  </main>
+</div>
+
+<dialog id="dialogue">
+  <div class="dialogue__titre">
+    <span class="etat" id="dialogue-etat"></span>
+    <h3 id="dialogue-titre"></h3>
+  </div>
+  <div class="dialogue__corps" id="dialogue-corps"></div>
+  <div class="dialogue__actions" id="dialogue-actions"></div>
+</dialog>
+
+<div class="notification" id="notification" hidden role="status"></div>
+</body>
+</html>

@@ -104,6 +104,34 @@ réponse directe aux factures imprévisibles du marché.
 
 ---
 
+## D-010 — Une seule langue : TypeScript. FastAPI seulement si un besoin l'impose
+
+**Proposé, en attente de validation humaine.**
+
+**Tranché ainsi.** La console, le serveur MCP et l'orchestrateur sont en TypeScript, sur la pile
+déjà éprouvée par Livio. Python et FastAPI n'entrent que si un travail spécifiquement Python
+l'exige — et à ce moment-là comme service séparé, derrière un contrat.
+
+**Pourquoi.**
+
+1. La constitution de l'atelier le dit déjà : *FastAPI seulement pour un workload Python
+   spécialisé*. Aucun de nos besoins n'en est un aujourd'hui.
+2. L'hébergement gratuit visé exécute du JavaScript. Un second service Python impose un second
+   hébergement, donc un coût là où la promesse est « 0 € ».
+3. Capacité limitée : une langue, une chaîne d'outils, un déploiement.
+4. Le SDK MCP TypeScript est de premier rang côté clients.
+
+**Ce que ça coûte, et il faut le dire.** Le courtier OAuth de KYA-Platform **ne sera pas importé** :
+il est en Python. On en reprend la conception — métadonnée de ressource protégée, enregistrement
+dynamique de client, scopes, révocation, courtage vers un fournisseur d'identité — et on la
+réécrit. La partie difficile était la conception, et elle est déjà faite et prouvée.
+
+**Ce qui la renverserait.** Un besoin réel de Python : traitement de données lourd, bibliothèque
+sans équivalent, ou reprise directe de modules KYA-Platform devenue plus rentable que leur
+réécriture.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.
