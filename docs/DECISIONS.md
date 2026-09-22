@@ -104,6 +104,88 @@ réponse directe aux factures imprévisibles du marché.
 
 ---
 
+## D-010 — Le serveur en FastAPI, la console en TanStack Start
+
+**Validé le 2026-09-22.** Remplace la première version de cette décision, qui
+proposait tout en TypeScript sur un argument faux.
+
+**Tranché ainsi.** Le poste de contrôle — API de la console, serveur MCP, serveur d'autorisation
+OAuth, tâches de fond, orchestrateur — est un service FastAPI. La console est en TanStack Start. Un
+SDK TypeScript est généré depuis l'OpenAPI du service.
+
+**Pourquoi.**
+
+1. **Le serveur doit tourner en continu, quel que soit le langage.** Le serveur MCP tient des flux
+   longs, les tâches de fond ont besoin d'un planificateur, l'orchestrateur pilote des conteneurs.
+   Aucun ne tient dans une fonction serverless. L'argument « l'hébergement gratuit exécute du
+   JavaScript » ne s'appliquait donc pas au serveur.
+2. **C'est l'architecture maîtrisée et prouvée** sur KYA-Platform et sur Firmo : monolithe
+   modulaire domaine / application / infrastructure, mypy strict, ruff, pytest à 90 %.
+3. **Le code de KYA-Platform est réutilisable**, son auteur étant celui de Pono : le courtier OAuth
+   avec enregistrement dynamique de client, l'autorisation, le port de secrets, les workers,
+   l'observabilité.
+4. L'analyse des migrations SQL dispose en Python d'un parseur mûr (sqlglot).
+
+**Ce que ça coûte.** Deux chaînes d'outils (pnpm et uv) — déjà pratiquées. Les types ne sont pas
+partagés nativement entre web et serveur : le SDK généré depuis l'OpenAPI y répond.
+
+---
+
+## D-011 — Le système visuel suit la discipline de la famille Firmo
+
+**Validé le 2026-09-22.** Remplace la première version, qui reprenait la
+charte de KYA-Energy Group — une marque qui n'est pas celle de Pono.
+
+**Tranché ainsi.** Pono hérite de la **discipline** de Firmo, pas de sa couleur :
+
+- base achromatique : encre et toile chaude en clair, graphite et ivoire en sombre ;
+- typographie Inter Tight pour le texte, JetBrains Mono pour les chiffres et les étiquettes ;
+- filets horizontaux seuls, chiffres en chasse fixe alignés à droite ;
+- le **bandeau de verdict** — répondre avant de détailler — qui porte le refus de mise en ligne ;
+- **aucune couleur de marque** : la couleur ne dit que l'état d'un projet.
+
+**Deux ambiances, un système.** La page publique en clair, dans la famille de Firmo. La console en
+sombre, parce que c'est une salle de contrôle.
+
+**Règle de travail qui en découle.** Toute proposition visuelle est **rendue et regardée** avant
+d'être présentée. Une maquette jamais affichée n'est pas une proposition.
+
+---
+
+## D-012 — Pono tourne sur le serveur de son auteur
+
+**Tranché.** La console et le serveur de Pono sont déployés sur l'instance Coolify de l'auteur.
+L'hébergement serverless — Netlify aujourd'hui — n'est qu'un **adaptateur proposé aux utilisateurs**
+pour leurs propres applications.
+
+**Pourquoi.** Pono a besoin d'un serveur permanent (D-010), et l'infrastructure existe déjà.
+
+---
+
+## D-013 — Le code est en anglais, le produit est international
+
+**Validé le 2026-09-22.**
+
+**Tranché.**
+
+1. **Tout le code est en anglais** : identifiants, variables, fonctions, classes CSS, jetons,
+   commentaires, noms de fichiers, messages de commit. La documentation humaine de `docs/` reste
+   en français.
+2. **L'internationalisation est posée dès la phase 1**, avant le premier écran produit :
+   - aucune chaîne visible écrite en dur dans un composant — tout passe par des catalogues ;
+   - deux langues dès le départ : **français** par défaut, **anglais** ;
+   - la langue se choisit par l'utilisateur, sinon par le navigateur ;
+   - dates, nombres et montants formatés selon la langue, jamais à la main ;
+   - le serveur renvoie des **codes d'erreur stables**, traduits côté interface.
+
+**Pourquoi.** Le produit vise un public international (D-001). Rattraper l'i18n après coup veut dire
+reprendre chaque écran ; la poser dès la première tranche ne coûte presque rien.
+
+**Ce que ça implique aujourd'hui.** Les textes de la landing sont encore en français dans le code :
+la phase 1 les déplace dans les catalogues.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

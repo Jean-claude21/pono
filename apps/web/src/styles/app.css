@@ -1,5 +1,24 @@
 @import "tailwindcss";
+@import "@pono/design/style.css";
 
-:root {
-  color-scheme: light;
+/* Design-system tokens exposed to Tailwind. They point at the @pono/design variables:
+   the light / dark switch happens there, and the utilities follow. */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-alt: var(--canvas-alt);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-mute: var(--ink-mute);
+  --color-hairline: var(--hairline);
+  --color-healthy: var(--healthy);
+  --color-active: var(--active);
+  --color-warning: var(--warning);
+  --color-failing: var(--failing);
+  --color-idle: var(--idle);
+
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+
+  --radius-sm: var(--r-sm);
 }

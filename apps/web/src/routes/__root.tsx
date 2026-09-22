@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Le poste de contrôle des projets construits par agent. Ton GitHub, ta base, ton hébergement.",
+          "Le poste de contrôle des projets construits par agent. Ton dépôt, ta base et ton hébergement restent à ton nom.",
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
@@ -33,7 +33,7 @@ function Document({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-stone-50 text-stone-900 antialiased">
+      <body>
         {children}
         <Scripts />
       </body>

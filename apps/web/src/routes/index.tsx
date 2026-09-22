@@ -1,180 +1,259 @@
-import type { ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const CONTACT =
+// Access is on request while Pono is being built: one action, one question.
+// The copy below is French until phase 1 moves every string into the i18n catalogs.
+const ACCESS_REQUEST_URL =
   "mailto:messanjeanclaude@gmail.com?subject=Acc%C3%A8s%20Pono&body=Quel%20projet%20veux-tu%20poser%20en%20premier%20%3F%0A%0A";
+
+const narrowTracking = { letterSpacing: "0.08em" };
+
+type ProjectState = "healthy" | "active" | "warning" | "failing" | "idle";
 
 function Landing() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-20 sm:py-28">
-      <Hero />
-      <Probleme />
-      <Resultat />
-      <Mecanisme />
-      <Demonstration />
-      <Limites />
-      <Objections />
-      <Action />
-      <Pied />
-    </main>
+    <>
+      <header className="site-header">
+        <a className="monogram" href="/">
+          <b>P</b>Pono
+        </a>
+        <a className="btn btn-ghost btn-sm" href={ACCESS_REQUEST_URL}>
+          Demander un accès
+        </a>
+      </header>
+
+      <main>
+        <Hero />
+        <Problem />
+        <Benefits />
+        <Mechanism />
+        <Faq />
+
+        <section className="cta-band">
+          <div className="wrap">
+            <div>
+              <h2>Quel projet veux-tu poser en premier&nbsp;?</h2>
+              <p>Accès sur demande, pendant la construction.</p>
+            </div>
+            <a className="btn btn-primary" href={ACCESS_REQUEST_URL}>
+              Demander un accès
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="wrap">
+          <span className="monogram" style={{ fontSize: 16 }}>
+            <b style={{ width: 22, height: 22, fontSize: 12 }}>P</b>Pose. Ça tient.
+          </span>
+          <span className="mono-label">Pono · 2026</span>
+        </div>
+      </footer>
+    </>
   );
 }
 
 function Hero() {
   return (
-    <header>
-      <p className="text-sm font-medium tracking-widest text-stone-500 uppercase">Pono</p>
-      <h1 className="mt-6 text-4xl leading-tight font-semibold text-balance sm:text-5xl">
-        Construis depuis Claude. Ton app démarre à 0 €, elle tient, et elle est à toi.
-      </h1>
-      <p className="mt-6 text-lg text-stone-600">
-        Le poste de contrôle de tes projets construits par agent : leur état réel au même endroit,
-        et des garde-fous que ton agent ne peut pas contourner.
-      </p>
-      <p className="mt-6 inline-block rounded-full border border-stone-300 px-3 py-1 text-sm text-stone-600">
-        En construction · accès sur demande
-      </p>
-    </header>
-  );
-}
+    <section className="hero">
+      <div className="wrap">
+        <div>
+          <p className="mono-label">Poste de contrôle des projets construits par agent</p>
+          <h1 style={{ marginTop: 20 }}>
+            Construis depuis Claude. <span>Ton app tient, et elle est à toi.</span>
+          </h1>
+          <p className="lede">
+            Ton agent écrit le code. Pono tient l’état réel de chaque projet et refuse ce qui casse la
+            production. Ton dépôt, ta base et ton hébergement restent à ton nom.
+          </p>
+          <div className="actions">
+            <a className="btn btn-primary" href={ACCESS_REQUEST_URL}>
+              Demander un accès
+            </a>
+            <a className="btn btn-ghost" href="#mechanism">
+              Comment ça marche
+            </a>
+          </div>
+          <p className="fine">
+            <b>Démarre à 0 €</b> avec les paliers gratuits de tes fournisseurs. Aucun crédit d’IA.
+          </p>
+        </div>
 
-function Section({
-  titre,
-  children,
-}: Readonly<{ titre: string; children: ReactNode }>) {
-  return (
-    <section className="mt-16 border-t border-stone-200 pt-10">
-      <h2 className="text-xl font-semibold">{titre}</h2>
-      <div className="mt-4 space-y-4 text-stone-700">{children}</div>
+        {/* The proof sits in the first screen: the workshop, and the moment that matters. */}
+        <figure className="proof" style={{ margin: 0 }}>
+          <div className="proof-head">
+            <span className="mono-label">Atelier</span>
+            <span className="mono-label">6 projets</span>
+          </div>
+          <ProofRow name="lectio" state="active" detail="preview #12" usage="102/300" />
+          <ProofRow name="vestio" state="healthy" detail="en ligne" usage="186/300" />
+          <ProofRow name="boutiqflow" state="warning" detail="quota bas" usage="264/300" nearLimit />
+          <div className="verdict">
+            <span className="mono-label">Mise en ligne refusée · nyatefe</span>
+            <h3>Une migration supprime une table en production.</h3>
+            <p>Rien n’a été exécuté. Ce refus vient du système, pas de l’agent.</p>
+          </div>
+          <figcaption className="proof-caption">
+            <span className="mono-label" style={narrowTracking}>
+              maquette · données de l’atelier
+            </span>
+          </figcaption>
+        </figure>
+      </div>
     </section>
   );
 }
 
-function Probleme() {
+function ProofRow({
+  name,
+  state,
+  detail,
+  usage,
+  nearLimit = false,
+}: Readonly<{ name: string; state: ProjectState; detail: string; usage: string; nearLimit?: boolean }>) {
   return (
-    <Section titre="Trois questions">
-      <ul className="space-y-2">
-        <li>Tu as plusieurs projets en ligne. Lequel tourne encore ?</li>
-        <li>Quelle base est branchée sur lequel ?</li>
-        <li>Qui a déployé en dernier, et qu'est-ce qui est parti ?</li>
-      </ul>
-      <p>
-        Si tu dois chercher pour répondre, tes projets ne sont pas tenus. Ils sont simplement
-        éparpillés.
-      </p>
-    </Section>
+    <div className="proof-row">
+      <span className={`state state-${state}`}>{name}</span>
+      <span className="mono-label" style={narrowTracking}>
+        {detail}
+      </span>
+      <span className="figures" style={nearLimit ? { color: "var(--warning)" } : undefined}>
+        {usage}
+      </span>
+    </div>
   );
 }
 
-function Resultat() {
-  return (
-    <Section titre="Ce que tu obtiens">
-      <p>
-        Un atelier où chaque projet est posé : son état, ses environnements, ses déploiements, sa
-        base, ses quotas. Tu reprends un projet sans rien chercher.
-      </p>
-    </Section>
-  );
-}
-
-function Mecanisme() {
-  const lignes = [
-    ["Ton agent écrit.", "Claude, Codex ou ChatGPT, celui que tu paies déjà."],
-    ["Pono tient l'état et les règles.", "Rien ne part en production sans ta validation."],
-    ["Ton code reste chez toi.", "Ton GitHub, ta base, ton hébergement."],
-  ];
-  return (
-    <Section titre="Comment ça marche">
-      <dl className="space-y-4">
-        {lignes.map(([titre, detail]) => (
-          <div key={titre}>
-            <dt className="font-medium text-stone-900">{titre}</dt>
-            <dd className="text-stone-600">{detail}</dd>
-          </div>
-        ))}
-      </dl>
-    </Section>
-  );
-}
-
-function Demonstration() {
-  return (
-    <Section titre="La démonstration">
-      <p>
-        Elle sera publiée quand elle sera réelle : un projet, du début à la fin, sans accélération.
-        On y verra la mise en ligne <strong>refusée</strong> tant qu'un humain n'a pas validé, puis
-        acceptée.
-      </p>
-      <p className="text-sm text-stone-500">
-        Aucune image de synthèse, aucun chiffre non mesuré. Ce qui n'est pas encore prouvé n'est pas
-        encore affiché.
-      </p>
-    </Section>
-  );
-}
-
-function Limites() {
-  return (
-    <Section titre="Ce que Pono ne fait pas">
-      <ul className="list-disc space-y-2 pl-5">
-        <li>Ce n'est pas un éditeur de code : tu restes dans ton agent.</li>
-        <li>Un seul chemin technique pour l'instant, pas encore tous les fournisseurs.</li>
-        <li>Pas d'application mobile.</li>
-        <li>Pas d'intelligence artificielle revendue au compteur. Tu paies ton agent, une fois.</li>
-      </ul>
-    </Section>
-  );
-}
-
-function Objections() {
+function Problem() {
   const questions = [
-    ["Est-ce pour moi ?", "Si tu construis déjà avec un agent et que tes projets s'éparpillent, oui."],
-    ["Est-ce vrai ?", "Le chemin complet et le verrou de production ont été éprouvés sur de vrais projets."],
-    ["Combien de temps pour démarrer ?", "Le temps de connecter tes comptes. On te dit lesquels créer, et on vérifie."],
-    ["Et si ça ne marche pas ?", "Tes projets continuent de tourner : ils sont chez toi, pas chez nous."],
-    ["Pourquoi pas Replit ?", "Replit fabrique vite, et bien. Pono tient ce qui est fabriqué, et ne le retient pas."],
-    ["Combien ça coûte ?", "Prix fixe, jamais de crédits. Les paliers gratuits de tes fournisseurs suffisent pour démarrer."],
+    "Tu as plusieurs projets en ligne. Lequel tourne encore ?",
+    "Quelle base est branchée sur lequel ?",
+    "Qui a déployé en dernier, et qu’est-ce qui est parti ?",
   ];
   return (
-    <Section titre="Les questions qu'on se pose">
-      <dl className="space-y-4">
-        {questions.map(([q, r]) => (
-          <div key={q}>
-            <dt className="font-medium text-stone-900">{q}</dt>
-            <dd className="text-stone-600">{r}</dd>
-          </div>
-        ))}
-      </dl>
-    </Section>
-  );
-}
-
-function Action() {
-  return (
-    <section className="mt-16 rounded-2xl bg-stone-900 px-8 py-10 text-stone-100">
-      <h2 className="text-xl font-semibold">Demander un accès</h2>
-      <p className="mt-3 text-stone-300">
-        Dis-nous simplement une chose : <strong>quel projet veux-tu poser en premier ?</strong>
-      </p>
-      <a
-        className="mt-6 inline-block rounded-lg bg-stone-100 px-5 py-3 font-medium text-stone-900 transition hover:bg-white"
-        href={CONTACT}
-      >
-        Demander un accès
-      </a>
+    <section className="section">
+      <div className="wrap">
+        <p className="mono-label">Le problème</p>
+        <h2 style={{ marginTop: 14 }}>
+          Si tu dois chercher pour répondre, tes projets ne sont pas tenus.
+        </h2>
+        <div className="questions">
+          {questions.map((question, index) => (
+            <p className="question" key={question}>
+              <span className="mono-label">{String(index + 1).padStart(2, "0")}</span>
+              {question}
+            </p>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
-function Pied() {
+function Benefits() {
+  const cells = [
+    {
+      label: "État",
+      title: "Chaque projet, tel qu’il est",
+      body: "Environnements, dernier déploiement, liens qui marchent. Lu chez tes fournisseurs, jamais saisi à la main.",
+    },
+    {
+      label: "Garde-fous",
+      title: "La production ne se casse pas",
+      body: "Rien ne part sans ta validation. Le refus est mécanique : ton agent ne peut pas l’argumenter.",
+    },
+    {
+      label: "Quotas",
+      title: "Prévenu avant la pause",
+      body: "Tes paliers gratuits surveillés. L’alerte arrive avant que ton site ne s’arrête.",
+    },
+  ];
   return (
-    <footer className="mt-16 border-t border-stone-200 pt-8 text-sm text-stone-500">
-      <p className="text-base font-medium text-stone-900">Pose. Ça tient.</p>
-      <p className="mt-2">Pono — poste de contrôle des projets construits par agent.</p>
-    </footer>
+    <section className="section alt">
+      <div className="wrap">
+        <p className="mono-label">Ce que tu obtiens</p>
+        <h2 style={{ marginTop: 14 }}>L’état réel, les garde-fous, et tes quotas, au même endroit.</h2>
+        <div className="grid-3">
+          {cells.map((cell) => (
+            <div className="cell" key={cell.label}>
+              <span className="mono-label">{cell.label}</span>
+              <h3>{cell.title}</h3>
+              <p>{cell.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Mechanism() {
+  const limits = [
+    "Ce n’est pas un éditeur de code : tu restes dans ton agent.",
+    "Un seul chemin technique pour l’instant.",
+    "Pas d’IA revendue au compteur.",
+  ];
+  return (
+    <section className="section" id="mechanism">
+      <div className="wrap split">
+        <div>
+          <p className="mono-label">Le mécanisme</p>
+          <h2 style={{ marginTop: 14 }}>Ton agent écrit. Pono tient. Tout reste chez toi.</h2>
+          <p className="intro">
+            Tu restes dans Claude, Codex ou ChatGPT — celui que tu paies déjà. Pono ne revend pas
+            d’intelligence : il tient l’état et les règles.
+          </p>
+        </div>
+        <div>
+          <div className="verdict healthy">
+            <span className="mono-label">Prêt pour la production · lectio</span>
+            <h3>Trois garde-fous sont verts.</h3>
+            <p>
+              Aucun secret dans le dépôt · preview vérifiée · migrations additives. Il ne manque que
+              ta validation.
+            </p>
+          </div>
+          <div className="limits">
+            {limits.map((limit) => (
+              <p className="limit" key={limit}>
+                <span className="mono-label">—</span>
+                {limit}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Faq() {
+  const entries = [
+    { question: "Est-ce pour moi ?", answer: "Si tu construis déjà avec un agent et que tes projets s’éparpillent, oui." },
+    { question: "Et si Pono s’arrête ?", answer: "Tes projets continuent de tourner : ils sont sur tes comptes, pas les nôtres." },
+    { question: "Pourquoi pas Replit ?", answer: "Replit fabrique vite, et bien. Pono tient ce qui est fabriqué, et ne le retient pas." },
+    { question: "Combien ça coûte ?", answer: "Prix fixe, jamais de crédits. Les paliers gratuits suffisent pour démarrer." },
+  ];
+  return (
+    <section className="section">
+      <div className="wrap split">
+        <div>
+          <p className="mono-label">Questions</p>
+          <h2 style={{ marginTop: 14 }}>Ce qu’on se demande avant de poser un projet.</h2>
+        </div>
+        <dl className="faq" style={{ margin: 0 }}>
+          {entries.map((entry) => (
+            <div key={entry.question}>
+              <dt>{entry.question}</dt>
+              <dd>{entry.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
   );
 }
