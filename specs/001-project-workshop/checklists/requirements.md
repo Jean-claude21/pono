@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -34,6 +34,10 @@
 - **Iteration 1 (2026-09-22)** — one marker remains: FR-018, the treatment of existing projects
   without a Pono manifest. It changes the scope of the import and the meaning of SC-001, so it is
   put to the user rather than guessed.
+- **Iteration 2 (2026-09-22)** — Q1 answered by the user: option B. Pono pre-fills its own manifest
+  from existing formats (studio, Fluxio, Livio) and provider detection, then proposes it as a pull
+  request (FR-018). Two requirements follow from it: no direct write to a repository (FR-029) and a
+  least-privilege code-provider connection (FR-030). All items pass.
 - Provider names are deliberately absent: the specification speaks of a code provider, a hosting
   provider and a database provider (D-002).
 - Architecture decisions (D-010, D-012) are referenced in Assumptions only; they belong to the plan.

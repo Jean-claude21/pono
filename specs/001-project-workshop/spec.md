@@ -127,7 +127,11 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 
 ### Edge Cases
 
-- Un dépôt importé **sans manifeste** : voir la clarification demandée plus bas.
+- Un dépôt importé **sans manifeste Pono** : Pono en propose un, pré-rempli, par une proposition de
+  modification sur le dépôt ; tant qu'elle n'est pas fusionnée, l'état est déduit des fournisseurs
+  et le projet est marqué « manifeste proposé ».
+- Une **proposition de manifeste refusée ou fermée** par la personne : le projet reste importé avec
+  l'état déduit, marqué « manifeste absent », et Pono ne la repropose pas sans demande.
 - Un manifeste qui désigne une ressource **introuvable** chez le fournisseur : le projet est
   importé, la ressource est marquée « introuvable », jamais inventée.
 - Une connexion **révoquée** côté fournisseur : l'atelier le signale, conserve le dernier état connu
@@ -185,8 +189,14 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 - **FR-016**: Le système MUST pouvoir reconstruire l'état d'un projet à partir de son dépôt et de ses
   fournisseurs seuls (D-003).
 - **FR-017**: Un dépôt déjà importé dans l'organisation MUST ne pas pouvoir l'être une seconde fois.
-- **FR-018**: [NEEDS CLARIFICATION: comment traiter les projets existants qui n'ont pas de manifeste
-  Pono — voir Question 1]
+- **FR-018**: À l'import d'un dépôt sans manifeste Pono, le système MUST pré-remplir un manifeste à
+  partir des formats déjà présents dans le dépôt (manifeste de l'atelier, de Fluxio ou de Livio) et
+  des ressources liées détectées chez les fournisseurs, puis le **proposer comme modification sur le
+  dépôt** (pull request). Il ne devient la source de vérité qu'une fois fusionné par la personne.
+- **FR-029**: Le système MUST NOT écrire directement sur une branche d'un dépôt : toute écriture est
+  une proposition de modification que la personne accepte ou refuse.
+- **FR-030**: La connexion au fournisseur de code MUST ne demander que les permissions nécessaires :
+  lire les dépôts choisis et y proposer des modifications.
 
 **État des projets**
 
@@ -231,6 +241,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 - **Connexion** : l'autorisation accordée par une organisation sur un fournisseur ; porte son état
   et, chiffrée, sa donnée d'accès.
 - **Projet** : l'objet ancre. Un dépôt importé, rattaché à une organisation, avec son manifeste.
+- **Manifeste** : la description du projet versionnée dans son dépôt ; son statut est présent,
+  proposé ou absent.
 - **Environnement** : une instance d'un projet — production, preview, développement — avec son
   adresse et le résultat de sa dernière vérification.
 - **Déploiement** : une mise en ligne d'un environnement, avec sa date, son auteur, son commit et son
@@ -243,7 +255,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 ### Measurable Outcomes
 
 - **SC-001**: Cinq projets réels sont importés et affichent un état juste, sans qu'aucun champ ne
-  soit rempli à la main.
+  soit rempli à la main ; accepter une proposition de manifeste compte comme une validation, pas
+  comme une saisie.
 - **SC-002**: Les deux premiers utilisateurs reprennent un projet choisi au hasard — lien de
   production ouvert, dernier déploiement identifié — en moins d'une minute après l'ouverture de
   l'atelier.
