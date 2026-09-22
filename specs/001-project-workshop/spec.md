@@ -8,6 +8,15 @@
 
 **Input**: User description: "Phase 1 de la roadmap de Pono : « L'atelier qui tient les projets ». Livrable unique : voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'eux sans rien chercher. Socle d'internationalisation dès le départ ; modèle organisation, membre, rôle, projet, environnement, connexion, déploiement ; cloisonnement par organisation ; connexion d'un fournisseur de code par autorisation ; import d'un projet existant et lecture de son manifeste ; relevé des quotas avec alerte avant la pause ; écran d'atelier dans le design validé. Preuve de fin : cinq projets réels importés avec un état juste sans saisie manuelle, reprise chronométrée sous la minute."
 
+## Clarifications
+
+### Session 2026-09-22
+
+- Q: Pour les seuils d'alerte, faut-il la limite réelle de l'offre de la personne ou celle de l'offre gratuite ? → A: La limite réelle quand le fournisseur l'expose, sinon celle de l'offre gratuite, avec la source affichée.
+- Q: Qu'est-ce qui compte comme activité pour les états « actif » et « en veille » ? → A: Les commits sur n'importe quelle branche, et les déploiements.
+- Q: Quand un projet a plusieurs previews ouvertes, faut-il les afficher toutes ? → A: La plus récente dans la ligne du projet ; toutes dans le détail du projet.
+- Q: Au bout de combien de secondes un lien vérifié est-il en panne ? → A: 10 secondes, après une seconde tentative.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Importer un projet et voir son état réel (Priority: P1)
@@ -140,8 +149,9 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
   comme non rafraîchi, avec son horodatage.
 - Le **même dépôt importé deux fois** dans une organisation : refusé, le projet existant est
   proposé à la place.
-- Un lien de production qui **répond lentement** : il est considéré en panne au-delà d'un délai
-  documenté, pas simplement « en attente ».
+- Un lien de production qui **répond lentement** : au-delà de 10 secondes, deux fois de suite, il est
+  en panne ; une première tentative lente seule ne suffit pas, pour absorber le réveil d'un service
+  en veille.
 - Une **langue non prise en charge** par le navigateur : le français s'applique.
 
 ## Requirements *(mandatory)*
@@ -201,15 +211,19 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 **État des projets**
 
 - **FR-019**: Pour chaque projet, le système MUST afficher ses environnements, l'adresse de chacun,
-  son dernier déploiement (date, auteur, résultat) et son quota du mois.
-- **FR-020**: Chaque adresse affichée MUST avoir été vérifiée lors du dernier relevé ; une adresse
-  qui ne répond pas est marquée comme telle.
+  son dernier déploiement (date, auteur, résultat) et son quota du mois. Quand plusieurs previews
+  sont ouvertes, la ligne du projet montre **la plus récente** ; le détail du projet les montre toutes.
+- **FR-020**: Chaque adresse affichée MUST avoir été vérifiée lors du dernier relevé. Une adresse est
+  **en panne** si elle ne répond pas en **10 secondes**, lors de deux tentatives successives ; elle est
+  alors marquée comme telle.
 - **FR-021**: Chaque projet MUST porter exactement un état parmi : **en bonne santé**, **actif**,
   **attention**, **en panne**, **en veille**, selon les règles suivantes, évaluées dans cet ordre :
   - **en panne** : la production ne répond pas, ou son dernier déploiement a échoué ;
   - **attention** : un quota a dépassé 80 %, ou une connexion nécessaire est expirée ou révoquée ;
   - **actif** : un déploiement est en cours, ou une activité a eu lieu dans les dernières 24 heures ;
   - **en veille** : aucune activité depuis 30 jours ;
+
+  Une **activité** est un commit sur n'importe quelle branche du dépôt, ou un déploiement.
   - **en bonne santé** : dans tous les autres cas.
 - **FR-022**: L'état MUST être relevé automatiquement à intervalle régulier, au plus toutes les
   15 minutes, et la personne MUST pouvoir demander un relevé immédiat.
@@ -219,7 +233,9 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 **Quotas**
 
 - **FR-024**: Le système MUST relever la consommation du fournisseur d'hébergement et du fournisseur
-  de base du chemin unique (D-009), rapportée à la limite de l'offre de la personne.
+  de base du chemin unique (D-009), rapportée à la **limite réelle de l'offre de la personne** quand
+  le fournisseur l'expose, sinon à la limite de l'offre gratuite. L'atelier MUST afficher la source
+  de chaque limite : « offre du compte » ou « offre gratuite, estimée ».
 - **FR-025**: Le système MUST prévenir la personne à 80 % puis à 95 % d'un quota, une seule fois par
   seuil et par période de facturation, dans l'atelier et par courriel.
 
@@ -279,8 +295,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
   façon connecter ; l'accès est réservé aux adresses autorisées.
 - Le chemin technique unique (D-009) fixe un fournisseur de code, un fournisseur d'hébergement et un
   fournisseur de base ; les autres fournisseurs sont hors périmètre.
-- Les limites de quotas suivent les offres gratuites en vigueur chez ces fournisseurs, relevées au
-  moment de l'import et révisables.
+- Quand un fournisseur n'expose pas la limite de l'offre du compte, les limites de l'offre gratuite
+  en vigueur servent d'estimation, révisable, et présentée comme telle (FR-024).
 - Le courriel d'alerte est envoyé à l'adresse de la personne connue par son fournisseur de code.
 - Les décisions d'architecture déjà tranchées (D-002, D-003, D-007, D-010, D-012) s'appliquent au
   plan ; cette spécification ne les répète pas.
