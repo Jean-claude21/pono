@@ -104,50 +104,61 @@ réponse directe aux factures imprévisibles du marché.
 
 ---
 
-## D-010 — Une seule langue : TypeScript. FastAPI seulement si un besoin l'impose
+## D-010 — Le serveur en FastAPI, la console en TanStack Start
 
-**Proposé, en attente de validation humaine.**
+**Proposé, en attente de validation humaine.** Remplace la première version de cette décision, qui
+proposait tout en TypeScript sur un argument faux.
 
-**Tranché ainsi.** La console, le serveur MCP et l'orchestrateur sont en TypeScript, sur la pile
-déjà éprouvée par Livio. Python et FastAPI n'entrent que si un travail spécifiquement Python
-l'exige — et à ce moment-là comme service séparé, derrière un contrat.
+**Tranché ainsi.** Le poste de contrôle — API de la console, serveur MCP, serveur d'autorisation
+OAuth, tâches de fond, orchestrateur — est un service FastAPI. La console est en TanStack Start. Un
+SDK TypeScript est généré depuis l'OpenAPI du service.
 
 **Pourquoi.**
 
-1. La constitution de l'atelier le dit déjà : *FastAPI seulement pour un workload Python
-   spécialisé*. Aucun de nos besoins n'en est un aujourd'hui.
-2. L'hébergement gratuit visé exécute du JavaScript. Un second service Python impose un second
-   hébergement, donc un coût là où la promesse est « 0 € ».
-3. Capacité limitée : une langue, une chaîne d'outils, un déploiement.
-4. Le SDK MCP TypeScript est de premier rang côté clients.
+1. **Le serveur doit tourner en continu, quel que soit le langage.** Le serveur MCP tient des flux
+   longs, les tâches de fond ont besoin d'un planificateur, l'orchestrateur pilote des conteneurs.
+   Aucun ne tient dans une fonction serverless. L'argument « l'hébergement gratuit exécute du
+   JavaScript » ne s'appliquait donc pas au serveur.
+2. **C'est l'architecture maîtrisée et prouvée** sur KYA-Platform et sur Firmo : monolithe
+   modulaire domaine / application / infrastructure, mypy strict, ruff, pytest à 90 %.
+3. **Le code de KYA-Platform est réutilisable**, son auteur étant celui de Pono : le courtier OAuth
+   avec enregistrement dynamique de client, l'autorisation, le port de secrets, les workers,
+   l'observabilité.
+4. L'analyse des migrations SQL dispose en Python d'un parseur mûr (sqlglot).
 
-**Ce que ça coûte, et il faut le dire.** Le courtier OAuth de KYA-Platform **ne sera pas importé** :
-il est en Python. On en reprend la conception — métadonnée de ressource protégée, enregistrement
-dynamique de client, scopes, révocation, courtage vers un fournisseur d'identité — et on la
-réécrit. La partie difficile était la conception, et elle est déjà faite et prouvée.
-
-**Ce qui la renverserait.** Un besoin réel de Python : traitement de données lourd, bibliothèque
-sans équivalent, ou reprise directe de modules KYA-Platform devenue plus rentable que leur
-réécriture.
+**Ce que ça coûte.** Deux chaînes d'outils (pnpm et uv) — déjà pratiquées. Les types ne sont pas
+partagés nativement entre web et serveur : le SDK généré depuis l'OpenAPI y répond.
 
 ---
 
-## D-011 — Le système visuel est la charte déjà validée
+## D-011 — Le système visuel suit la discipline de la famille Firmo
 
-**Tranché.** Pono reprend la charte visuelle validée : interface sombre `#282828` / `#242424`,
-ligne `#494949`, texte `#dedede`, Segoe UI 14 px, panneau latéral de 262 px, cartes à rayon 5 et
-hauteur 66, puces de 43 px, accent vert `#1ca18c`, focus orange `#f99d32`, jaune `#e8e748`, café
-`#875028`.
+**Proposé, en attente de validation humaine.** Remplace la première version, qui reprenait la
+charte de KYA-Energy Group — une marque qui n'est pas celle de Pono.
 
-**Pourquoi.** Elle est déjà arrêtée et éprouvée. Repartir d'une direction neuve aurait coûté un
-cycle d'approbation pour un gain nul.
+**Tranché ainsi.** Pono hérite de la **discipline** de Firmo, pas de sa couleur :
 
-**Ce que ça implique.** Les cinq états s'expriment dans cette palette : posé en vert, en cours en
-blanc, attention en jaune, en panne en orange, en veille en gris. Aucune couleur hors charte n'est
-introduite.
+- base achromatique : encre et toile chaude en clair, graphite et ivoire en sombre ;
+- typographie Inter Tight pour le texte, JetBrains Mono pour les chiffres et les étiquettes ;
+- filets horizontaux seuls, chiffres en chasse fixe alignés à droite ;
+- le **bandeau de verdict** — répondre avant de détailler — qui porte le refus de mise en ligne ;
+- **aucune couleur de marque** : la couleur ne dit que l'état d'un projet.
+
+**Deux ambiances, un système.** La page publique en clair, dans la famille de Firmo. La console en
+sombre, parce que c'est une salle de contrôle.
 
 **Règle de travail qui en découle.** Toute proposition visuelle est **rendue et regardée** avant
 d'être présentée. Une maquette jamais affichée n'est pas une proposition.
+
+---
+
+## D-012 — Pono tourne sur le serveur de son auteur
+
+**Tranché.** La console et le serveur de Pono sont déployés sur l'instance Coolify de l'auteur.
+L'hébergement serverless — Netlify aujourd'hui — n'est qu'un **adaptateur proposé aux utilisateurs**
+pour leurs propres applications.
+
+**Pourquoi.** Pono a besoin d'un serveur permanent (D-010), et l'infrastructure existe déjà.
 
 ---
 

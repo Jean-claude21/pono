@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr" data-theme="console">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atelier · Pono</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="console">
+
+  <aside class="rail">
+    <a class="monogram" href="landing.html"><b>P</b>Pono</a>
+
+    <div>
+      <p class="mono-label" style="padding:0 10px 8px">Atelier</p>
+      <nav>
+        <a href="#" aria-current="page">Projets <span class="figures">9</span></a>
+        <a href="#">Déploiements <span class="figures">24</span></a>
+        <a href="#">Quotas <span class="figures" style="color:var(--attention)">2</span></a>
+        <a href="#">Journal des preuves</a>
+      </nav>
+    </div>
+
+    <div>
+      <p class="mono-label" style="padding:0 10px 8px">Organisation</p>
+      <nav>
+        <a href="#">Connexions <span class="figures">4</span></a>
+        <a href="#">Membres <span class="figures">2</span></a>
+        <a href="#">Réglages</a>
+      </nav>
+    </div>
+
+    <div class="foot">
+      <span class="mono-label" style="padding:0 10px">Jean-Claude</span>
+      <span class="mute" style="font-size:13px;padding:0 10px">Atelier personnel</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topline">
+      <div>
+        <h1>Projets</h1>
+        <div class="counts mute">
+          <span><b>5</b>posés</span>
+          <span><b>1</b>en cours</span>
+          <span><b style="color:var(--attention)">1</b>attention</span>
+          <span><b style="color:var(--panne)">1</b>en panne</span>
+          <span><b>1</b>en veille</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <a class="btn btn-ghost btn-sm" href="#">Importer un projet</a>
+        <a class="btn btn-primary btn-sm" href="#">Nouveau projet</a>
+      </div>
+    </div>
+
+    <!-- Ce qui attend une décision passe avant tout le reste. -->
+    <div class="verdict">
+      <div>
+        <span class="mono-label">Mise en ligne refusée · nyatefe · il y a 5 h</span>
+        <h3>La migration 0007_drop_orders.sql supprime une table en production.</h3>
+        <p>Rien n’a été exécuté, la production n’a pas bougé. Ce refus vient du système, pas de l’agent.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="#" style="flex-shrink:0">Examiner</a>
+    </div>
+
+    <div class="filters" role="group" aria-label="Filtrer par état">
+      <button aria-pressed="true">Tous<span class="figures">9</span></button>
+      <button aria-pressed="false">Posés<span class="figures">5</span></button>
+      <button aria-pressed="false">Attention<span class="figures">1</span></button>
+      <button aria-pressed="false">En panne<span class="figures">1</span></button>
+      <button aria-pressed="false">En veille<span class="figures">1</span></button>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Projet</th>
+          <th>État</th>
+          <th>Environnements</th>
+          <th>Dernier déploiement</th>
+          <th class="num">Quota du mois</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="project">lectio<small>lectio-reads.app</small></td>
+          <td><span class="state state-cours">En cours</span></td>
+          <td><span class="env"><span class="on">prod</span><span class="on">preview</span><span class="on">dev</span></span></td>
+          <td>il y a 12 min <span class="mute">· l’agent</span></td>
+          <td class="num"><span class="meter" style="--v:34%"><span class="figures">102 / 300</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">nyatefe<small>nyatefe.app</small></td>
+          <td><span class="state state-panne">En panne</span></td>
+          <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
+          <td>refusé il y a 5 h</td>
+          <td class="num"><span class="meter crit" style="--v:97%"><span class="figures">291 / 300</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">boutiqflow<small>boutiqflow.app</small></td>
+          <td><span class="state state-attention">Attention</span></td>
+          <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
+          <td>il y a 26 jours <span class="mute">· toi</span></td>
+          <td class="num"><span class="meter warn" style="--v:88%"><span class="figures">264 / 300</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">vestio<small>vestio.app</small></td>
+          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span></td>
+          <td>il y a 3 jours <span class="mute">· toi</span></td>
+          <td class="num"><span class="meter" style="--v:62%"><span class="figures">186 / 300</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">nettio<small>nettio.app</small></td>
+          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="env"><span class="on">prod</span><span>preview</span><span class="on">dev</span></span></td>
+          <td>il y a 9 jours <span class="mute">· toi</span></td>
+          <td class="num"><span class="meter" style="--v:26%"><span class="figures">77 / 300</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">firmo<small>vttlife.com</small></td>
+          <td><span class="state state-pose">Posé</span></td>
+          <td><span class="env"><span class="on">prod</span><span class="on">preview</span><span class="on">dev</span></span></td>
+          <td>il y a 3 semaines <span class="mute">· toi</span></td>
+          <td class="num"><span class="meter" style="--v:18%"><span class="figures">18 / 100</span><i></i></span></td>
+        </tr>
+        <tr>
+          <td class="project">barflow<small>barflow.app</small></td>
+          <td><span class="state state-veille">En veille</span></td>
+          <td><span class="env"><span class="on">prod</span><span>preview</span><span>dev</span></span></td>
+          <td>il y a 6 semaines</td>
+          <td class="num"><span class="meter" style="--v:12%"><span class="figures">12 / 100</span><i></i></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</div>
+</body>
+</html>

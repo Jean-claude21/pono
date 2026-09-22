@@ -23,12 +23,12 @@ Rien de tout cela n'est réécrit : ce sont des acquis, avec leur preuve.
 |---|---|---|
 | **Fluxio** | Le runtime persistant (Dockerfile, agent de synchronisation), le verrou de production mécanique, la détection de migrations destructrices, les pièges déjà résolus | 4, 5 |
 | **Livio** | La pile éprouvée (TanStack Start, Drizzle, base serverless, hébergement), le manifeste de projet, les garde-fous avant production, le retour arrière | 1, 2, 5 |
-| **KYA-Platform** | **Le schéma** du courtier OAuth pour connecteurs MCP avec enregistrement dynamique de client, le découpage domaine / application / infrastructure, le modèle de rôles | 3, 6 |
+| **KYA-Platform** | **Le code** : le courtier OAuth pour connecteurs MCP avec enregistrement dynamique de client, l'autorisation, le port de secrets, les workers, l'observabilité, le découpage domaine / application / infrastructure | 1, 3, 5 |
+| **Firmo** | La discipline visuelle de la famille (D-011), le bandeau de verdict, un service FastAPI éprouvé en production | 0, 2 |
 | **vtt-template** | Spec Kit épinglé, la constitution, le registre de skills, les gates scriptées | toutes |
 
-> **Attention, distinction importante.** De KYA-Platform on reprend **la conception**, pas le code :
-> elle est en Python, Pono est en TypeScript (voir D-010). Le coût de réécriture est réel, il est
-> assumé, et il porte surtout sur le courtier OAuth de la phase 3.
+> **Même auteur, même architecture.** Le code de KYA-Platform est repris tel quel quand il sert, puis
+> adapté : ce qui est propre à KYA — unités, catalogue d'artefacts, gouvernance interne — reste dehors.
 
 ## Complete Product Scope
 
@@ -84,11 +84,11 @@ Un système de design éprouvé sur les cas réels du produit — états, quotas
 le moindre écran définitif.
 
 ### Scope
-- Les jetons de la **charte validée** : fonds `#282828` et `#242424`, ligne `#494949`, texte
-  `#dedede`, accent vert `#1ca18c`, focus orange `#f99d32`, jaune `#e8e748`, café `#875028`.
-  Segoe UI, base 14 px, panneau de 262 px, cartes à rayon 5, puces de 43 px.
-- Les composants : carte de projet, carte en vedette, pastille d'état, barre de quota, puces
-  filtrantes, dialogue de mise en ligne, notification.
+- La discipline de la famille Firmo (D-011) : base achromatique, Inter Tight et JetBrains Mono,
+  filets horizontaux seuls, chiffres en chasse fixe, aucune couleur de marque.
+- Deux ambiances d'un même système : page publique claire, console sombre.
+- Les composants : bandeau de verdict, tableau de projets, pastille d'état, jauge de quota,
+  onglets filtrants, boutons, monogramme.
 - La validation se fait dans `design/` en HTML, CSS et JS, sans framework.
 
 ### Deliverables
@@ -164,7 +164,7 @@ console.
 
 ### Scope
 - Serveur MCP distant, son propre serveur d'autorisation OAuth avec enregistrement dynamique de
-  client (schéma repris de KYA-Platform, réécrit en TypeScript).
+  client (code repris de KYA-Platform, service FastAPI).
 - Outils annotés lecture seule ou destructif — condition d'entrée au répertoire de connecteurs.
 - Plugin léger : connexion et points d'entrée ; le savoir-faire reste servi par le serveur (D-006).
 
