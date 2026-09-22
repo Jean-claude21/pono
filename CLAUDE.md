@@ -19,10 +19,17 @@ garde-fous mécaniques avant la production, et rien qui appartienne à Pono.
 
 ## Phase en cours
 
-**Base posée.** Prochaine tranche : l'atelier qui tient les projets existants — importer un projet,
-afficher son état réel, ses environnements et ses déploiements.
+**Phase 0 fermée** : design v2 validé, paquet `@pono/design`, console déployée sur Coolify
+(`docs/EXPLOITATION.md`).
 
-**Le livrable unique de la tranche :** voir l'état réel de ses propres projets au même endroit.
+**Prochaine : phase 1 — l'atelier qui tient les projets**, conduite par Spec Kit
+(`docs/ROADMAP.md`). Livrable unique : voir l'état réel de ses propres projets au même endroit.
+
+## Le système visuel
+
+`packages/design/style.css` est la **source unique**. La console l'importe, les maquettes de
+`design/` aussi. Toute évolution visuelle se fait là, puis se **rend et se regarde** avant d'être
+proposée (D-011).
 
 ## Les quatre prérequis durs
 

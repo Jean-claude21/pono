@@ -76,7 +76,11 @@ Le produit est complet quand, pour un utilisateur qui n'a que son agent et ses c
 
 ---
 
-## Phase 0 — Le socle visuel et le langage du produit
+## Phase 0 — Le socle visuel et le langage du produit · *fermée le 2026-09-22*
+
+> **Preuve de fermeture.** Design v2 validé (D-011) ; paquet `@pono/design` consommé par la console et
+> les maquettes ; landing reconstruite sur les jetons ; console déployée et saine sur Coolify, rendu
+> vérifié sur l'adresse en ligne.
 
 ### Objective
 Un système de design éprouvé sur les cas réels du produit — états, quotas, refus — avant d'écrire
