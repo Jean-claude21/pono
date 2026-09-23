@@ -188,7 +188,7 @@ la phase 1 les déplace dans les catalogues.
 
 ## D-014 — Deux hébergeurs dès la phase 1 : Netlify et Coolify
 
-**Proposé, en attente de validation humaine.** Amende D-009 pour l'hébergement seulement.
+**Validé le 2026-09-23.** Amende D-009 pour l'hébergement seulement.
 
 **Tranché ainsi.** Le chemin de la phase 1 comprend un fournisseur de code (GitHub), **deux
 hébergeurs** (Netlify et Coolify) et un fournisseur de base (Neon). Supabase reste dehors.

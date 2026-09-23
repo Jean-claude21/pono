@@ -56,7 +56,7 @@ Neon), 2 langues
 | VIII. Aucun chemin réservé à un agent | ✅ | aucune surface agent dans cette phase |
 | Code en anglais, i18n (D-013) | ✅ | Paraglide, catalogues fr / en, codes d'erreur stables |
 | Jamais de secret en dur (D-007) | ✅ | Fernet au repos, jetons d'installation courts, cookie `HttpOnly` |
-| **Un seul chemin technique en V1 (D-009)** | ⚠️ **écart justifié** | deux hébergeurs (Netlify et Coolify) — voir *Complexity Tracking* ; **en attente de validation humaine (D-014)** |
+| **Un seul chemin technique en V1 (D-009)** | ✅ écart validé | deux hébergeurs (Netlify et Coolify), validé par D-014 — voir *Complexity Tracking* |
 
 **Re-check après la conception (Phase 1)** : inchangé. Le modèle de données ne contient aucun nom de
 fournisseur dans ses règles ; la colonne `provider` n'est qu'un identifiant d'adaptateur.
