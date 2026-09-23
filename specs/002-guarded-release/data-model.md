@@ -27,6 +27,8 @@ vers une ressource d'une autre organisation.
 | `author` | text | identifiant de l'auteur chez le fournisseur de code |
 | `head_sha` | text | commit de tête actuel |
 | `head_branch` | text | branche de la proposition |
+| `head_seen_at` | timestamptz | première lecture de ce commit de tête (délai de la preview) |
+| `reported_check` | text | nullable ; dernier état de la vérification publié chez le fournisseur de code |
 | `verdict` | text | `evaluating`, `refused`, `awaiting_approval`, `approved` |
 | `state` | text | `open`, `merged`, `closed` |
 | `opened_at` | timestamptz | |

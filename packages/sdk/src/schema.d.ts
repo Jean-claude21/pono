@@ -270,6 +270,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/journal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Journal */
+        get: operations["read_journal_api_v1_projects__project_id__journal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/manifest-proposal": {
         parameters: {
             query?: never;
@@ -290,6 +307,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/protection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Protect */
+        post: operations["protect_api_v1_projects__project_id__protection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/refresh": {
         parameters: {
             query?: never;
@@ -304,6 +338,77 @@ export interface paths {
          * @description Queue an immediate reading (FR-022). A foreign project is unknown: 404, never 403.
          */
         post: operations["request_refresh_api_v1_projects__project_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Releases */
+        get: operations["read_releases_api_v1_projects__project_id__releases_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/releases/{release_id}/approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve
+         * @description Only a person's session reaches this route: no key, no agent token exists (FR-011).
+         */
+        post: operations["approve_api_v1_projects__project_id__releases__release_id__approval_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/releases/{release_id}/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Release Evaluation */
+        post: operations["request_release_evaluation_api_v1_projects__project_id__releases__release_id__evaluation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rollback */
+        post: operations["rollback_api_v1_projects__project_id__rollback_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -335,6 +440,14 @@ export interface components {
         AlertAddress: {
             /** Email */
             email: string;
+        };
+        /** ApprovalRequest */
+        ApprovalRequest: {
+            /**
+             * Headsha
+             * @description The exact commit the person saw.
+             */
+            headSha: string;
         };
         /** ChatLink */
         ChatLink: {
@@ -454,6 +567,47 @@ export interface components {
             /** Url */
             url: string | null;
         };
+        /** Finding */
+        Finding: {
+            /** Code */
+            code: string;
+            /** File */
+            file?: string | null;
+            /** Line */
+            line?: number | null;
+            /** Operation */
+            operation?: string | null;
+            /** Url */
+            url?: string | null;
+        };
+        /** GuardResult */
+        GuardResult: {
+            /**
+             * Checkedat
+             * Format: date-time
+             */
+            checkedAt: string;
+            /**
+             * Findings
+             * @description Where the guard failed; never a secret value.
+             */
+            findings: components["schemas"]["Finding"][];
+            /**
+             * Guard
+             * @enum {string}
+             */
+            guard: "secrets" | "migrations" | "preview";
+            /**
+             * Reason
+             * @description Stable code, translated by the console.
+             */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "passed" | "failed";
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -466,6 +620,39 @@ export interface components {
              * @example owner/name
              */
             repository: string;
+        };
+        /** JournalEntry */
+        JournalEntry: {
+            /** Actor */
+            actor: string | null;
+            /**
+             * Actorkind
+             * @enum {string}
+             */
+            actorKind: "person" | "agent" | "pono";
+            /** Changenumber */
+            changeNumber: number | null;
+            /** Detail */
+            detail: {
+                [key: string]: unknown;
+            };
+            /** Headsha */
+            headSha: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @example release.refused
+             */
+            kind: string;
+            /**
+             * Occurredat
+             * Format: date-time
+             */
+            occurredAt: string;
         };
         /** LocaleChoice */
         LocaleChoice: {
@@ -516,6 +703,11 @@ export interface components {
         };
         /** ProjectDetail */
         ProjectDetail: {
+            /**
+             * Canrollback
+             * @description False when production has no earlier successful deployment.
+             */
+            canRollback: boolean;
             /** Databasestatus */
             databaseStatus: ("found" | "missing" | "unknown") | null;
             /**
@@ -542,6 +734,7 @@ export interface components {
             name: string;
             /** Previews */
             previews: components["schemas"]["Environment"][];
+            protection: components["schemas"]["Protection"];
             quota: components["schemas"]["Quota"] | null;
             /** Quotas */
             quotas: components["schemas"]["Quota"][];
@@ -604,6 +797,18 @@ export interface components {
             /** Statereason */
             stateReason: string;
         };
+        /** Protection */
+        Protection: {
+            /** Branch */
+            branch?: string | null;
+            /** Checkedat */
+            checkedAt?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "protected" | "unprotected" | "unavailable_on_plan" | "unknown";
+        };
         /** Quota */
         Quota: {
             /**
@@ -631,6 +836,49 @@ export interface components {
             /** Used */
             used: number;
         };
+        /** Release */
+        Release: {
+            /** Approvedat */
+            approvedAt: string | null;
+            /** Approvedby */
+            approvedBy: string | null;
+            /** Author */
+            author: string;
+            /** Changenumber */
+            changeNumber: number;
+            /** Changeurl */
+            changeUrl: string;
+            /** Evaluatedat */
+            evaluatedAt: string | null;
+            /** Guards */
+            guards: components["schemas"]["GuardResult"][];
+            /** Headbranch */
+            headBranch: string | null;
+            /** Headsha */
+            headSha: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Openedat
+             * Format: date-time
+             */
+            openedAt: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "merged" | "closed";
+            /** Title */
+            title: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "evaluating" | "refused" | "awaiting_approval" | "approved";
+        };
         /** Repository */
         Repository: {
             /** Alreadyimported */
@@ -644,6 +892,26 @@ export interface components {
              * @description The project it already is, when imported.
              */
             projectId: string | null;
+        };
+        /** Rollback */
+        Rollback: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Requestedat
+             * Format: date-time
+             */
+            requestedAt: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "succeeded" | "failed";
+            /** Tocommit */
+            toCommit: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1228,6 +1496,41 @@ export interface operations {
             };
         };
     };
+    read_journal_api_v1_projects__project_id__journal_get: {
+        parameters: {
+            query?: {
+                before?: string | null;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     request_manifest_proposal_api_v1_projects__project_id__manifest_proposal_post: {
         parameters: {
             query?: never;
@@ -1261,6 +1564,39 @@ export interface operations {
             };
         };
     };
+    protect_api_v1_projects__project_id__protection_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Protection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     request_refresh_api_v1_projects__project_id__refresh_post: {
         parameters: {
             query?: never;
@@ -1281,6 +1617,144 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_releases_api_v1_projects__project_id__releases_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Release"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_api_v1_projects__project_id__releases__release_id__approval_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                release_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Release"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_release_evaluation_api_v1_projects__project_id__releases__release_id__evaluation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                release_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rollback_api_v1_projects__project_id__rollback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rollback"];
                 };
             };
             /** @description Validation Error */

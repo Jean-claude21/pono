@@ -25,6 +25,7 @@ from pono_api.domain.projects import (
     ResourceStatus,
 )
 from pono_api.domain.quotas import QuotaReading
+from pono_api.domain.releases import ProtectionStatus
 
 
 class ProviderUnavailableError(RuntimeError):
@@ -49,6 +50,40 @@ class RepositoryInfo:
 
 
 ProposalState = Literal["open", "merged", "closed"]
+CheckState = Literal["pending", "failure", "success"]
+
+
+@dataclass(frozen=True, slots=True)
+class ChangeRequest:
+    """A proposed change towards a branch, at its current head (002 FR-001)."""
+
+    number: int
+    url: str
+    title: str
+    author: str
+    author_is_agent: bool
+    head_sha: str
+    head_branch: str | None
+    base_branch: str
+    state: ProposalState
+
+
+@dataclass(frozen=True, slots=True)
+class ChangedFile:
+    path: str
+    status: str
+    """added, modified, removed or renamed."""
+    patch: str | None
+    """The unified diff; None when the code host does not give it (binary or too large)."""
+    binary: bool = False
+
+
+class ProtectionRefusedError(RuntimeError):
+    """The code host refused to protect the branch; `code` is a stable error code."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
 
 
 class CodeHost(Protocol):
@@ -95,6 +130,44 @@ class CodeHost(Protocol):
 
     async def proposal_state(self, installation_id: str, proposal_url: str) -> ProposalState: ...
 
+    # --- guarded release (002) ----------------------------------------------------------------
+
+    async def list_changes(
+        self, installation_id: str, repository: str, base_branch: str
+    ) -> list[ChangeRequest]:
+        """Open changes towards `base_branch`."""
+        ...
+
+    async def read_change(
+        self, installation_id: str, repository: str, number: int
+    ) -> ChangeRequest: ...
+
+    async def change_files(
+        self, installation_id: str, repository: str, number: int
+    ) -> list[ChangedFile]: ...
+
+    async def set_release_check(
+        self,
+        installation_id: str,
+        repository: str,
+        head_sha: str,
+        state: CheckState,
+        *,
+        summary: str,
+        details_url: str | None,
+    ) -> None:
+        """The one check production branches require; a bounded write (002 research R-01)."""
+        ...
+
+    async def read_protection(
+        self, installation_id: str, repository: str, branch: str
+    ) -> ProtectionStatus: ...
+
+    async def apply_protection(self, installation_id: str, repository: str, branch: str) -> None:
+        """Pono's only write outside its proposal branches (002 FR-015). Raises
+        `ProtectionRefusedError` when the code host refuses."""
+        ...
+
 
 # --- Hosting and database ---------------------------------------------------------------------
 
@@ -137,6 +210,24 @@ class HostedEnvironment:
     url: str | None = None
     deployments: tuple[DeploymentRecord, ...] = ()
     previews: tuple[PreviewRecord, ...] = ()
+    live_commit: str | None = None
+    """The commit production actually serves, when the host says it (002 rollback)."""
+
+
+PreviewStatus = Literal["absent", "building", "ready", "failed"]
+
+
+@dataclass(frozen=True, slots=True)
+class PreviewState:
+    """The preview of one change at one commit (002 research R-05)."""
+
+    status: PreviewStatus
+    url: str | None = None
+    started_at: datetime | None = None
+
+
+class RollbackUnsupportedError(RuntimeError):
+    """The host cannot bring this deployment back (no image left, no such deployment)."""
 
 
 class HostingProvider(Protocol):
@@ -153,6 +244,13 @@ class HostingProvider(Protocol):
 
     async def read_quotas(self) -> list[QuotaReading]:
         """Account-level consumption; empty for a host with no quota (a server of one's own)."""
+
+    async def find_preview(self, ref: str, change_number: int, head_sha: str) -> PreviewState: ...
+
+    async def rollback(self, ref: str, target: DeploymentRecord) -> str:
+        """Bring production back to `target`; returns the new deployment reference. The only write
+        of a hosting adapter (002 research R-08)."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -337,9 +435,12 @@ class ProviderFactory(Protocol):
 
 
 __all__ = [
+    "ChangeRequest",
+    "ChangedFile",
     "ChatMessenger",
     "ChatRecipient",
     "ChatStart",
+    "CheckState",
     "CodeHost",
     "DatabaseProvider",
     "DatabaseSnapshot",
@@ -356,12 +457,16 @@ __all__ = [
     "ManifestDraft",
     "ManifestReader",
     "PreviewRecord",
+    "PreviewState",
+    "PreviewStatus",
     "ProposalState",
+    "ProtectionRefusedError",
     "ProviderAuthorizationError",
     "ProviderFactory",
     "ProviderUnavailableError",
     "RaisedAlert",
     "Recipient",
     "RepositoryInfo",
+    "RollbackUnsupportedError",
     "StoredConnection",
 ]

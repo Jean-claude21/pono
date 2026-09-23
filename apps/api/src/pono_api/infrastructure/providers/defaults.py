@@ -30,6 +30,7 @@ def default_providers(settings: Settings) -> Providers:
             settings.smtp_from,
         ),
         messenger=TelegramMessenger(settings.telegram_bot_token),
+        console_url=settings.public_url.rstrip("/"),
     )
 
 

@@ -7,7 +7,7 @@ import uvicorn
 from fastapi import APIRouter, FastAPI, Request
 from sqlalchemy import text
 
-from pono_api.api import auth, connections, me, projects
+from pono_api.api import auth, connections, me, projects, releases
 from pono_api.api.errors import install_error_handlers
 from pono_api.application.identity import CodeHostIdentity
 from pono_api.application.refresh_project import Providers
@@ -73,7 +73,14 @@ def create_app(
             "chat": "configured" if settings.chat_configured else "not_configured",
         }
 
-    for router in (health, auth.router, me.router, connections.router, projects.router):
+    for router in (
+        health,
+        auth.router,
+        me.router,
+        connections.router,
+        projects.router,
+        releases.router,
+    ):
         app.include_router(router, prefix=API_PREFIX)
     return app
 

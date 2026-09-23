@@ -167,14 +167,21 @@ Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'
 ## Phase 2 — La mise en ligne sous garde-fou · *en cours sur `002-guarded-release`*
 
 > **Où on en est (2026-09-23, soir).** Spec Kit : specify → clarify (3 questions, options
-> recommandées retenues) → plan → tasks → analyze faits (`specs/002-guarded-release/`). 41 tâches ;
-> implémentation en cours. Décision D-016 : blocage par une vérification obligatoire liée à l'app
-> Pono, protection posée par Pono sur un clic, retour arrière par l'API de l'hébergeur, aucun
-> contournement d'un garde-fou refusé.
+> recommandées retenues) → plan → tasks → analyze → implement. 38 tâches sur
+> 41 faites ; restent T037, T038, T039 (gestes de l'auteur et preuve réelle).
 >
-> **Gestes de l'auteur à venir.** Accepter deux permissions de l'app (vérifications, administration
-> du dépôt) ; enregistrer la démonstration.
-
+> **Ce qui marche, testé.** Trois garde-fous (secrets, migrations SQL, preview du commit de tête),
+> un verdict par proposition, la validation dans la console sur une version exacte, la vérification
+> `pono/release` liée à l'app chez GitHub, la protection posée d'un clic, le retour arrière Netlify
+> et Coolify confirmé par l'hébergeur, le journal de preuves que même le propriétaire de la base ne
+> peut pas réécrire. 337 tests du service (94,6 % de couverture), 17 Vitest, 15 Playwright.
+>
+> **Décision D-016.** Blocage par une vérification obligatoire liée à l'app Pono, protection posée
+> par Pono sur un clic, retour arrière par l'API de l'hébergeur, aucun contournement d'un garde-fou
+> refusé : une destruction voulue se déclare dans le manifeste.
+>
+> **Gestes de l'auteur.** Accepter deux permissions de l'app (vérifications, administration du
+> dépôt, `docs/EXPLOITATION.md`) ; puis protéger lectio-reads et enregistrer la démonstration.
 
 ### Objective
 Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniquement, pas par consigne.

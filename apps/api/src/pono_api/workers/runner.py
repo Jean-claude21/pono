@@ -14,12 +14,14 @@ from datetime import timedelta
 from pathlib import Path
 
 from pono_api.config import Settings, get_settings
+from pono_api.domain.releases import RELEASES_INTERVAL
 from pono_api.healthcheck import HEARTBEAT
 from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
 from pono_api.infrastructure.providers.defaults import default_providers
 from pono_api.workers.refresh import (
     read_all_quotas,
+    read_all_releases,
     refresh_connections,
     refresh_due_projects,
 )
@@ -91,10 +93,14 @@ def build_jobs(settings: Settings) -> list[Job]:
         raised = await read_all_quotas(sessions, providers)
         logger.info("quota readings raised %d alert(s)", raised)
 
+    async def releases() -> None:
+        await read_all_releases(sessions, providers)
+
     return [
         Job("projects", PROJECTS_TICK, projects),
         Job("connections", CONNECTIONS_TICK, connections),
         Job("quotas", QUOTAS_TICK, quotas),
+        Job("releases", RELEASES_INTERVAL, releases),
     ]
 
 

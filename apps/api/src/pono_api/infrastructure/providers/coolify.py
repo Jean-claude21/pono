@@ -1,7 +1,8 @@
-"""Coolify adapter for the hosting port, read-only (ported from KYA-Platform's Coolify adapter).
+"""Coolify adapter for the hosting port (ported from KYA-Platform's Coolify adapter).
 
-Pono never deploys through it: it reads applications linked to a repository, their deployments,
-their status and their public address.
+It reads applications linked to a repository, their deployments, their previews, their status and
+their public address. Its one write brings production back to an earlier image (002 R-08, D-016);
+Pono never deploys new code through it.
 """
 
 from urllib.parse import quote, urlsplit
@@ -13,6 +14,8 @@ from pono_api.application.ports import (
     DetectedEnvironment,
     HostedEnvironment,
     KeyUse,
+    PreviewState,
+    RollbackUnsupportedError,
 )
 from pono_api.domain.projects import DeploymentStatus, EnvironmentKind, ResourceStatus
 from pono_api.domain.quotas import QuotaReading
@@ -45,6 +48,20 @@ def public_url(fqdn: str | None) -> str | None:
         return None
     first = fqdn.split(",")[0].strip()
     return first or None
+
+
+def preview_url(application: JsonObject, change_number: int) -> str | None:
+    """Coolify builds a preview address from the application's template and main domain."""
+
+    main = public_url(text(application, "fqdn"))
+    if main is None:
+        return None
+    parts = urlsplit(main)
+    template = text(application, "preview_url_template") or "{{pr_id}}.{{domain}}"
+    host = template.replace("{{pr_id}}", str(change_number)).replace(
+        "{{domain}}", parts.hostname or ""
+    )
+    return f"{parts.scheme or 'https'}://{host}"
 
 
 def _deployment(item: JsonObject) -> DeploymentRecord | None:
@@ -135,11 +152,60 @@ class CoolifyHosting:
             if (record := _deployment(as_object(item))) is not None
         ]
         records.sort(key=lambda record: record.started_at, reverse=True)
+        live = next((r for r in records if r.status is DeploymentStatus.SUCCEEDED), None)
         return HostedEnvironment(
             status=ResourceStatus.FOUND,
             url=public_url(text(as_object(application), "fqdn")),
             deployments=tuple(records),
+            live_commit=live.commit_sha if live else None,
         )
+
+    async def find_preview(self, ref: str, change_number: int, head_sha: str) -> PreviewState:
+        """The preview deployment of this change at this commit (002 research R-05)."""
+
+        application = await self._client.get(
+            f"/applications/{quote(ref)}", "read_application", allow_missing=True
+        )
+        if application is None:
+            return PreviewState("absent")
+        history = as_object(
+            await self._client.get(
+                f"/deployments/applications/{quote(ref)}?skip=0&take=30", "read_deployments"
+            )
+        )
+        own = [
+            as_object(item)
+            for item in as_list(history.get("deployments"))
+            if str(as_object(item).get("pull_request_id")) == str(change_number)
+            and text(as_object(item), "commit") == head_sha
+        ]
+        if not own:
+            return PreviewState("absent")
+        latest = max(own, key=lambda item: text(item, "created_at") or "")
+        status = deployment_status(text(latest, "status"))
+        started = timestamp(latest.get("created_at"))
+        if status is DeploymentStatus.SUCCEEDED:
+            url = preview_url(as_object(application), change_number)
+            return PreviewState("ready", url, started)
+        if status is DeploymentStatus.BUILDING:
+            return PreviewState("building", None, started)
+        return PreviewState("failed", None, started)
+
+    async def rollback(self, ref: str, target: DeploymentRecord) -> str:
+        """Run the image of an earlier commit again, if the server still keeps it."""
+
+        if target.commit_sha is None:
+            raise RollbackUnsupportedError("the target deployment names no commit")
+        images = as_object(
+            await self._client.get(f"/applications/{quote(ref)}/rollback-images", "read_images")
+        )
+        tags = {text(as_object(image), "tag") for image in as_list(images.get("images"))}
+        if target.commit_sha not in tags:
+            raise RollbackUnsupportedError("the server no longer keeps this image")
+        queued = await self._client.post(
+            f"/applications/{quote(ref)}/rollback", "rollback", {"commit": target.commit_sha}
+        )
+        return text(as_object(queued), "deployment_uuid") or target.commit_sha
 
 
 __all__ = ["CoolifyHosting", "deployment_status", "public_url"]

@@ -56,8 +56,13 @@ projets réels de l'auteur ou sur la documentation des fournisseurs.
   `prisma/migrations/`, `migrations/`, `db/migrations/`. Chaque instruction est analysée par
   `sqlglot` (dialecte Postgres, D-009, déjà prévu par D-010). Sont refusés : `DROP TABLE`,
   `DROP COLUMN`, tout renommage de table ou de colonne, `ALTER COLUMN … TYPE`, `TRUNCATE`, `DELETE`
-  sans `WHERE`. Une instruction que `sqlglot` ne sait pas analyser, ou un fichier de migration dans
-  un autre langage que SQL, fait échouer le garde-fou (on refuse ce qu'on ne comprend pas). Une
+  sans `WHERE`. Le fichier est découpé en instructions par Pono (chaînes, commentaires et corps
+  `$$ … $$` respectés) ; chaque instruction est analysée par `sqlglot`. **Constat du 2026-09-23** :
+  `sqlglot` ne lit ni `CREATE POLICY`, ni `ENABLE ROW LEVEL SECURITY`, ni les fonctions PL/pgSQL
+  d'une vraie migration de nettio. Une instruction qu'il ne lit pas est donc examinée **en texte**,
+  chaînes et corps de fonction compris, pour les mêmes opérations destructrices (y compris un
+  `EXECUTE 'DROP TABLE …'`). Un fichier de migration écrit dans un langage de code (`.py`, `.ts`,
+  `.js`…) ou illisible fait échouer le garde-fou (on refuse ce qu'on ne comprend pas). Une
   migration déjà présente sur la branche de production et modifiée par le changement échoue aussi :
   réécrire l'histoire des migrations est destructeur par nature.
 - **Destruction déclarée (clarification FR-008)** : le manifeste peut porter

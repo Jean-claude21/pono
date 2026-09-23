@@ -37,15 +37,40 @@ class KeyedClient:
     async def get(self, path: str, action: str, *, allow_missing: bool = False) -> object | None:
         """GET a JSON document; None when `allow_missing` and the resource does not exist."""
 
+        return await self._call("GET", path, action, allow_missing=allow_missing)
+
+    async def post(
+        self,
+        path: str,
+        action: str,
+        payload: JsonObject | None = None,
+        *,
+        allow_missing: bool = False,
+    ) -> object | None:
+        """POST, for the one write a hosting adapter makes: bringing production back (002 R-08)."""
+
+        return await self._call("POST", path, action, payload, allow_missing=allow_missing)
+
+    async def _call(
+        self,
+        method: str,
+        path: str,
+        action: str,
+        payload: JsonObject | None = None,
+        *,
+        allow_missing: bool = False,
+    ) -> object | None:
         self._on_use(action)
         try:
             async with httpx.AsyncClient(transport=self._transport, timeout=20) as client:
-                response = await client.get(
+                response = await client.request(
+                    method,
                     f"{self._base_url}{path}",
                     headers={
                         "Authorization": f"Bearer {self._authorization}",
                         "Accept": "application/json",
                     },
+                    json=payload,
                 )
         except httpx.HTTPError as error:
             raise ProviderUnavailableError(f"{self._provider} {action} failed") from error

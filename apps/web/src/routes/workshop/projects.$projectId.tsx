@@ -1,15 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProjectDetail } from "@/features/projects/ProjectDetail";
 import { ServiceNotice } from "@/features/workshop/ServiceNotice";
-import { fetchProject } from "@/lib/service";
+import { fetchProject, fetchReleases } from "@/lib/service";
 
 export const Route = createFileRoute("/workshop/projects/$projectId")({
-  loader: ({ params }) => fetchProject({ data: params.projectId }),
+  loader: async ({ params }) => {
+    const [project, releases] = await Promise.all([
+      fetchProject({ data: params.projectId }),
+      fetchReleases({ data: params.projectId }),
+    ]);
+    return { project, releases };
+  },
   component: ProjectPage,
 });
 
 function ProjectPage() {
-  const result = Route.useLoaderData();
-  if (!result.ok) return <ServiceNotice code={result.code} />;
-  return <ProjectDetail project={result.data} />;
+  const { project, releases } = Route.useLoaderData();
+  if (!project.ok) return <ServiceNotice code={project.code} />;
+  return <ProjectDetail project={project.data} releases={releases.ok ? releases.data : []} />;
 }

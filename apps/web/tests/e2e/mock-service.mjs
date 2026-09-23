@@ -88,6 +88,86 @@ function workshop(scenario, state) {
 // The chat linking flow keeps its state here: link, confirm, unlink.
 let chatLinked = false;
 
+// Guarded release (002) on lectio: one refused change, one waiting for approval.
+const HEAD = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
+const guard = (name, status, reason, findings = []) => ({
+  guard: name,
+  status,
+  reason,
+  findings,
+  checkedAt: hoursAgo(0.05),
+});
+const releaseState = { approved: false, protected: false, rolledBack: false };
+
+function releases() {
+  return [
+    {
+      id: "01990000-0000-7000-8000-00000000r001",
+      changeNumber: 12,
+      changeUrl: "https://code-host.example.test/alice/lectio/pull/12",
+      title: "Drop the notes body",
+      author: "coding-agent[bot]",
+      headSha: "ffee0011223344556677889900aabbccddeeff00",
+      headBranch: "feature/drop",
+      verdict: "refused",
+      state: "open",
+      openedAt: hoursAgo(1),
+      evaluatedAt: hoursAgo(0.9),
+      approvedBy: null,
+      approvedAt: null,
+      guards: [
+        guard("secrets", "passed", null),
+        guard("migrations", "failed", "migrations.destructive", [
+          {
+            code: "migrations.destructive",
+            file: "drizzle/0003_drop_notes.sql",
+            line: 2,
+            operation: "drop_column",
+            url: null,
+          },
+        ]),
+        guard("preview", "passed", "preview.ready"),
+      ],
+    },
+    {
+      id: "01990000-0000-7000-8000-00000000r002",
+      changeNumber: 13,
+      changeUrl: "https://code-host.example.test/alice/lectio/pull/13",
+      title: "Add tags",
+      author: "coding-agent[bot]",
+      headSha: HEAD,
+      headBranch: "feature/tags",
+      verdict: releaseState.approved ? "approved" : "awaiting_approval",
+      state: "open",
+      openedAt: hoursAgo(0.5),
+      evaluatedAt: hoursAgo(0.4),
+      approvedBy: releaseState.approved ? "alice" : null,
+      approvedAt: releaseState.approved ? hoursAgo(0) : null,
+      guards: [
+        guard("secrets", "passed", null),
+        guard("migrations", "passed", null),
+        guard("preview", "passed", "preview.ready"),
+      ],
+    },
+  ];
+}
+
+const JOURNAL = [
+  ["release.awaiting_approval", "pono", null, 13],
+  ["release.refused", "pono", null, 12],
+  ["release.opened", "agent", "coding-agent[bot]", 12],
+  ["protection.missing", "pono", null, null],
+].map(([kind, actorKind, actor, changeNumber], index) => ({
+  id: `01990000-0000-7000-8000-0000000j000${index}`,
+  kind,
+  actorKind,
+  actor,
+  headSha: changeNumber ? HEAD : null,
+  changeNumber,
+  occurredAt: hoursAgo(index * 0.2),
+  detail: {},
+}));
+
 function scenarioOf(request) {
   const match = /pono_session=(\w+)/.exec(request.headers.cookie ?? "");
   return match && match[1] in SCENARIOS ? match[1] : null;
@@ -148,7 +228,42 @@ createServer((request, response) => {
       manifestProposalUrl: null,
       previews: [],
       quotas: found.quota ? [found.quota] : [],
+      protection: {
+        status: releaseState.protected ? "protected" : "unprotected",
+        branch: "main",
+        checkedAt: hoursAgo(0.1),
+      },
+      canRollback: true,
     });
+  }
+  const guarded = /^\/api\/v1\/projects\/([\w-]+)\/(releases|journal|protection|rollback)(?:\/([\w-]+)\/(approval|evaluation))?$/.exec(
+    url.pathname,
+  );
+  if (guarded) {
+    const [, , what, , action] = guarded;
+    if (what === "releases" && !action) return send(response, 200, releases());
+    if (action === "approval") {
+      releaseState.approved = true;
+      return send(response, 200, releases()[1]);
+    }
+    if (action === "evaluation") {
+      response.writeHead(202);
+      return response.end();
+    }
+    if (what === "journal") return send(response, 200, JOURNAL);
+    if (what === "protection") {
+      releaseState.protected = true;
+      return send(response, 200, { status: "protected", branch: "main", checkedAt: hoursAgo(0) });
+    }
+    if (what === "rollback") {
+      releaseState.rolledBack = true;
+      return send(response, 202, {
+        id: "01990000-0000-7000-8000-00000000b001",
+        status: "queued",
+        toCommit: "old0001",
+        requestedAt: hoursAgo(0),
+      });
+    }
   }
   if (url.pathname === "/api/v1/connections") return send(response, 200, []);
   if (url.pathname === "/api/v1/repositories") {

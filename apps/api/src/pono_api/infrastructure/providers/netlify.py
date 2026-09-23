@@ -10,7 +10,9 @@ from pono_api.application.ports import (
     HostedEnvironment,
     KeyUse,
     PreviewRecord,
+    PreviewState,
     ProviderUnavailableError,
+    RollbackUnsupportedError,
 )
 from pono_api.domain.projects import DeploymentStatus, EnvironmentKind, ResourceStatus
 from pono_api.domain.quotas import LimitSource, Metric, QuotaReading
@@ -166,9 +168,56 @@ class NetlifyHosting:
             url = text(own[0], "deploy_ssl_url") if own else None
             previews = ()
         records = [record for deploy in own if (record := _deployment(deploy)) is not None]
+        published = as_object(site_payload.get("published_deploy"))
         return HostedEnvironment(
-            status=ResourceStatus.FOUND, url=url, deployments=tuple(records), previews=previews
+            status=ResourceStatus.FOUND,
+            url=url,
+            deployments=tuple(records),
+            previews=previews,
+            # A restored deploy is published again without a new deploy: this is what is live.
+            live_commit=text(published, "commit_ref")
+            if kind is EnvironmentKind.PRODUCTION
+            else None,
         )
+
+    async def find_preview(self, ref: str, change_number: int, head_sha: str) -> PreviewState:
+        """The deploy preview of this change at this commit (002 research R-05)."""
+
+        deploys = [
+            as_object(deploy)
+            for deploy in as_list(
+                await self._client.get(f"/sites/{ref}/deploys?per_page=50", "read_deploys")
+            )
+        ]
+        own = [
+            deploy
+            for deploy in deploys
+            if text(deploy, "context") == "deploy-preview"
+            and str(deploy.get("review_id")) == str(change_number)
+            and text(deploy, "commit_ref") == head_sha
+        ]
+        if not own:
+            return PreviewState("absent")
+        latest = max(own, key=lambda deploy: text(deploy, "created_at") or "")
+        status = deployment_status(text(latest, "state"))
+        started = timestamp(latest.get("created_at"))
+        if status is DeploymentStatus.SUCCEEDED:
+            return PreviewState("ready", text(latest, "deploy_ssl_url"), started)
+        if status is DeploymentStatus.BUILDING:
+            return PreviewState("building", None, started)
+        return PreviewState("failed", None, started)
+
+    async def rollback(self, ref: str, target: DeploymentRecord) -> str:
+        """Publish an earlier production deploy again: Netlify keeps every deploy."""
+
+        restored = await self._client.post(
+            f"/sites/{ref}/deploys/{target.external_ref}/restore",
+            "restore_deploy",
+            allow_missing=True,
+        )
+        if restored is None:
+            raise RollbackUnsupportedError("netlify no longer has this deploy")
+        return text(as_object(restored), "id") or target.external_ref
 
     @staticmethod
     def _previews(deploys: list[JsonObject]) -> tuple[PreviewRecord, ...]:

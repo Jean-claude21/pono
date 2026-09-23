@@ -278,4 +278,41 @@ def test_model_mirrors_the_contract_schema() -> None:
     assert set(environment) == set(contract["properties"]["environments"]["items"]["properties"])
     database = _properties(model["properties"]["database"], definitions)
     assert set(database) == set(contract["properties"]["database"]["properties"])
+    release = _properties(model["properties"]["release"], definitions)
+    assert set(release) == set(contract["properties"]["release"]["properties"])
     assert model.get("additionalProperties") is False
+
+
+def test_the_release_section_is_optional_and_strict() -> None:
+    """T005 — declarations the release guards read, written in the repository (002 FR-008)."""
+
+    base = {
+        "schemaVersion": 1,
+        "name": "x",
+        "environments": [{"kind": "production", "branch": "main"}],
+    }
+    assert parse_manifest(json.dumps(base)).release is None
+    declared = parse_manifest(
+        json.dumps(
+            {
+                **base,
+                "release": {
+                    "migrations": ["drizzle"],
+                    "exampleFiles": [".env.example"],
+                    "declaredDestructions": [
+                        {"file": "drizzle/0007_drop.sql", "operation": "drop_column"}
+                    ],
+                },
+            }
+        )
+    )
+    assert declared.release is not None
+    assert declared.release.migrations == ["drizzle"]
+    assert declared.production_branch == "main"
+    assert json.loads(declared.to_json())["release"]["exampleFiles"] == [".env.example"]
+    for release in (
+        {"declaredDestructions": [{"file": "a.sql", "operation": "drop_everything"}]},
+        {"migrations": ["drizzle"], "skipGuards": True},
+    ):
+        with pytest.raises(ManifestInvalidError):
+            parse_manifest(json.dumps({**base, "release": release}))

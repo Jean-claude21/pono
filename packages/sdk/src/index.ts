@@ -15,6 +15,12 @@ export type ProjectDetail = Schemas["ProjectDetail"];
 export type Verdict = Schemas["Verdict"];
 export type Workshop = Schemas["Workshop"];
 export type ProjectState = ProjectSummary["state"];
+export type Release = Schemas["Release"];
+export type GuardResult = Schemas["GuardResult"];
+export type Finding = Schemas["Finding"];
+export type Protection = Schemas["Protection"];
+export type Rollback = Schemas["Rollback"];
+export type JournalEntry = Schemas["JournalEntry"];
 
 /** The body of every service error: a stable code, never prose (contracts/error-codes.md). */
 export type ServiceError = { error: { code: string; field?: string } };

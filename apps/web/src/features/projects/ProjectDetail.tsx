@@ -5,6 +5,7 @@ import {
   errorCode,
   type Environment,
   type ProjectDetail as Detail,
+  type Release,
 } from "@pono/sdk";
 import * as m from "@/paraglide/messages.js";
 import { dateTime, relativeTime } from "@/lib/format";
@@ -19,6 +20,8 @@ import {
   stateLabel,
 } from "@/features/workshop/labels";
 import { QuotaMeter, metricLabel, sourceLabel } from "@/features/workshop/QuotaMeter";
+import { Releases } from "@/features/releases/Releases";
+import { protectionLabel } from "@/features/releases/labels";
 
 const MANIFEST: Record<Detail["manifestStatus"], () => string> = {
   present: m.manifest_present,
@@ -33,11 +36,42 @@ const DATABASE: Record<string, () => string> = {
 };
 
 /** A project as it really is: every environment, every open preview, and where it comes from. */
-export function ProjectDetail({ project }: { project: Detail }) {
+export function ProjectDetail({ project, releases }: { project: Detail; releases: Release[] }) {
   const router = useRouter();
   const [queued, setQueued] = useState(false);
   const [proposing, setProposing] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [protecting, setProtecting] = useState(false);
+  const [confirmingRollback, setConfirmingRollback] = useState(false);
+  const [rollbackQueued, setRollbackQueued] = useState(false);
+  const params = { params: { path: { project_id: project.id } } };
+
+  async function protect() {
+    setProtecting(true);
+    setFailure(null);
+    const { error } = await createPonoClient().POST(
+      "/api/v1/projects/{project_id}/protection",
+      params,
+    );
+    setProtecting(false);
+    if (error) {
+      setFailure(errorCode(error));
+      return;
+    }
+    await router.invalidate();
+  }
+
+  async function rollBack() {
+    setConfirmingRollback(false);
+    setFailure(null);
+    const { error } = await createPonoClient().POST("/api/v1/projects/{project_id}/rollback", params);
+    if (error) {
+      setFailure(errorCode(error));
+      return;
+    }
+    setRollbackQueued(true);
+    await router.invalidate();
+  }
 
   async function proposeAgain() {
     setProposing(true);
@@ -87,10 +121,48 @@ export function ProjectDetail({ project }: { project: Detail }) {
             </span>
           </div>
         </div>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={refresh} disabled={queued}>
-          {m.detail_refresh()}
-        </button>
+        <div className="topline-actions">
+          <Link
+            className="btn btn-ghost btn-sm"
+            to="/workshop/projects/$projectId/journal"
+            params={{ projectId: project.id }}
+          >
+            {m.journal_link()}
+          </Link>
+          {project.canRollback ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setConfirmingRollback(true)}
+              disabled={confirmingRollback || rollbackQueued}
+            >
+              {m.rollback_action()}
+            </button>
+          ) : null}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={refresh} disabled={queued}>
+            {m.detail_refresh()}
+          </button>
+        </div>
       </div>
+
+      {confirmingRollback ? (
+        <div className="verdict" role="alertdialog" style={{ marginTop: 20 }}>
+          <p>{m.rollback_confirm_body()}</p>
+          <div className="topline-actions">
+            <button type="button" className="btn btn-primary btn-sm" onClick={rollBack}>
+              {m.rollback_confirm()}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setConfirmingRollback(false)}
+            >
+              {m.rollback_cancel()}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {rollbackQueued ? <p className="notice">{m.rollback_queued()}</p> : null}
 
       {queued ? <p className="notice">{m.detail_refresh_queued()}</p> : null}
       {failure ? (
@@ -151,6 +223,26 @@ export function ProjectDetail({ project }: { project: Detail }) {
           </dd>
         </div>
         <div className="fact">
+          <dt>{m.detail_protection()}</dt>
+          <dd>
+            <span className={`protection ${project.protection.status}`}>
+              {protectionLabel(project.protection)}
+            </span>
+            {project.protection.status === "unprotected" ? (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={protect}
+                  disabled={protecting}
+                >
+                  {protecting ? m.protection_applying() : m.protection_apply()}
+                </button>
+              </div>
+            ) : null}
+          </dd>
+        </div>
+        <div className="fact">
           <dt>{m.detail_database()}</dt>
           <dd>
             {project.databaseStatus
@@ -159,6 +251,8 @@ export function ProjectDetail({ project }: { project: Detail }) {
           </dd>
         </div>
       </dl>
+
+      <Releases projectId={project.id} releases={releases} />
 
       <h2 className="mono-label section-title">{m.detail_environments()}</h2>
       <EnvironmentTable environments={standing} />
