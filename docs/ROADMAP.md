@@ -111,7 +111,16 @@ le moindre écran définitif.
 
 ---
 
-## Phase 1 — L'atelier qui tient les projets
+## Phase 1 — L'atelier qui tient les projets · *livrée sur `dev` le 2026-09-23, fermeture en attente*
+
+> **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
+> fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice (0001 à 0003) et
+> étanchéité de deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ;
+> service, worker et console en ligne sur Coolify (`docs/VERITE_ET_PREUVES.md`,
+> `specs/001-project-workshop/tasks.md`).
+>
+> **Reste, pour fermer.** Le chronométrage de la reprise par les deux premiers utilisateurs
+> (`[bloquant]`), puis la fusion `dev` → `main` par l'auteur.
 
 ### Objective
 Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'eux sans rien chercher.

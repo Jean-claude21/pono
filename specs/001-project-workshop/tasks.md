@@ -183,11 +183,13 @@ request, and be refused without confirmation that it exists.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T069 Deploy `pono-api` and `pono-worker` on Coolify from `apps/api/Dockerfile` (same image, two commands, migrations as `pono_owner` before the port opens, internal-only API), and point `pono-web`'s relay at the internal URL
-- [ ] T070 Import five real projects — lectio-reads, fluxio-runtime-test, livio, firmo, nettio — and verify each state against the providers; record the result in `docs/VERITE_ET_PREUVES.md` (SC-001, SC-007)
+- [X] T069 Deploy `pono-api` and `pono-worker` on Coolify from `apps/api/Dockerfile` (same image, two commands, migrations as `pono_owner` before the port opens, internal-only API), and point `pono-web`'s relay at the internal URL
+- [X] T070 Import five real projects — lectio-reads, fluxio-runtime-test, livio, firmo, nettio — and verify each state against the providers; record the result in `docs/VERITE_ET_PREUVES.md` (SC-001, SC-007)
 - [ ] T071 Time the resume with the two first users and every import; record the measurements in `docs/VERITE_ET_PREUVES.md` (SC-002, SC-003)
-- [ ] T072 [P] Update `docs/EXPLOITATION.md`, `README.md` and `CLAUDE.md` for the running service, worker and GitHub App
-- [ ] T073 Run `specs/001-project-workshop/quickstart.md` scenarios 1 to 13 and fix every failure
+  - *Imports chronométrés (21–46 s). La reprise par les deux premiers utilisateurs reste à mesurer : elle leur revient.*
+- [X] T072 [P] Update `docs/EXPLOITATION.md`, `README.md` and `CLAUDE.md` for the running service, worker and GitHub App
+- [X] T073 Run `specs/001-project-workshop/quickstart.md` scenarios 1 to 13 and fix every failure
+  - *11 scénarios prouvés (tests automatisés et import réel). Le 5 (fusionner la proposition) est un geste de l'auteur sur GitHub ; il est couvert par un test d'intégration. Le 13 est testé sans révoquer l'installation réelle.*
 - [ ] T074 Close phase 1 in `docs/ROADMAP.md` with its evidence, then merge `001-project-workshop` into `dev` and `dev` into `main` through pull requests
 
 ---
