@@ -1,0 +1,28 @@
+[project]
+name = "pono-api"
+version = "0.1.0"
+description = "Pono control plane: workshop API, provider adapters and background readings"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "alembic>=1.16",
+  "asyncpg>=0.30",
+  "cryptography>=46",
+  "fastapi>=0.116",
+  "httpx>=0.28",
+  "pydantic-settings>=2.10",
+  "pyjwt[crypto]>=2.12",
+  "pyyaml>=6.0",
+  "sqlalchemy[asyncio]>=2.0",
+  "uvicorn[standard]>=0.35",
+]
+
+[project.scripts]
+pono-api = "pono_api.main:run"
+pono-worker = "pono_api.workers.runner:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pono_api"]

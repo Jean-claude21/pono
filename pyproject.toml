@@ -1,0 +1,57 @@
+[project]
+name = "pono-workspace"
+version = "0.0.1"
+requires-python = ">=3.14,<3.15"
+dependencies = ["pono-api"]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.15",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.25",
+  "pytest-cov>=6.0",
+  "ruff>=0.11",
+]
+
+[tool.uv.workspace]
+members = ["apps/api"]
+
+[tool.uv.sources]
+pono-api = { workspace = true }
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "--cov=pono_api",
+  "--cov-report=term-missing",
+  "--cov-fail-under=90",
+]
+asyncio_mode = "auto"
+testpaths = ["apps/api/tests"]
+markers = [
+  "unit: tests without infrastructure",
+  "integration: tests using a real database",
+  "contract: public contract tests",
+  "security: isolation and secret-handling tests",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["apps/api/src", "apps/api/tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "ASYNC", "S", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/api/tests/**/*.py" = ["S105", "S106"]
+"apps/api/migrations/**/*.py" = ["N999"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+mypy_path = ["apps/api/src"]
+packages = ["pono_api"]
+plugins = ["pydantic.mypy"]
