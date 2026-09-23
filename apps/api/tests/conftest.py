@@ -152,6 +152,8 @@ async def sign_in_as(
     """Drive the real sign-in flow: login redirect, then callback with the matching state."""
 
     identity.next_user = user
+    # A valid session skips the code host (SC-002): start from a signed-out browser.
+    client.cookies.delete("pono_session")
     login = await client.get("/api/v1/auth/login")
     state = parse_qs(urlsplit(login.headers["location"]).query)["state"][0]
     return await client.get("/api/v1/auth/callback", params={"code": "ok", "state": state})

@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse
 
 from pono_api.api.dependencies import IdentityDep, PrincipalDep, SessionsDep, SettingsDep
 from pono_api.application.identity import IdentityProviderError
-from pono_api.application.sessions import SESSION_COOKIE, revoke_session
+from pono_api.application.sessions import SESSION_COOKIE, resolve_session, revoke_session
 from pono_api.application.sign_in import saved_locale, sign_in
 from pono_api.errors import ApiError
 
@@ -31,7 +31,17 @@ def _console_redirect(public_url: str, path: str, error: str | None = None) -> R
 
 
 @router.get("/login")
-async def login(settings: SettingsDep, identity: IdentityDep) -> RedirectResponse:
+async def login(
+    settings: SettingsDep,
+    sessions: SessionsDep,
+    identity: IdentityDep,
+    token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> RedirectResponse:
+    # A session that still holds opens the workshop at once: no round trip to the code host
+    # when someone comes back to their projects (SC-002).
+    principal = await resolve_session(sessions, token)
+    if principal is not None and principal.organization_ids:
+        return _console_redirect(settings.public_url, "/workshop")
     state = secrets.token_urlsafe(24)
     response = RedirectResponse(
         identity.authorization_url(state, settings.auth_callback_url), status_code=302
