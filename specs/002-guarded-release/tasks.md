@@ -139,9 +139,10 @@ by tests, as in phase 1.
 - [X] T041 [P] Add a test in `apps/api/tests/security/test_domain_purity.py` that fails when a provider name appears under `apps/api/src/pono_api/domain/` or `application/` (FR-023, constitution III)
 - [X] T035 [P] Extend the contract test in `apps/api/tests/contract/test_projects_contract.py` to every phase 2 route and error, against the merged contract
 - [X] T036 [P] Add Playwright scenarios in `apps/web/tests/e2e/releases.spec.ts` with the mock service: refused verdict with findings, approval, protection, rollback confirmation, journal; no horizontal scroll; French and English
-- [ ] T037 Request the app permissions "Checks: write" and "Administration: write" for `pono-atelier` (author gesture) and record the step in `docs/EXPLOITATION.md`
-  - *The step is written in `docs/EXPLOITATION.md`; accepting the two permissions is the author's gesture.*
+- [X] T037 Request the app permissions "Checks: write" and "Administration: write" for `pono-atelier` (author gesture) and record the step in `docs/EXPLOITATION.md`
+  - *Permissions requested by the author and accepted on the installation on 2026-09-23 (checked through the app's installation).*
 - [ ] T038 Deploy on Coolify from `dev`, protect lectio-reads from the console, and run quickstart steps 1 to 5 on it; check that every production merge of the protected projects has an approval (SC-001, SC-002); record the results in `docs/VERITE_ET_PREUVES.md`
+  - *2026-09-23: steps 1 and 2 proven on lectio-reads (protection applied by the author from the console, lectio-reads#3 refused and blocked), recorded. Steps 3 to 5 (approval, invalidation, rollback) touch real production: left to the author's go, the open changes of fluxio-runtime-test are ready for step 3.*
 - [ ] T039 Record the demonstration of quickstart step 6 (unaccelerated), publish it, and link it in `docs/VERITE_ET_PREUVES.md` (SC-008, author gesture)
 - [X] T040 Update `docs/ROADMAP.md` (phase 2 status), `CLAUDE.md` (current phase) and `README.md`
 

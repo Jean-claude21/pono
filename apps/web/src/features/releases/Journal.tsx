@@ -43,7 +43,7 @@ export function Journal({ projectId, entries, pageSize }: Props) {
                 <td className="mute" title={dateTime(entry.occurredAt)}>
                   {relativeTime(entry.occurredAt)}
                 </td>
-                <td>
+                <td className="project">
                   {eventLabel(entry.kind)}
                   {entry.changeNumber ? (
                     <small className="figures">
