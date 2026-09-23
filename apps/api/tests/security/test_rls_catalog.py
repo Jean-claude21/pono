@@ -38,6 +38,18 @@ async def test_app_role_is_neither_owner_nor_bypassing(migrated_database: None) 
     assert owned == []
 
 
+async def test_security_definer_functions_are_owned_by_a_bypassing_role(
+    migrated_database: None,
+) -> None:
+    """The session and person lookups run before anyone is known; they must see through RLS."""
+    owners = await owner_fetch(
+        "SELECT p.proname, r.rolbypassrls FROM pg_proc p JOIN pg_roles r ON r.oid = p.proowner "
+        "WHERE p.prosecdef AND p.proname LIKE 'pono_%'"
+    )
+    assert {row["proname"] for row in owners} == {"pono_resolve_session", "pono_find_person"}
+    assert all(row["rolbypassrls"] for row in owners)
+
+
 async def test_app_role_has_no_access_to_bookkeeping(migrated_database: None) -> None:
     privileges = await owner_fetch(
         "SELECT has_table_privilege('pono_app', 'alembic_version', 'SELECT') AS can_read"

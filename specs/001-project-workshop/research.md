@@ -30,7 +30,10 @@ de `tasks.md`, avec un comportement de repli défini ici.
   - chaque transaction ouvre avec `SET LOCAL pono.person_id` et `SET LOCAL pono.organization_ids`,
     posés à partir de la session authentifiée ; les politiques lisent ces réglages ;
   - la résolution d'une session à partir de son jeton passe par une fonction `SECURITY DEFINER`
-    minimale, seule porte d'entrée avant que la personne soit connue ;
+    minimale, seule porte d'entrée avant que la personne soit connue. **Prérequis** : son
+    propriétaire (`pono_owner`) a `BYPASSRLS`, comme le rôle propriétaire de Neon ; sans lui,
+    `FORCE ROW LEVEL SECURITY` filtrerait aussi la fonction. Un test de sécurité l'impose, et la
+    base de test de la CI est créée ainsi ;
   - les tâches de fond travaillent organisation par organisation, en posant le même réglage.
 - **Rationale** : constitution, principe VI ; FR-007 et SC-006 exigent un refus au niveau des
   données, y compris pour une requête directe.
@@ -101,7 +104,7 @@ de `tasks.md`, avec un comportement de repli défini ici.
   Avec un seul hébergeur, SC-001 (cinq projets réels) n'est pas atteignable, et Pono lui-même tourne
   sur Coolify (D-012). L'adaptateur Coolify est **en lecture seule** et existe déjà dans KYA-Platform.
 - **Écart** : D-009 prévoit un seul chemin technique. L'écart est porté dans *Complexity Tracking* du
-  plan et proposé comme **D-014, en attente de validation humaine**.
+  plan et validé par **D-014**.
 - **Alternatives considered** : Netlify seul (SC-001 impossible) ; Coolify seul (perd le cas des
   paliers gratuits, cœur de la promesse « 0 € »).
 
