@@ -450,3 +450,49 @@ def test_registry_builds_adapters_from_sealed_keys_only() -> None:
         foreign.hosting(connection, lambda _: None)
     with pytest.raises(UnsupportedProviderError):
         ProviderRegistry(None).seal("k")
+
+
+async def test_neon_accepts_an_organization_key() -> None:
+    """An organization key has no user: `/users/me` answers 404, which is not an outage."""
+
+    api = Api(
+        {
+            "/api/v2/projects?limit=1": {"projects": [{"id": "flat-cell", "org_id": "org-a"}]},
+            "/api/v2/projects?limit=100&search=livio": {
+                "projects": [{"id": "flat-cell", "name": "livio"}]
+            },
+            "/api/v2/projects/flat-cell": {
+                "project": {
+                    "id": "flat-cell",
+                    "org_id": "org-a",
+                    "compute_time_seconds": 10,
+                    "consumption_period_start": "2026-09-01T00:00:00Z",
+                }
+            },
+            "/api/v2/organizations/org-a": {"plan": "free"},
+        }
+    )
+    database = NeonDatabase(
+        "org-key", lambda _: None, api_url="https://neon.test/api/v2", transport=api.transport
+    )
+
+    assert await database.verify() == "org-a"
+    assert await database.find_project("livio") == "flat-cell"
+    assert len(await database.read_quotas("flat-cell")) == 1
+
+
+async def test_an_organization_key_without_projects_still_connects() -> None:
+    api = Api({"/api/v2/projects?limit=1": {"projects": []}})
+    database = NeonDatabase(
+        "org-key", lambda _: None, api_url="https://neon.test/api/v2", transport=api.transport
+    )
+    assert await database.verify() == "organization"
+
+
+async def test_a_refused_neon_key_is_refused_not_unavailable() -> None:
+    api = Api({"/api/v2/users/me": 401})
+    database = NeonDatabase(
+        "bad", lambda _: None, api_url="https://neon.test/api/v2", transport=api.transport
+    )
+    with pytest.raises(ProviderAuthorizationError):
+        await database.verify()

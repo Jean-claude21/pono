@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { createPonoClient, errorCode, type Connection } from "@pono/sdk";
 import * as m from "@/paraglide/messages.js";
@@ -40,6 +40,17 @@ export function Connections({ connections, installUrl }: Props) {
   const codeHost = connections.find(
     (connection) => connection.kind === "code_host" && connection.status === "active",
   );
+
+  // The app is usually installed before this page is opened: link it without asking for a click.
+  // The buttons stay for the case where it is not installed yet.
+  const tried = useRef(false);
+  useEffect(() => {
+    if (codeHost || tried.current) return;
+    tried.current = true;
+    void client.POST("/api/v1/connections/code-host").then(({ error }) => {
+      if (!error) void router.invalidate();
+    });
+  }, [codeHost, client, router]);
 
   async function run(action: () => Promise<{ error?: unknown }>) {
     setBusy(true);

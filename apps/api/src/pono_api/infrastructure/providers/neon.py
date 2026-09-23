@@ -22,6 +22,9 @@ API_URL = "https://console.neon.tech/api/v2"
 FREE_COMPUTE_SECONDS = 100 * 3600  # 100 CU-hours per project and month
 FREE_TRANSFER_BYTES = 5 * 1000**3  # 5 GB of public egress per project and month
 
+# The account reference of an organization key that reaches no project yet.
+ORGANIZATION_KEY = "organization"
+
 
 class NeonDatabase:
     def __init__(
@@ -35,21 +38,32 @@ class NeonDatabase:
         self._client = KeyedClient(api_url, token, on_use, provider="neon", transport=transport)
 
     async def verify(self) -> str:
-        user = as_object(await self._client.get("/users/me", "verify_user"))
-        reference = text(user, "id") or text(user, "login")
-        if reference is None:
-            raise ProviderUnavailableError("neon returned no account")
-        return reference
+        """The account a key reaches: a person for a personal key, an organization otherwise.
+
+        Neon answers 404 on `/users/me` for an organization key: that is not an outage, the key
+        simply belongs to no person. Its organization shows on the projects it can list.
+        """
+
+        user = await self._client.get("/users/me", "verify_user", allow_missing=True)
+        if user is not None:
+            reference = text(as_object(user), "id") or text(as_object(user), "login")
+            if reference is None:
+                raise ProviderUnavailableError("neon returned no account")
+            return reference
+        listing = as_object(await self._client.get("/projects?limit=1", "verify_projects"))
+        projects = [as_object(project) for project in as_list(listing.get("projects"))]
+        organization = text(projects[0], "org_id") if projects else None
+        return organization or ORGANIZATION_KEY
 
     async def find_project(self, name: str) -> str | None:
         """The one project with exactly this name, across every organization the key reaches."""
 
         found: set[str] = set()
         for organization in await self._organizations():
+            scope = f"&org_id={quote(organization)}" if organization else ""
             payload = as_object(
                 await self._client.get(
-                    f"/projects?limit=100&org_id={quote(organization)}&search={quote(name)}",
-                    "list_projects",
+                    f"/projects?limit=100{scope}&search={quote(name)}", "list_projects"
                 )
             )
             found.update(
@@ -110,19 +124,25 @@ class NeonDatabase:
 
     async def _on_free_plan(self, organization: str | None) -> bool:
         if organization is None:
-            user = as_object(await self._client.get("/users/me", "read_plan"))
-            return (text(user, "plan") or "").startswith("free")
+            user = await self._client.get("/users/me", "read_plan", allow_missing=True)
+            return (text(as_object(user), "plan") or "").startswith("free")
         detail = as_object(
             await self._client.get(f"/organizations/{quote(organization)}", "read_plan")
         )
         return (text(detail, "plan") or "").startswith("free")
 
-    async def _organizations(self) -> list[str]:
-        # Listing projects needs an organization: a key reaches its user's organizations.
-        payload = as_object(await self._client.get("/users/me/organizations", "list_organizations"))
+    async def _organizations(self) -> list[str | None]:
+        """Where to list projects. A personal key names its user's organizations; an organization
+        key has no user (404) and lists its own organization without naming it (None)."""
+
+        payload = await self._client.get(
+            "/users/me/organizations", "list_organizations", allow_missing=True
+        )
+        if payload is None:
+            return [None]
         return [
             reference
-            for organization in map(as_object, as_list(payload.get("organizations")))
+            for organization in map(as_object, as_list(as_object(payload).get("organizations")))
             if (reference := text(organization, "id")) is not None
         ]
 
