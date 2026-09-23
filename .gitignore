@@ -15,3 +15,21 @@ Thumbs.db
 .idea/
 coverage/
 .turbo/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+
+# Paraglide output, generated at build time
+apps/web/src/paraglide/
+apps/web/project.inlang/cache/
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/

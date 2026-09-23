@@ -1,5 +1,5 @@
 # Pono console — built from the repository root (context "/" in Coolify)
-# because it depends on the @pono/design workspace package.
+# because it depends on the @pono/design and @pono/sdk workspace packages.
 # Follows the recipe proven by Firmo: Vite build, then srvx serves SSR and static files.
 
 FROM node:22.14.0-bookworm-slim AS build
@@ -12,9 +12,11 @@ RUN npm install -g pnpm@11.25.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY packages/design/package.json packages/design/
+COPY packages/sdk/package.json packages/sdk/
 RUN pnpm install --frozen-lockfile --filter "@pono/web..."
 
 COPY packages/design packages/design
+COPY packages/sdk packages/sdk
 COPY apps/web apps/web
 RUN pnpm --filter @pono/web build
 
@@ -25,6 +27,7 @@ RUN groupadd --system pono && useradd --system --gid pono --home-dir /app pono
 
 COPY --from=build --chown=pono:pono /app/node_modules ./node_modules
 COPY --from=build --chown=pono:pono /app/packages/design ./packages/design
+COPY --from=build --chown=pono:pono /app/packages/sdk ./packages/sdk
 COPY --from=build --chown=pono:pono /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=build --chown=pono:pono /app/apps/web/package.json ./apps/web/package.json
 COPY --from=build --chown=pono:pono /app/apps/web/dist ./apps/web/dist
