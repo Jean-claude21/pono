@@ -180,8 +180,12 @@ Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'
 > par Pono sur un clic, retour arrière par l'API de l'hébergeur, aucun contournement d'un garde-fou
 > refusé : une destruction voulue se déclare dans le manifeste.
 >
-> **Gestes de l'auteur.** Accepter deux permissions de l'app (vérifications, administration du
-> dépôt, `docs/EXPLOITATION.md`) ; puis protéger lectio-reads et enregistrer la démonstration.
+> **Prouvé sur un projet réel (2026-09-23).** Permissions de l'app acceptées ; lectio-reads protégée
+> depuis la console ; lectio-reads#3 (migration qui supprime une colonne) refusée par Pono et
+> bloquée par GitHub, refus au journal (`docs/VERITE_ET_PREUVES.md`).
+>
+> **Reste, pour fermer.** `[auteur]` Valider une proposition réelle et, si tu le veux, un retour
+> arrière réel (T038, étapes 3 à 5) ; `[bloquant]` enregistrer la démonstration (T039).
 
 ### Objective
 Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniquement, pas par consigne.
