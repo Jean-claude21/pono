@@ -22,6 +22,9 @@ Classement : `fait vérifié` · `observation` · `témoignage` · `hypothèse` 
 | Une adresse qui ne répond pas est signalée comme telle : les applications Coolify sous `vttlife.com`, domaine expiré, sont marquées « ne répond pas » | relevé réel, confirmé par `curl` (aucune réponse en 10 s) | 2026-09-23 |
 | Deux organisations restent étanches au niveau des données : 404 identique pour une ressource étrangère ou absente, aucune ligne étrangère en SQL direct sur toutes les tables (SC-006) | `apps/api/tests/security/test_isolation.py`, en CI | 2026-09-23 |
 | Offre gratuite Neon : 5 Go de transfert par projet et par mois ; la limite de stockage de l'offre est lisible par l'API, pas celles de calcul et de transfert | neon.com/pricing ; exploration de l'API (research R-08) | 2026-09-23 |
+| La console de Pono est servie en HTTPS sur l'adresse du serveur, sans domaine acheté : certificat Let's Encrypt pour `pono-staging.13.140.178.49.sslip.io`, `http` redirigé, cookies `Secure` (T085) | `openssl s_client` et navigateur, contexte sécurisé | 2026-09-23 |
+| La liaison Telegram marche de bout en bout en production : lien à usage unique, « Démarrer », confirmation, message reçu par l'auteur ; le jeton du bot apparaît `[redacted]` dans les journaux (T094, partiel) | journaux de `pono-api` (`getMe`, `getUpdates`, `sendMessage` 200, `/me/chat-link/confirm` 204) ; base : conversation reliée | 2026-09-23 |
+| La connexion GitHub lit l'adresse privée de la personne une fois la permission « Email addresses » accordée (T081) | base de production : adresse connue après reconnexion | 2026-09-23 |
 
 ## Observations
 

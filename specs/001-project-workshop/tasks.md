@@ -226,7 +226,7 @@ Each phase ends on its checkpoint; nothing is marked done without its test or it
 ## Phase 9: Convergence
 
 - [X] T081 Read the person's verified email at sign-in (code host account permission "email addresses: read", `/user/emails` in `apps/api/src/pono_api/infrastructure/providers/github_identity.py`) and let them set an alert address in the console when the code host gives none (`apps/api/src/pono_api/api/me.py`, `apps/web/src/routes/workshop/connections.tsx`) per FR-025 (partial)
-  - *The console field works now. Reading a private address at sign-in also needs the app's account permission "Email addresses: read", granted by the author in the GitHub App settings.*
+  - *Permission granted by the author on 2026-09-23; the address is read at sign-in in production.*
 - [ ] T082 Configure SMTP for `pono-api` and `pono-worker` on Coolify and prove one alert email received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004 (partial)
   - *Waits for an SMTP account from the author. No longer blocking the phase: alerts leave by chat (D-015, Phase 10).*
 - [X] T083 Show the time of the last reading in each workshop row, and mark it stale when a provider did not answer, in `apps/web/src/features/workshop/Workshop.tsx` per FR-023 (partial)
@@ -250,5 +250,5 @@ email stays possible when a mail server exists. Source: FR-025 (amended), resear
 - [X] T092 Expose `POST /me/chat-link`, `POST /me/chat-link/confirm`, `DELETE /me/chat`, `chatLinked` / `chatAlertsEnabled` on `/me` and `chat` in the health probe (`apps/api/src/pono_api/api/me.py`, `main.py`), regenerate `packages/sdk`, per contracts/openapi.yaml
 - [X] T093 Let the person link and unlink the chat from the Alerts section of `apps/web/src/features/connections/Connections.tsx`, with French and English catalog entries and the e2e mock updated, per FR-025 and D-013
 - [ ] T094 Configure the bot token on `pono-api` and `pono-worker`, link the author's chat and prove one alert received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004
-  - *Waits for the bot token from the author (`@BotFather`).*
+  - *Bot configured and the author's chat linked in production on 2026-09-23 (confirmation message received, token redacted in logs). Left: the first real alert, when a quota crosses 80 %; no consumption is faked in production.*
 
