@@ -1012,6 +1012,24 @@
     "/api/v1/auth/login": {
       "get": {
         "operationId": "login_api_v1_auth_login_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1020,6 +1038,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Login",
