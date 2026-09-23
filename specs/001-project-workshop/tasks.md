@@ -84,31 +84,31 @@ deployment and at least one responding link, with no field filled in.
 
 ### Tests for User Story 1
 
-- [ ] T028 [P] [US1] Unit tests for the state rules (order failing → warning → active → idle → healthy, activity = commit on any branch or deployment) in `apps/api/tests/unit/test_project_state.py`
-- [ ] T029 [P] [US1] Unit tests for the manifest readers (pono, studio `project.yaml`, Fluxio, Livio) and pre-fill against `contracts/manifest.schema.json` in `apps/api/tests/unit/test_manifests.py`
-- [ ] T030 [P] [US1] Guard test in `apps/api/tests/security/test_code_host_writes.py`: the code-host adapter refuses any write outside `pono/*` branches and exposes no merge operation (FR-029)
-- [ ] T031 [P] [US1] Unit tests for the link checker (10 s timeout, two attempts, HEAD then GET) in `apps/api/tests/unit/test_link_checker.py`
-- [ ] T032 [P] [US1] Contract tests for `/connections`, `/repositories`, `/projects`, `/projects/{id}`, `/projects/{id}/refresh` against `contracts/openapi.yaml` in `apps/api/tests/contract/test_projects_contract.py`
+- [X] T028 [P] [US1] Unit tests for the state rules (order failing → warning → active → idle → healthy, activity = commit on any branch or deployment) in `apps/api/tests/unit/test_project_state.py`
+- [X] T029 [P] [US1] Unit tests for the manifest readers (pono, studio `project.yaml`, Fluxio, Livio) and pre-fill against `contracts/manifest.schema.json` in `apps/api/tests/unit/test_manifests.py`
+- [X] T030 [P] [US1] Guard test in `apps/api/tests/security/test_code_host_writes.py`: the code-host adapter refuses any write outside `pono/*` branches and exposes no merge operation (FR-029)
+- [X] T031 [P] [US1] Unit tests for the link checker (10 s timeout, two attempts, HEAD then GET) in `apps/api/tests/unit/test_link_checker.py`
+- [X] T032 [P] [US1] Contract tests for `/connections`, `/repositories`, `/projects`, `/projects/{id}`, `/projects/{id}/refresh` against `contracts/openapi.yaml` in `apps/api/tests/contract/test_projects_contract.py`
 
 ### Implementation for User Story 1
 
-- [ ] T033 [US1] Write migration `apps/api/migrations/versions/0002_projects.py`: `connections`, `connection_events`, `projects`, `environments`, `deployments` with RLS and `FORCE` in this migration, and the uniqueness rules of `data-model.md`
-- [ ] T034 [P] [US1] Domain entities and state rules in `apps/api/src/pono_api/domain/projects.py` (no provider name; `provider` is an opaque adapter id)
-- [ ] T035 [P] [US1] Provider ports `CodeHost`, `HostingProvider`, `DatabaseProvider` in `apps/api/src/pono_api/application/ports.py`
-- [ ] T036 [US1] GitHub adapter in `apps/api/src/pono_api/infrastructure/providers/github.py`, ported from KYA-Platform: installation tokens, repository listing, file read, latest commit across branches, branch + commit + pull request restricted to `pono/*`
-- [ ] T037 [P] [US1] Netlify adapter (sites linked to a repository, deploys, published URL) in `apps/api/src/pono_api/infrastructure/providers/netlify.py`
-- [ ] T038 [P] [US1] Coolify adapter, read-only (applications linked to a repository, deployments, status, URL), ported from KYA-Platform, in `apps/api/src/pono_api/infrastructure/providers/coolify.py`
-- [ ] T039 [P] [US1] Neon adapter (project and branches referenced by the manifest) in `apps/api/src/pono_api/infrastructure/providers/neon.py`
-- [ ] T040 [P] [US1] Manifest readers and pre-fill in `apps/api/src/pono_api/infrastructure/manifests/` (`pono.py`, `studio_project_yaml.py`, `fluxio.py`, `livio.py`, `prefill.py`), validated against the JSON schema
-- [ ] T041 [P] [US1] Link checker in `apps/api/src/pono_api/infrastructure/link_checker.py`
-- [ ] T042 [US1] Connection use cases (register with encrypted authorization, list with status, revoke immediately) in `apps/api/src/pono_api/application/connections.py`
-- [ ] T043 [US1] Import use case in `apps/api/src/pono_api/application/import_project.py`: refuse duplicates, read or pre-fill the manifest, open the `pono/manifest` pull request when absent, create environments
-- [ ] T044 [US1] Refresh use case in `apps/api/src/pono_api/application/refresh_project.py`: read deployments and activity, check links, evaluate state, stamp `refreshed_at`, keep the previous state marked stale when a provider is unavailable
-- [ ] T045 [US1] Routes `/connections`, `/repositories`, `/projects` (POST), `/projects/{id}`, `/projects/{id}/refresh` in `apps/api/src/pono_api/api/projects.py` and `apps/api/src/pono_api/api/connections.py`
-- [ ] T046 [US1] Scheduled refresh job (every project at most every 15 minutes, per organization) in `apps/api/src/pono_api/workers/refresh.py`
-- [ ] T075 [US1] Record every use of a permanent provider key in `connection_events` from `apps/api/src/pono_api/application/connection_events.py`, wrapping the hosting and database adapters (FR-011, D-007)
-- [ ] T077 [US1] Refresh each connection's status (active, expired, revoked) in `apps/api/src/pono_api/workers/refresh.py` (FR-013)
-- [ ] T078 [US1] Track the manifest proposal in `apps/api/src/pono_api/application/refresh_project.py`: merged → `present`, closed unmerged → `absent`, never proposed again without a request
+- [X] T033 [US1] Write migration `apps/api/migrations/versions/0002_projects.py`: `connections`, `connection_events`, `projects`, `environments`, `deployments` with RLS and `FORCE` in this migration, and the uniqueness rules of `data-model.md`
+- [X] T034 [P] [US1] Domain entities and state rules in `apps/api/src/pono_api/domain/projects.py` (no provider name; `provider` is an opaque adapter id)
+- [X] T035 [P] [US1] Provider ports `CodeHost`, `HostingProvider`, `DatabaseProvider` in `apps/api/src/pono_api/application/ports.py`
+- [X] T036 [US1] GitHub adapter in `apps/api/src/pono_api/infrastructure/providers/github.py`, ported from KYA-Platform: installation tokens, repository listing, file read, latest commit across branches, branch + commit + pull request restricted to `pono/*`
+- [X] T037 [P] [US1] Netlify adapter (sites linked to a repository, deploys, published URL) in `apps/api/src/pono_api/infrastructure/providers/netlify.py`
+- [X] T038 [P] [US1] Coolify adapter, read-only (applications linked to a repository, deployments, status, URL), ported from KYA-Platform, in `apps/api/src/pono_api/infrastructure/providers/coolify.py`
+- [X] T039 [P] [US1] Neon adapter (project and branches referenced by the manifest) in `apps/api/src/pono_api/infrastructure/providers/neon.py`
+- [X] T040 [P] [US1] Manifest readers and pre-fill in `apps/api/src/pono_api/infrastructure/manifests/` (`pono.py`, `studio_project_yaml.py`, `fluxio.py`, `livio.py`, `prefill.py`), validated against the JSON schema
+- [X] T041 [P] [US1] Link checker in `apps/api/src/pono_api/infrastructure/link_checker.py`
+- [X] T042 [US1] Connection use cases (register with encrypted authorization, list with status, revoke immediately) in `apps/api/src/pono_api/application/connections.py`
+- [X] T043 [US1] Import use case in `apps/api/src/pono_api/application/import_project.py`: refuse duplicates, read or pre-fill the manifest, open the `pono/manifest` pull request when absent, create environments
+- [X] T044 [US1] Refresh use case in `apps/api/src/pono_api/application/refresh_project.py`: read deployments and activity, check links, evaluate state, stamp `refreshed_at`, keep the previous state marked stale when a provider is unavailable
+- [X] T045 [US1] Routes `/connections`, `/repositories`, `/projects` (POST), `/projects/{id}`, `/projects/{id}/refresh` in `apps/api/src/pono_api/api/projects.py` and `apps/api/src/pono_api/api/connections.py`
+- [X] T046 [US1] Scheduled refresh job (every project at most every 15 minutes, per organization) in `apps/api/src/pono_api/workers/refresh.py`
+- [X] T075 [US1] Record every use of a permanent provider key in `connection_events` from `apps/api/src/pono_api/application/connection_events.py`, wrapping the hosting and database adapters (FR-011, D-007)
+- [X] T077 [US1] Refresh each connection's status (active, expired, revoked) in `apps/api/src/pono_api/workers/refresh.py` (FR-013)
+- [X] T078 [US1] Track the manifest proposal in `apps/api/src/pono_api/application/refresh_project.py`: merged → `present`, closed unmerged → `absent`, never proposed again without a request
 - [ ] T047 [US1] Console connection screen in `apps/web/src/features/connections/` and route `apps/web/src/routes/workshop/connections.tsx` (code host installation link, hosting and database connections, status, revoke)
 - [ ] T048 [US1] Console import screen in `apps/web/src/features/projects/ImportProject.tsx` and route `apps/web/src/routes/workshop/import.tsx`
 - [ ] T049 [US1] Console project detail in `apps/web/src/features/projects/ProjectDetail.tsx` and route `apps/web/src/routes/workshop/projects.$projectId.tsx` (all previews, manifest status and proposal link, refresh button)

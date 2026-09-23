@@ -7,12 +7,14 @@ import uvicorn
 from fastapi import APIRouter, FastAPI, Request
 from sqlalchemy import text
 
-from pono_api.api import auth, me
+from pono_api.api import auth, connections, me, projects
 from pono_api.api.errors import install_error_handlers
 from pono_api.application.identity import CodeHostIdentity
+from pono_api.application.refresh_project import Providers
 from pono_api.config import Settings, get_settings
 from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
+from pono_api.infrastructure.providers.defaults import default_providers
 from pono_api.infrastructure.providers.github_identity import GitHubIdentity
 
 API_PREFIX = "/api/v1"
@@ -25,7 +27,9 @@ def _default_identity(settings: Settings) -> CodeHostIdentity | None:
 
 
 def create_app(
-    settings: Settings | None = None, identity: CodeHostIdentity | None = None
+    settings: Settings | None = None,
+    identity: CodeHostIdentity | None = None,
+    providers: Providers | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
 
@@ -44,6 +48,7 @@ def create_app(
     )
     app.state.settings = settings
     app.state.identity = identity or _default_identity(settings)
+    app.state.providers = providers or default_providers(settings)
     app.state.engine = engine
     app.state.sessions = create_session_factory(engine) if engine else None
     install_error_handlers(app)
@@ -67,7 +72,7 @@ def create_app(
             "email": "configured" if settings.smtp_configured else "not_configured",
         }
 
-    for router in (health, auth.router, me.router):
+    for router in (health, auth.router, me.router, connections.router, projects.router):
         app.include_router(router, prefix=API_PREFIX)
     return app
 

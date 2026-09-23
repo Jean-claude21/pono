@@ -12,11 +12,15 @@ points deviennent des tirets bas.
 | `connection.duplicate` | 409 | cette connexion existe déjà dans l'organisation |
 | `connection.authorization_invalid` | 422 | l'autorisation fournie est refusée par le fournisseur |
 | `connection.not_found` | 404 | inconnue **ou** appartenant à une autre organisation |
+| `connection.code_host_not_installed` | 422 | l'app Pono n'est pas installée sur le compte de la personne |
+| `connection.code_host_missing` | 422 | aucune connexion active au fournisseur de code |
+| `connection.provider_unsupported` | 422 | aucun adaptateur pour ce fournisseur, ou adresse manquante |
 | `project.already_imported` | 409 | le dépôt est déjà un projet de l'organisation (FR-017) |
 | `project.repository_unreachable` | 422 | le dépôt n'est pas accessible par la connexion |
 | `project.not_found` | 404 | inconnu **ou** appartenant à une autre organisation (US5, scénario 2) |
-| `locale.unsupported` | 422 | langue hors `fr` / `en` |
+| `request.invalid` | 422 | requête mal formée ; `field` nomme le champ (dont une langue hors `fr` / `en`) |
 | `provider.unavailable` | 503 | le fournisseur ne répond pas ; l'état précédent est conservé |
+| `service.*_unconfigured` | 503 | configuration manquante du service (base, identité, fournisseurs) |
 
 **Règle de cloisonnement** : une ressource d'une autre organisation répond **404**, jamais 403, pour
 ne pas confirmer son existence.

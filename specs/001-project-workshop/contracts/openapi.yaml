@@ -82,6 +82,17 @@ paths:
               schema: { $ref: "#/components/schemas/Connection" }
         "409": { $ref: "#/components/responses/Error" }
         "422": { $ref: "#/components/responses/Error" }
+  /connections/code-host:
+    post:
+      summary: >
+        Link the installation of the Pono app on the person's own code host account. No key is
+        asked (FR-010); the person installs the app from `Me.codeHostInstallUrl` first.
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Connection" }
+        "422": { $ref: "#/components/responses/Error" }
   /connections/{connectionId}:
     delete:
       summary: Revoke a connection immediately (FR-012).
@@ -200,13 +211,17 @@ components:
         login: { type: string }
         organizationId: { type: string, format: uuid }
         locale: { oneOf: [{ $ref: "#/components/schemas/Locale" }, { type: "null" }] }
+        codeHostInstallUrl:
+          type: [string, "null"]
+          description: Where the person installs the Pono app on chosen repositories.
     Connection:
       type: object
-      required: [id, kind, provider, status, statusCheckedAt]
+      required: [id, kind, provider, externalRef, status, statusCheckedAt]
       properties:
         id: { type: string, format: uuid }
         kind: { type: string, enum: [code_host, hosting, database] }
         provider: { type: string }
+        externalRef: { type: string, description: Installation or account at the provider. }
         status: { type: string, enum: [active, expired, revoked] }
         statusCheckedAt: { type: string, format: date-time }
     ConnectionRequest:
@@ -219,6 +234,9 @@ components:
           type: string
           description: Provider-issued authorization; stored encrypted, never returned.
           writeOnly: true
+        endpoint:
+          type: [string, "null"]
+          description: Base URL of a self-hosted provider (required for coolify).
     Repository:
       type: object
       required: [fullName, defaultBranch, alreadyImported]
@@ -228,20 +246,28 @@ components:
         alreadyImported: { type: boolean }
     Environment:
       type: object
-      required: [id, kind, linkStatus]
+      required: [id, kind, linkStatus, resourceStatus]
       properties:
         id: { type: string, format: uuid }
         kind: { type: string, enum: [production, preview, development] }
+        branch: { type: [string, "null"] }
         url: { type: [string, "null"] }
+        provider: { type: [string, "null"], description: Hosting adapter id. }
+        resourceStatus:
+          type: string
+          enum: [found, missing, unknown]
+          description: Whether the site or application exists at its provider; never invented.
         linkStatus: { type: string, enum: [up, down, unknown, missing] }
         linkCheckedAt: { type: [string, "null"], format: date-time }
+        openedAt: { type: [string, "null"], format: date-time }
     Deployment:
       type: object
-      required: [status, startedAt]
+      required: [environmentKind, status, startedAt]
       properties:
+        environmentKind: { type: string, enum: [production, preview, development] }
         status: { type: string, enum: [building, succeeded, failed, cancelled] }
-        commitSha: { type: string }
-        author: { type: string }
+        commitSha: { type: [string, "null"] }
+        author: { type: [string, "null"] }
         startedAt: { type: string, format: date-time }
         finishedAt: { type: [string, "null"], format: date-time }
     Quota:
@@ -255,20 +281,41 @@ components:
         readAt: { type: string, format: date-time }
     ProjectSummary:
       type: object
-      required: [id, repository, state, manifestStatus, environments, refreshedAt]
+      required:
+        [id, repository, name, state, stateReason, manifestStatus, environments, refreshedAt, stale]
       properties:
         id: { type: string, format: uuid }
         repository: { type: string }
+        name: { type: string }
         state: { $ref: "#/components/schemas/ProjectState" }
-        stateReason: { type: string }
+        stateReason:
+          type: string
+          description: The state rule that applied, translated by the console.
+          enum:
+            - production_down
+            - deployment_failed
+            - quota_warning
+            - connection_expired
+            - deployment_in_progress
+            - recent_activity
+            - no_recent_activity
+            - nominal
         manifestStatus: { type: string, enum: [present, proposed, absent] }
+        databaseStatus: { type: [string, "null"], enum: [found, missing, unknown, null] }
         environments:
           type: array
           description: Production, development and the most recent preview only.
           items: { $ref: "#/components/schemas/Environment" }
         lastDeployment: { oneOf: [{ $ref: "#/components/schemas/Deployment" }, { type: "null" }] }
         quota: { oneOf: [{ $ref: "#/components/schemas/Quota" }, { type: "null" }] }
-        refreshedAt: { type: string, format: date-time }
+        lastActivityAt: { type: [string, "null"], format: date-time }
+        refreshedAt:
+          type: [string, "null"]
+          format: date-time
+          description: Last complete reading (FR-023); null until the first one.
+        stale:
+          type: boolean
+          description: The last reading was incomplete; values date from refreshedAt.
     ProjectDetail:
       allOf:
         - $ref: "#/components/schemas/ProjectSummary"

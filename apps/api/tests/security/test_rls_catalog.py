@@ -46,7 +46,11 @@ async def test_security_definer_functions_are_owned_by_a_bypassing_role(
         "SELECT p.proname, r.rolbypassrls FROM pg_proc p JOIN pg_roles r ON r.oid = p.proowner "
         "WHERE p.prosecdef AND p.proname LIKE 'pono_%'"
     )
-    assert {row["proname"] for row in owners} == {"pono_resolve_session", "pono_find_person"}
+    assert {row["proname"] for row in owners} == {
+        "pono_resolve_session",
+        "pono_find_person",
+        "pono_worker_organizations",
+    }
     assert all(row["rolbypassrls"] for row in owners)
 
 

@@ -6,7 +6,8 @@ from fastapi import APIRouter, Response
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from pono_api.api.dependencies import PrincipalDep, SessionsDep
+from pono_api.api.dependencies import PrincipalDep, SessionsDep, SettingsDep
+from pono_api.api.schemas import Me
 from pono_api.errors import ApiError
 from pono_api.infrastructure.database.rls import unit_of_work
 
@@ -20,9 +21,7 @@ class LocaleChoice(BaseModel):
 
 
 @router.get("/me")
-async def read_me(sessions: SessionsDep, principal: PrincipalDep) -> dict[str, object]:
-    if not principal.organization_ids:
-        raise ApiError("auth.session_required", 401)
+async def read_me(sessions: SessionsDep, principal: PrincipalDep, settings: SettingsDep) -> Me:
     async with unit_of_work(sessions, principal) as session:
         row = (
             await session.execute(
@@ -31,12 +30,13 @@ async def read_me(sessions: SessionsDep, principal: PrincipalDep) -> dict[str, o
         ).first()
     if row is None:
         raise ApiError("auth.session_required", 401)
-    return {
-        "personId": str(principal.person_id),
-        "login": row.login,
-        "organizationId": str(principal.organization_ids[0]),
-        "locale": row.locale,
-    }
+    return Me(
+        person_id=principal.person_id,
+        login=row.login,
+        organization_id=principal.organization_id,
+        locale=row.locale,
+        code_host_install_url=settings.code_host_install_url,
+    )
 
 
 @router.put("/me/locale", status_code=204)

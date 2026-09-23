@@ -21,6 +21,18 @@ class Principal:
     person_id: UUID
     organization_ids: tuple[UUID, ...] = field(default_factory=tuple)
 
+    @property
+    def organization_id(self) -> UUID:
+        """The organization acted for. Phase 1 has one per person: their personal organization."""
+
+        return self.organization_ids[0]
+
+    @classmethod
+    def for_organization(cls, organization_id: UUID) -> Principal:
+        """The worker's principal: no person, one organization (research R-09)."""
+
+        return cls(person_id=UUID(int=0), organization_ids=(organization_id,))
+
 
 def _organizations_literal(organization_ids: tuple[UUID, ...]) -> str:
     return "{" + ",".join(str(organization_id) for organization_id in organization_ids) + "}"

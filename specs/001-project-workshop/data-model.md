@@ -56,11 +56,18 @@ Politique : `id = ANY (current_setting('pono.organization_ids')::uuid[])`.
 | `kind` | text | `code_host`, `hosting`, `database` |
 | `provider` | text | identifiant opaque d'adaptateur (`github`, `netlify`, `coolify`, `neon`) |
 | `external_ref` | text | installation ou compte chez le fournisseur |
+| `endpoint` | text | adresse d'un fournisseur auto-hébergé (Coolify), nullable |
 | `secret_ciphertext` | bytea | chiffré au repos (FR-011), nullable |
 | `status` | text | `active`, `expired`, `revoked` (FR-013) |
 | `status_checked_at` | timestamptz | |
 
-Unicité : (`organization_id`, `provider`, `external_ref`).
+Unicité : (`organization_id`, `provider`, `external_ref`). Une connexion révoquée peut être
+réautorisée : même ligne, nouvelle clé. La connexion au fournisseur de code ne porte aucune clé :
+Pono lie l'installation de son app sur le compte de la personne et en tire des jetons courts.
+
+**Clés composées** : toute référence entre lignes d'organisation inclut `organization_id`
+(`(organization_id, id)` est unique sur chaque table référencée). Une vérification de clé étrangère
+ignore la RLS ; c'est ce qui empêche une ligne de pointer vers celle d'une autre organisation.
 
 ### `connection_events` — Trace d'usage · RLS
 | Colonne | Type | Règle |
@@ -82,15 +89,19 @@ Unicité : (`organization_id`, `provider`, `external_ref`).
 | `organization_id` | uuid | |
 | `code_connection_id` | uuid → `connections` | |
 | `repository` | text | `propriétaire/nom` chez le fournisseur de code |
+| `name` | text | nom du manifeste |
 | `default_branch` | text | |
+| `manifest` | jsonb | dernier manifeste lu (ou pré-rempli), rejoué à chaque relevé |
 | `manifest_status` | text | `present`, `proposed`, `absent` |
 | `manifest_proposal_url` | text | nullable |
+| `database_status` | text | `found`, `missing`, `unknown` : la base nommée existe-t-elle ; nullable |
 | `state` | text | `healthy`, `active`, `warning`, `failing`, `idle` (FR-021) |
 | `state_reason` | text | code de la règle qui a fixé l'état |
 | `last_activity_at` | timestamptz | dernier commit (toute branche) ou déploiement |
-| `refreshed_at` | timestamptz | heure du dernier relevé (FR-023) |
+| `refreshed_at` | timestamptz | heure du dernier relevé **complet** (FR-023) |
+| `stale` | boolean | le dernier relevé a échoué chez un fournisseur : l'état affiché date de `refreshed_at` |
 
-Unicité : (`organization_id`, `repository`) — FR-017.
+Unicité : (`organization_id`, `lower(repository)`) — FR-017.
 
 **Correspondance des états** — spec (français) ↔ code (anglais) :
 
@@ -117,12 +128,18 @@ Unicité : (`organization_id`, `repository`) — FR-017.
 | `organization_id` | uuid | |
 | `project_id` | uuid → `projects` | |
 | `kind` | text | `production`, `preview`, `development` |
+| `branch` | text | nullable |
+| `hosting_provider` | text | identifiant d'adaptateur, nullable |
 | `hosting_connection_id` | uuid → `connections` | nullable |
 | `external_ref` | text | site ou application chez l'hébergeur |
 | `url` | text | nullable |
+| `resource_status` | text | `found`, `missing`, `unknown` : jamais inventée |
 | `link_status` | text | `up`, `down`, `unknown`, `missing` |
 | `link_checked_at` | timestamptz | |
 | `opened_at` | timestamptz | pour les previews : la plus récente est montrée dans la ligne |
+
+Unicité : (`project_id`, `kind`, `external_ref`). Une preview dont la demande de modification est
+fermée ou fusionnée quitte le projet au relevé suivant.
 
 ### `deployments` — Déploiement · RLS
 | Colonne | Type | Règle |
@@ -164,3 +181,8 @@ Unicité : (`organization_id`, `repository`) — FR-017.
 
 Unicité : (`organization_id`, `connection_id`, `metric`, `threshold`, `period_start`) — une seule
 alerte par seuil et par période (FR-025).
+
+## Accès du planificateur
+
+`pono_worker_organizations()` (`SECURITY DEFINER`) renvoie les identifiants des organisations, et
+rien d'autre. Le planificateur travaille ensuite dans chacune sous sa propre RLS, comme une requête.

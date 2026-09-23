@@ -55,6 +55,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Connections */
+        get: operations["read_connections_api_v1_connections_get"];
+        put?: never;
+        /** Create Connection */
+        post: operations["create_connection_api_v1_connections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/code-host": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Connect Code Host
+         * @description Link the installation of the Pono app on the person's account: no key is asked (FR-010).
+         */
+        post: operations["connect_code_host_api_v1_connections_code_host_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/connections/{connection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Connection */
+        delete: operations["delete_connection_api_v1_connections__connection_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -106,14 +161,199 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Workshop */
+        get: operations["read_workshop_api_v1_projects_get"];
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_v1_projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Project */
+        get: operations["read_project_api_v1_projects__project_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Refresh
+         * @description Queue an immediate reading (FR-022). A foreign project is unknown: 404, never 403.
+         */
+        post: operations["request_refresh_api_v1_projects__project_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Repositories */
+        get: operations["read_repositories_api_v1_repositories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Connection */
+        Connection: {
+            /** Externalref */
+            externalRef: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "code_host" | "hosting" | "database";
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "expired" | "revoked";
+            /**
+             * Statuscheckedat
+             * Format: date-time
+             */
+            statusCheckedAt: string;
+        };
+        /** ConnectionRequest */
+        ConnectionRequest: {
+            /**
+             * Authorization
+             * Format: password
+             * @description Provider-issued authorization; stored encrypted, never returned.
+             */
+            authorization: string;
+            /**
+             * Endpoint
+             * @description Base URL of a self-hosted provider.
+             */
+            endpoint?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "hosting" | "database";
+            /** Provider */
+            provider: string;
+        };
+        /** Deployment */
+        Deployment: {
+            /** Author */
+            author: string | null;
+            /** Commitsha */
+            commitSha: string | null;
+            /**
+             * Environmentkind
+             * @enum {string}
+             */
+            environmentKind: "production" | "preview" | "development";
+            /** Finishedat */
+            finishedAt: string | null;
+            /**
+             * Startedat
+             * Format: date-time
+             */
+            startedAt: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "building" | "succeeded" | "failed" | "cancelled";
+        };
+        /** Environment */
+        Environment: {
+            /** Branch */
+            branch: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "production" | "preview" | "development";
+            /** Linkcheckedat */
+            linkCheckedAt: string | null;
+            /**
+             * Linkstatus
+             * @enum {string}
+             */
+            linkStatus: "up" | "down" | "unknown" | "missing";
+            /** Openedat */
+            openedAt: string | null;
+            /** Provider */
+            provider: string | null;
+            /**
+             * Resourcestatus
+             * @enum {string}
+             */
+            resourceStatus: "found" | "missing" | "unknown";
+            /** Url */
+            url: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImportRequest */
+        ImportRequest: {
+            /**
+             * Repository
+             * @example owner/name
+             */
+            repository: string;
         };
         /** LocaleChoice */
         LocaleChoice: {
@@ -122,6 +362,143 @@ export interface components {
              * @enum {string}
              */
             locale: "fr" | "en";
+        };
+        /** Me */
+        Me: {
+            /** Codehostinstallurl */
+            codeHostInstallUrl: string | null;
+            /** Locale */
+            locale: ("fr" | "en") | null;
+            /** Login */
+            login: string;
+            /**
+             * Organizationid
+             * Format: uuid
+             */
+            organizationId: string;
+            /**
+             * Personid
+             * Format: uuid
+             */
+            personId: string;
+        };
+        /** ProjectDetail */
+        ProjectDetail: {
+            /** Databasestatus */
+            databaseStatus: ("found" | "missing" | "unknown") | null;
+            /**
+             * Environments
+             * @description Production, development and the most recent preview only.
+             */
+            environments: components["schemas"]["Environment"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lastactivityat */
+            lastActivityAt: string | null;
+            lastDeployment: components["schemas"]["Deployment"] | null;
+            /** Manifestproposalurl */
+            manifestProposalUrl: string | null;
+            /**
+             * Manifeststatus
+             * @enum {string}
+             */
+            manifestStatus: "present" | "proposed" | "absent";
+            /** Name */
+            name: string;
+            /** Previews */
+            previews: components["schemas"]["Environment"][];
+            quota: components["schemas"]["Quota"] | null;
+            /** Quotas */
+            quotas: components["schemas"]["Quota"][];
+            /** Refreshedat */
+            refreshedAt: string | null;
+            /** Repository */
+            repository: string;
+            /**
+             * Stale
+             * @description The last reading was incomplete; values date from refreshedAt.
+             */
+            stale: boolean;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "healthy" | "active" | "warning" | "failing" | "idle";
+            /** Statereason */
+            stateReason: string;
+        };
+        /** ProjectSummary */
+        ProjectSummary: {
+            /** Databasestatus */
+            databaseStatus: ("found" | "missing" | "unknown") | null;
+            /**
+             * Environments
+             * @description Production, development and the most recent preview only.
+             */
+            environments: components["schemas"]["Environment"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lastactivityat */
+            lastActivityAt: string | null;
+            lastDeployment: components["schemas"]["Deployment"] | null;
+            /**
+             * Manifeststatus
+             * @enum {string}
+             */
+            manifestStatus: "present" | "proposed" | "absent";
+            /** Name */
+            name: string;
+            quota: components["schemas"]["Quota"] | null;
+            /** Refreshedat */
+            refreshedAt: string | null;
+            /** Repository */
+            repository: string;
+            /**
+             * Stale
+             * @description The last reading was incomplete; values date from refreshedAt.
+             */
+            stale: boolean;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "healthy" | "active" | "warning" | "failing" | "idle";
+            /** Statereason */
+            stateReason: string;
+        };
+        /** Quota */
+        Quota: {
+            /** Limit */
+            limit: number | null;
+            /**
+             * Limitsource
+             * @enum {string}
+             */
+            limitSource: "account_plan" | "free_tier_estimate";
+            /** Metric */
+            metric: string;
+            /**
+             * Readat
+             * Format: date-time
+             */
+            readAt: string;
+            /** Used */
+            used: number;
+        };
+        /** Repository */
+        Repository: {
+            /** Alreadyimported */
+            alreadyImported: boolean;
+            /** Defaultbranch */
+            defaultBranch: string;
+            /** Fullname */
+            fullName: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -135,6 +512,36 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** Verdict */
+        Verdict: {
+            /**
+             * Code
+             * @example project.production_down
+             */
+            code: string;
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+        };
+        /** Workshop */
+        Workshop: {
+            /**
+             * Counts
+             * @description Number of projects per state, shown on each filter (FR-027).
+             */
+            counts: {
+                [key: string]: number;
+            };
+            /** Projects */
+            projects: components["schemas"]["ProjectSummary"][];
+            /**
+             * Verdicts
+             * @description What needs a decision, shown before the list.
+             */
+            verdicts: components["schemas"]["Verdict"][];
         };
     };
     responses: never;
@@ -228,6 +635,134 @@ export interface operations {
             };
         };
     };
+    read_connections_api_v1_connections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Connection"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_connection_api_v1_connections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Connection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connect_code_host_api_v1_connections_code_host_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Connection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_connection_api_v1_connections__connection_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_health_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -267,9 +802,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["Me"];
                 };
             };
             /** @description Validation Error */
@@ -304,6 +837,171 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_workshop_api_v1_projects_get: {
+        parameters: {
+            query?: {
+                state?: ("healthy" | "active" | "warning" | "failing" | "idle") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workshop"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_project_api_v1_projects_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_project_api_v1_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_refresh_api_v1_projects__project_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_repositories_api_v1_repositories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Repository"][];
+                };
             };
             /** @description Validation Error */
             422: {

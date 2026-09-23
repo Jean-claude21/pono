@@ -19,9 +19,20 @@ from pydantic import SecretStr
 from pono_api.application.identity import CodeHostUser, IdentityProviderError
 from pono_api.config import Settings
 from pono_api.main import create_app
+from tests.fakes import World, make_world
 
 API_ROOT = Path(__file__).resolve().parents[1]
-TABLES_TO_CLEAN = ("sessions", "memberships", "organizations", "people")
+TABLES_TO_CLEAN = (
+    "deployments",
+    "environments",
+    "projects",
+    "connection_events",
+    "connections",
+    "sessions",
+    "memberships",
+    "organizations",
+    "people",
+)
 
 
 def _raw_url(variable: str) -> str | None:
@@ -116,8 +127,15 @@ def settings() -> Settings:
 
 
 @pytest.fixture
-async def client(settings: Settings, identity: FakeIdentity) -> AsyncIterator[httpx.AsyncClient]:
-    app = create_app(settings, identity)
+def world() -> World:
+    return make_world()
+
+
+@pytest.fixture
+async def client(
+    settings: Settings, identity: FakeIdentity, world: World
+) -> AsyncIterator[httpx.AsyncClient]:
+    app = create_app(settings, identity, world.providers)
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://console.test") as http:
         yield http

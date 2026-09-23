@@ -1,5 +1,6 @@
 """Validated, secret-safe service configuration."""
 
+import base64
 from functools import lru_cache
 from typing import Annotated, Literal
 
@@ -51,6 +52,23 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return frozenset(login.strip().lower() for login in value.split(",") if login.strip())
         return value
+
+    @property
+    def github_private_key_pem(self) -> SecretStr | None:
+        """The App key, given as PEM or as base64 of the PEM (one line suits env files)."""
+
+        if self.github_private_key is None:
+            return None
+        raw = self.github_private_key.get_secret_value().strip()
+        if raw.startswith("-----BEGIN"):
+            return SecretStr(raw)
+        return SecretStr(base64.b64decode(raw).decode())
+
+    @property
+    def code_host_install_url(self) -> str | None:
+        if not self.github_app_slug:
+            return None
+        return f"https://github.com/apps/{self.github_app_slug}/installations/new"
 
     @property
     def smtp_configured(self) -> bool:

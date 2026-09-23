@@ -13,7 +13,10 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from pono_api.config import Settings, get_settings
+from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
+from pono_api.infrastructure.providers.defaults import default_providers
+from pono_api.workers.refresh import refresh_connections, refresh_due_projects
 
 logger = logging.getLogger("pono.worker")
 
@@ -44,11 +47,30 @@ async def run_jobs(jobs: Sequence[Job], stop: asyncio.Event) -> None:
     await asyncio.gather(*(_loop(job, stop) for job in jobs))
 
 
+PROJECTS_TICK = timedelta(minutes=5)
+CONNECTIONS_TICK = timedelta(hours=1)
+
+
 def build_jobs(settings: Settings) -> list[Job]:
     """Jobs registered for this deployment. Phase-specific jobs are added here."""
 
-    del settings
-    return []
+    if settings.database_app_url is None:
+        logger.warning("no database configured: the worker has nothing to do")
+        return []
+    sessions = create_session_factory(create_engine(settings.database_app_url))
+    providers = default_providers(settings)
+
+    async def projects() -> None:
+        count = await refresh_due_projects(sessions, providers)
+        logger.info("read %d project(s)", count)
+
+    async def connections() -> None:
+        await refresh_connections(sessions, providers)
+
+    return [
+        Job("projects", PROJECTS_TICK, projects),
+        Job("connections", CONNECTIONS_TICK, connections),
+    ]
 
 
 def _install_stop_handlers(stop: asyncio.Event) -> None:
