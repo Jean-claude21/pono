@@ -19,6 +19,7 @@ dependencies = [
 [project.scripts]
 pono-api = "pono_api.main:run"
 pono-worker = "pono_api.workers.runner:run"
+pono-healthcheck = "pono_api.healthcheck:main"
 
 [build-system]
 requires = ["hatchling"]

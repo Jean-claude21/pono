@@ -11,8 +11,10 @@ import signal
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
 
 from pono_api.config import Settings, get_settings
+from pono_api.healthcheck import HEARTBEAT
 from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
 from pono_api.infrastructure.providers.defaults import default_providers
@@ -42,13 +44,26 @@ async def _loop(job: Job, stop: asyncio.Event) -> None:
             await asyncio.wait_for(stop.wait(), timeout=job.interval.total_seconds())
 
 
-async def run_jobs(jobs: Sequence[Job], stop: asyncio.Event) -> None:
+HEARTBEAT_INTERVAL = timedelta(minutes=1)
+
+
+async def _heartbeat(stop: asyncio.Event, heartbeat: Path) -> None:
+    """Touch the heartbeat file the container probe reads (the worker opens no port)."""
+
+    while not stop.is_set():
+        await asyncio.to_thread(heartbeat.touch)
+        with contextlib.suppress(TimeoutError):
+            await asyncio.wait_for(stop.wait(), timeout=HEARTBEAT_INTERVAL.total_seconds())
+
+
+async def run_jobs(jobs: Sequence[Job], stop: asyncio.Event, heartbeat: Path | None = None) -> None:
     """Run every job on its own cadence until `stop` is set."""
 
+    beating = [_heartbeat(stop, heartbeat)] if heartbeat is not None else []
     if not jobs:
-        await stop.wait()
+        await asyncio.gather(stop.wait(), *beating)
         return
-    await asyncio.gather(*(_loop(job, stop) for job in jobs))
+    await asyncio.gather(*(_loop(job, stop) for job in jobs), *beating)
 
 
 PROJECTS_TICK = timedelta(minutes=5)
@@ -96,7 +111,7 @@ async def main() -> None:
     _install_stop_handlers(stop)
     jobs = build_jobs(get_settings())
     logger.info("worker started with %d job(s)", len(jobs))
-    await run_jobs(jobs, stop)
+    await run_jobs(jobs, stop, HEARTBEAT)
     logger.info("worker stopped")
 
 

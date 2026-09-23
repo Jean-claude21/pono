@@ -1,4 +1,4 @@
-# Pono API and worker — one image, two entrypoints (pono-api, pono-worker).
+# Pono API and worker — one image, two roles (PONO_ROLE unset: service; PONO_ROLE=worker).
 # Built from the repository root because the uv workspace lives there.
 
 FROM python:3.14-slim AS build
@@ -23,9 +23,9 @@ WORKDIR /app/apps/api
 USER pono
 EXPOSE 8000
 
-# No curl in the slim image: the probe uses Python.
-HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=6 \
-  CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2).status == 200 else 1)"]
+# No curl in the slim image: the probe is Python, and knows both roles.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=6 CMD ["pono-healthcheck"]
 
-# Migrations run with the owner role before the port opens; the worker overrides this command.
-CMD ["sh", "-c", "alembic upgrade head && pono-api"]
+# The service runs the migrations with the owner role before the port opens; the worker only
+# reads and records, under the application role.
+CMD ["sh", "-c", "if [ \"$PONO_ROLE\" = worker ]; then exec pono-worker; else alembic upgrade head && exec pono-api; fi"]
