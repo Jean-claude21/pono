@@ -29,3 +29,7 @@ __pycache__/
 # Paraglide output, generated at build time
 apps/web/src/paraglide/
 apps/web/project.inlang/cache/
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/

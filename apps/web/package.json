@@ -6,7 +6,10 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "start": "srvx serve --entry dist/server/server.js --static dist/client --prod --host 0.0.0.0 --port 3000",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:strings": "node scripts/check-hardcoded-strings.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@pono/design": "workspace:*",
@@ -19,6 +22,7 @@
   },
   "devDependencies": {
     "@inlang/paraglide-js": "^2.25.4",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.20.4",
     "@types/react": "^19.0.0",
@@ -26,6 +30,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.8.0",
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "vitest": "^3.2.7"
   }
 }

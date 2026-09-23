@@ -92,6 +92,18 @@ async def test_me_locale_and_logout(
     assert after.json() == {"error": {"code": "auth.session_required"}}
 
 
+async def test_the_saved_language_follows_the_person_at_sign_in(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
+) -> None:
+    first = await sign_in_as(client, identity, ALICE)
+    assert "pono_locale" not in first.cookies
+    await client.put("/api/v1/me/locale", json={"locale": "en"})
+
+    again = await sign_in_as(client, identity, ALICE)
+
+    assert again.cookies["pono_locale"] == "en"
+
+
 async def test_revoked_session_cannot_be_reused(
     clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
 ) -> None:

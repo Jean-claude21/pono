@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, redirect, useRouter } from "@tanstack/re
 import { createPonoClient } from "@pono/sdk";
 import * as m from "@/paraglide/messages.js";
 import { integer } from "@/lib/format";
+import { LocaleSwitcher } from "@/features/i18n/LocaleSwitcher";
 import { fetchConnections, fetchMe, fetchWorkshop } from "@/lib/service";
 
 export const Route = createFileRoute("/workshop")({
@@ -72,6 +73,9 @@ function ConsoleLayout() {
           <span className="mute" style={{ fontSize: 13, padding: "0 10px" }}>
             {m.rail_personal_workshop()}
           </span>
+          <div style={{ padding: "4px 6px" }}>
+            <LocaleSwitcher signedIn />
+          </div>
           <button
             type="button"
             className="mute"

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import * as m from "@/paraglide/messages.js";
 import { errorMessage } from "@/lib/i18n";
+import { LocaleSwitcher } from "@/features/i18n/LocaleSwitcher";
 
 type LandingSearch = { error?: string };
 
@@ -31,7 +32,8 @@ function Landing() {
         <a className="monogram" href="/">
           <b>P</b>Pono
         </a>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <LocaleSwitcher />
           <a className="btn btn-ghost btn-sm" href="/api/v1/auth/login">
             {m.sign_in()}
           </a>

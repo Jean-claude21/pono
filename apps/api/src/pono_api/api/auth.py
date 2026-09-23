@@ -11,11 +11,14 @@ from fastapi.responses import RedirectResponse
 from pono_api.api.dependencies import IdentityDep, PrincipalDep, SessionsDep, SettingsDep
 from pono_api.application.identity import IdentityProviderError
 from pono_api.application.sessions import SESSION_COOKIE, revoke_session
-from pono_api.application.sign_in import sign_in
+from pono_api.application.sign_in import saved_locale, sign_in
 from pono_api.errors import ApiError
 
 STATE_COOKIE = "pono_oauth_state"
 STATE_TTL_SECONDS = 600
+# Read by the console's language negotiation (Paraglide, `cookie` strategy).
+LOCALE_COOKIE = "pono_locale"
+LOCALE_COOKIE_MAX_AGE = 400 * 24 * 3600
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -59,7 +62,7 @@ async def callback(
     try:
         user_token = await identity.exchange_code(code, settings.auth_callback_url)
         user = await identity.fetch_user(user_token)
-        _, issued = await sign_in(
+        principal, issued = await sign_in(
             sessions,
             user,
             allowed_logins=settings.allowed_logins,
@@ -72,6 +75,17 @@ async def callback(
 
     response = _console_redirect(settings.public_url, "/workshop")
     response.delete_cookie(STATE_COOKIE, path="/api/v1/auth")
+    # The language chosen earlier follows the person to any browser (FR-003, research R-05).
+    locale = await saved_locale(sessions, principal)
+    if locale:
+        response.set_cookie(
+            LOCALE_COOKIE,
+            locale,
+            max_age=LOCALE_COOKIE_MAX_AGE,
+            secure=settings.secure_cookies,
+            samesite="lax",
+            path="/",
+        )
     response.set_cookie(
         SESSION_COOKIE,
         issued.token,

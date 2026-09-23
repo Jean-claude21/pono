@@ -86,4 +86,16 @@ async def sign_in(
     return principal, issued
 
 
-__all__ = ["sign_in"]
+async def saved_locale(
+    sessions: async_sessionmaker[AsyncSession], principal: Principal
+) -> str | None:
+    async with unit_of_work(sessions, principal) as session:
+        locale = (
+            await session.execute(
+                text("SELECT locale FROM people WHERE id = :id"), {"id": principal.person_id}
+            )
+        ).scalar_one_or_none()
+    return str(locale) if locale else None
+
+
+__all__ = ["saved_locale", "sign_in"]

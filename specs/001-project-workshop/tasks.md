@@ -129,7 +129,7 @@ opening a random project's production link with its last deployment identified.
 - [X] T051 [US2] Workshop query in `apps/api/src/pono_api/application/workshop.py`: summaries, counts per state, verdict codes of `contracts/error-codes.md`
 - [X] T052 [US2] Extend `GET /projects` with the `state` filter and the workshop payload in `apps/api/src/pono_api/api/projects.py`
 - [X] T053 [US2] Workshop screen in `apps/web/src/features/workshop/Workshop.tsx` and route `apps/web/src/routes/workshop/index.tsx`, following `design/admin.html` with `@pono/design` classes (table, state dots, meters, verdict banner, filter tabs with counts)
-- [ ] T054 [US2] Playwright render check at 1440 px of the workshop with empty, healthy and failing data in `apps/web/tests/e2e/workshop.spec.ts`
+- [X] T054 [US2] Playwright render check at 1440 px of the workshop with empty, healthy and failing data in `apps/web/tests/e2e/workshop.spec.ts`
 
 **Checkpoint**: the MVP — US1 + US2 — is usable by the two first users.
 
@@ -160,12 +160,12 @@ email, never twice for the same threshold and period.
 **Independent Test**: switch to English on the landing and in the workshop; no French text,
 date or number remains.
 
-- [ ] T062 [US4] Complete `apps/web/messages/en.json` for every key, including `error_*` keys for all codes of `contracts/error-codes.md`
+- [X] T062 [US4] Complete `apps/web/messages/en.json` for every key, including `error_*` keys for all codes of `contracts/error-codes.md`
 - [X] T063 [P] [US4] Localized formatting helpers (dates, relative times, numbers, percentages) with `Intl` in `apps/web/src/lib/format.ts`
-- [ ] T080 [P] [US4] Vitest tests for the formatting helpers in `apps/web/src/lib/format.test.ts`
-- [ ] T064 [US4] Language switcher in `apps/web/src/features/i18n/LocaleSwitcher.tsx`, persisting through `PUT /me/locale` and the `pono_locale` cookie
-- [ ] T065 [P] [US4] Check `apps/web/scripts/check-hardcoded-strings.mjs` failing on visible text literals in `.tsx` files, wired into CI
-- [ ] T066 [US4] Playwright test in `apps/web/tests/e2e/i18n.spec.ts`: browser language, explicit choice kept after reload, no mixed-language screen
+- [X] T080 [P] [US4] Vitest tests for the formatting helpers in `apps/web/src/lib/format.test.ts`
+- [X] T064 [US4] Language switcher in `apps/web/src/features/i18n/LocaleSwitcher.tsx`, persisting through `PUT /me/locale` and the `pono_locale` cookie
+- [X] T065 [P] [US4] Check `apps/web/scripts/check-hardcoded-strings.mjs` failing on visible text literals in `.tsx` files, wired into CI
+- [X] T066 [US4] Playwright test in `apps/web/tests/e2e/i18n.spec.ts`: browser language, explicit choice kept after reload, no mixed-language screen
 
 ---
 

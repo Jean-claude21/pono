@@ -231,5 +231,7 @@
   "detail_no_quotas": "Aucun quota suivi pour ce projet.",
   "column_metric": "Mesure",
   "column_usage": "Consommation",
-  "column_source": "Source de la limite"
+  "column_source": "Source de la limite",
+  "error_service_identity_unconfigured": "Le service n’a pas de fournisseur d’identité configuré.",
+  "error_service_providers_unconfigured": "Le service n’a pas de fournisseurs configurés."
 }

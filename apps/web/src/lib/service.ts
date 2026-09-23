@@ -33,13 +33,13 @@ async function read<T>(path: string): Promise<ServiceResult<T>> {
 export const fetchMe = createServerFn({ method: "GET" }).handler(() => read<Me>("/me"));
 
 export const fetchWorkshop = createServerFn({ method: "GET" })
-  .inputValidator((state: string | undefined) => state)
+  .validator((state: string | undefined) => state)
   .handler(({ data: state }) =>
     read<Workshop>(state ? `/projects?state=${encodeURIComponent(state)}` : "/projects"),
   );
 
 export const fetchProject = createServerFn({ method: "GET" })
-  .inputValidator((projectId: string) => projectId)
+  .validator((projectId: string) => projectId)
   .handler(({ data: projectId }) =>
     read<ProjectDetail>(`/projects/${encodeURIComponent(projectId)}`),
   );

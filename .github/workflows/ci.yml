@@ -19,6 +19,11 @@ jobs:
       # The build generates the Paraglide messages that the typecheck reads.
       - run: pnpm --filter @pono/web build
       - run: pnpm --filter @pono/web typecheck
+      # Every visible text comes from the catalogs (FR-001).
+      - run: pnpm --filter @pono/web check:strings
+      - run: pnpm --filter @pono/web test
+      - run: pnpm --filter @pono/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @pono/web test:e2e
 
   api:
     runs-on: ubuntu-latest
