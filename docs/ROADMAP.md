@@ -164,7 +164,17 @@ Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'
 
 ---
 
-## Phase 2 — La mise en ligne sous garde-fou
+## Phase 2 — La mise en ligne sous garde-fou · *en cours sur `002-guarded-release`*
+
+> **Où on en est (2026-09-23, soir).** Spec Kit : specify → clarify (3 questions, options
+> recommandées retenues) → plan → tasks → analyze faits (`specs/002-guarded-release/`). 41 tâches ;
+> implémentation en cours. Décision D-016 : blocage par une vérification obligatoire liée à l'app
+> Pono, protection posée par Pono sur un clic, retour arrière par l'API de l'hébergeur, aucun
+> contournement d'un garde-fou refusé.
+>
+> **Gestes de l'auteur à venir.** Accepter deux permissions de l'app (vérifications, administration
+> du dépôt) ; enregistrer la démonstration.
+
 
 ### Objective
 Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniquement, pas par consigne.

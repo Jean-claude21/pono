@@ -225,6 +225,32 @@ n'existe qu'aux États-Unis, la décision de région se rouvre, serveur compris.
 
 ---
 
+## D-016 — Mise en ligne sous garde-fou : deux écritures chez les fournisseurs, aucun contournement
+
+**Validé le 2026-09-23** par l'auteur (clarifications de `specs/002-guarded-release`).
+
+**Tranché ainsi.**
+1. Le blocage d'une mise en production est une vérification `pono/release` obligatoire sur la
+   branche de production, **liée à l'app Pono** chez le fournisseur de code. Pono ne fusionne jamais.
+2. Pono pose lui-même la protection de la branche de production, sur un clic de la personne. C'est
+   sa seule écriture hors de ses branches de proposition ; l'app demande pour cela le droit
+   d'administration du dépôt.
+3. Les adaptateurs d'hébergement gagnent une seule écriture : le retour arrière de la production
+   (restauration Netlify, retour arrière Coolify). Amende D-014 (« Coolify en lecture seule »).
+4. Aucun garde-fou refusé ne se contourne depuis Pono. Une destruction voulue est déclarée dans le
+   manifeste versionné et arrive seule dans son changement.
+5. Sans preview, le garde-fou de la preview bloque.
+
+**Pourquoi.** D-004 : un garde-fou qu'on peut contourner d'un clic finit contourné par un humain
+pressé ou par un agent qui argumente. La déclaration dans le dépôt garde la décision écrite et
+relue.
+
+**Ce que ça coûte.** Deux permissions de plus pour l'app (administration, vérifications), à
+accepter par chaque personne ; un projet sans preview doit l'activer avant sa prochaine mise en
+production.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.
