@@ -4,6 +4,7 @@ from pono_api.application.refresh_project import Providers
 from pono_api.config import Settings
 from pono_api.infrastructure.crypto import CredentialCipher
 from pono_api.infrastructure.link_checker import HttpLinkChecker
+from pono_api.infrastructure.mailer import SmtpMailer
 from pono_api.infrastructure.manifests import RepositoryManifests
 from pono_api.infrastructure.providers.github import GitHubCodeHost
 from pono_api.infrastructure.providers.registry import ProviderRegistry
@@ -20,6 +21,13 @@ def default_providers(settings: Settings) -> Providers:
         ),
         manifests=RepositoryManifests(),
         links=HttpLinkChecker(),
+        mailer=SmtpMailer(
+            settings.smtp_host,
+            settings.smtp_port,
+            settings.smtp_username,
+            settings.smtp_password,
+            settings.smtp_from,
+        ),
     )
 
 

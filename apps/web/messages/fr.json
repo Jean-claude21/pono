@@ -218,5 +218,18 @@
   "error_connection_provider_unsupported": "Ce fournisseur n’est pas pris en charge, ou son adresse manque.",
   "error_service_code_host_unconfigured": "Le service n’a pas de fournisseur de code configuré.",
   "error_service_database_unconfigured": "Le service n’a pas de base configurée.",
-  "error_service_unreachable": "Le service ne répond pas pour l’instant."
+  "error_service_unreachable": "Le service ne répond pas pour l’instant.",
+  "quota_source_account_plan": "offre du compte",
+  "quota_source_free_tier_estimate": "offre gratuite, estimée",
+  "quota_limit_unknown": "limite non fournie",
+  "quota_metric_hosting_bandwidth_bytes": "Bande passante",
+  "quota_metric_db_compute_seconds": "Calcul de la base",
+  "quota_metric_db_storage_bytes": "Stockage de la base",
+  "quota_metric_db_transfer_bytes": "Transfert de la base",
+  "quota_of": "{used} / {limit}",
+  "detail_quotas": "Quotas du mois",
+  "detail_no_quotas": "Aucun quota suivi pour ce projet.",
+  "column_metric": "Mesure",
+  "column_usage": "Consommation",
+  "column_source": "Source de la limite"
 }

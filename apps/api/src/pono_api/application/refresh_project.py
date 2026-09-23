@@ -7,7 +7,7 @@ stale: its previous state stays visible, with the time of the last complete read
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid7
@@ -23,6 +23,7 @@ from pono_api.application.ports import (
     HostedEnvironment,
     KeyUseLog,
     LinkChecker,
+    Mailer,
     ManifestReader,
     PreviewRecord,
     ProviderAuthorizationError,
@@ -30,6 +31,7 @@ from pono_api.application.ports import (
     ProviderUnavailableError,
     StoredConnection,
 )
+from pono_api.application.quota_views import project_quotas
 from pono_api.domain.manifest import (
     ManifestEnvironment,
     ManifestInvalidError,
@@ -63,6 +65,7 @@ class Providers:
     factory: ProviderFactory
     manifests: ManifestReader
     links: LinkChecker
+    mailer: Mailer | None = None
 
 
 @dataclass(slots=True)
@@ -447,7 +450,9 @@ async def _write(
                 common,
             )
             return
-        facts = facts_for(reading)
+        quotas = await project_quotas(session, project.id)
+        ratios = [q["ratio"] for q in quotas if isinstance(q["ratio"], float)]
+        facts = replace(facts_for(reading), highest_quota_ratio=max(ratios) if ratios else None)
         state, reason = evaluate_state(facts, now)
         await session.execute(
             text(

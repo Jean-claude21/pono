@@ -23,6 +23,8 @@ from tests.fakes import World, make_world
 
 API_ROOT = Path(__file__).resolve().parents[1]
 TABLES_TO_CLEAN = (
+    "alerts",
+    "quota_readings",
     "deployments",
     "environments",
     "projects",

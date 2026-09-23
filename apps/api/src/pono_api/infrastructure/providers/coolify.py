@@ -15,6 +15,7 @@ from pono_api.application.ports import (
     KeyUse,
 )
 from pono_api.domain.projects import DeploymentStatus, EnvironmentKind, ResourceStatus
+from pono_api.domain.quotas import QuotaReading
 from pono_api.infrastructure.providers.http import (
     JsonObject,
     KeyedClient,
@@ -80,6 +81,11 @@ class CoolifyHosting:
         team = as_object(await self._client.get("/teams/current", "verify_team"))
         host = urlsplit(self._endpoint).hostname or self._endpoint
         return f"{host}/{team.get('id', 'team')}"
+
+    async def read_quotas(self) -> list[QuotaReading]:
+        """A server of one's own has no plan quota: nothing to read, nothing invented."""
+
+        return []
 
     async def detect(
         self, repository: str, name: str, default_branch: str

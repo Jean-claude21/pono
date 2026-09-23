@@ -13,6 +13,7 @@ import {
   verdictText,
   verdictTone,
 } from "./labels";
+import { QuotaMeter } from "./QuotaMeter";
 
 type Props = {
   workshop: WorkshopData;
@@ -203,9 +204,13 @@ function ProjectRow({ project }: { project: ProjectSummary }) {
         )}
       </td>
       <td className="num">
-        <span className="mute" style={{ fontSize: 13 }}>
-          {m.quota_not_tracked()}
-        </span>
+        {project.quota ? (
+          <QuotaMeter quota={project.quota} />
+        ) : (
+          <span className="mute" style={{ fontSize: 13 }}>
+            {m.quota_not_tracked()}
+          </span>
+        )}
       </td>
     </tr>
   );

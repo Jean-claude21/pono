@@ -50,3 +50,25 @@ export function percent(ratio: number, locale: string = getLocale()): string {
     ratio,
   );
 }
+
+/** A quota amount in its natural unit: bytes as MB or GB, seconds as hours. */
+export function quantity(value: number, metric: string, locale: string = getLocale()): string {
+  if (metric.endsWith("_bytes")) {
+    const gigabytes = value / 1e9;
+    const [amount, unit] = gigabytes >= 1 ? [gigabytes, "gigabyte"] : [value / 1e6, "megabyte"];
+    return new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit,
+      maximumFractionDigits: amount >= 10 ? 0 : 1,
+    }).format(amount);
+  }
+  if (metric.endsWith("_seconds")) {
+    const hours = value / 3600;
+    return new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: "hour",
+      maximumFractionDigits: hours >= 10 ? 0 : 1,
+    }).format(hours);
+  }
+  return integer(value, locale);
+}

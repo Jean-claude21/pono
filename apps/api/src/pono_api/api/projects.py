@@ -15,6 +15,7 @@ from pono_api.api.schemas import (
     Workshop,
 )
 from pono_api.application.import_project import import_project, list_repositories
+from pono_api.application.quotas import read_quotas
 from pono_api.application.refresh_project import Providers, refresh_project
 from pono_api.application.workshop import load_project, load_workshop, project_exists
 from pono_api.domain.projects import ProjectState
@@ -63,6 +64,8 @@ async def _refresh_in_background(
     sessions: SessionsDep, principal: Principal, project_id: UUID, providers: Providers
 ) -> None:
     try:
+        # A requested reading also reads quotas (FR-025), before the state is evaluated.
+        await read_quotas(sessions, principal, providers)
         await refresh_project(sessions, principal, project_id, providers)
     except Exception:  # a background reading must never take the service down
         logger.exception("requested reading of project %s failed", project_id)

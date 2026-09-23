@@ -474,15 +474,23 @@ export interface components {
         };
         /** Quota */
         Quota: {
-            /** Limit */
+            /**
+             * Limit
+             * @description Null when the provider does not state it.
+             */
             limit: number | null;
             /**
              * Limitsource
              * @enum {string}
              */
             limitSource: "account_plan" | "free_tier_estimate";
-            /** Metric */
-            metric: string;
+            /**
+             * Metric
+             * @enum {string}
+             */
+            metric: "hosting_bandwidth_bytes" | "db_compute_seconds" | "db_storage_bytes" | "db_transfer_bytes";
+            /** Ratio */
+            ratio: number | null;
             /**
              * Readat
              * Format: date-time

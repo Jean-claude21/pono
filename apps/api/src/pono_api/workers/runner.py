@@ -16,7 +16,11 @@ from pono_api.config import Settings, get_settings
 from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
 from pono_api.infrastructure.providers.defaults import default_providers
-from pono_api.workers.refresh import refresh_connections, refresh_due_projects
+from pono_api.workers.refresh import (
+    read_all_quotas,
+    refresh_connections,
+    refresh_due_projects,
+)
 
 logger = logging.getLogger("pono.worker")
 
@@ -49,6 +53,7 @@ async def run_jobs(jobs: Sequence[Job], stop: asyncio.Event) -> None:
 
 PROJECTS_TICK = timedelta(minutes=5)
 CONNECTIONS_TICK = timedelta(hours=1)
+QUOTAS_TICK = timedelta(hours=1)
 
 
 def build_jobs(settings: Settings) -> list[Job]:
@@ -67,9 +72,14 @@ def build_jobs(settings: Settings) -> list[Job]:
     async def connections() -> None:
         await refresh_connections(sessions, providers)
 
+    async def quotas() -> None:
+        raised = await read_all_quotas(sessions, providers)
+        logger.info("quota readings raised %d alert(s)", raised)
+
     return [
         Job("projects", PROJECTS_TICK, projects),
         Job("connections", CONNECTIONS_TICK, connections),
+        Job("quotas", QUOTAS_TICK, quotas),
     ]
 
 

@@ -272,12 +272,18 @@ components:
         finishedAt: { type: [string, "null"], format: date-time }
     Quota:
       type: object
-      required: [metric, used, limitSource]
+      required: [metric, used, limit, limitSource, ratio, readAt]
       properties:
-        metric: { type: string }
+        metric:
+          type: string
+          enum: [hosting_bandwidth_bytes, db_compute_seconds, db_storage_bytes, db_transfer_bytes]
         used: { type: number }
-        limit: { type: [number, "null"] }
-        limitSource: { type: string, enum: [account_plan, free_tier_estimate] }
+        limit: { type: [number, "null"], description: Null when the provider does not state it. }
+        limitSource:
+          type: string
+          enum: [account_plan, free_tier_estimate]
+          description: Shown next to every limit (FR-024).
+        ratio: { type: [number, "null"] }
         readAt: { type: string, format: date-time }
     ProjectSummary:
       type: object

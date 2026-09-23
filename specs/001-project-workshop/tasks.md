@@ -143,13 +143,13 @@ and period.
 **Independent Test**: push a reading above a threshold and see one alert in the workshop and by
 email, never twice for the same threshold and period.
 
-- [ ] T055 [US3] Exploration: confirm the provider API endpoints for Netlify credit usage and Neon consumption and plan limits; record the result in `specs/001-project-workshop/research.md` (R-08), applying the fallback when not exposed
-- [ ] T056 [P] [US3] Unit tests for threshold evaluation and idempotency in `apps/api/tests/unit/test_quota_alerts.py`
-- [ ] T057 [US3] Write migration `apps/api/migrations/versions/0003_quotas.py`: `quota_readings` and `alerts` with RLS and `FORCE` in this migration, and the alert uniqueness key
-- [ ] T058 [P] [US3] `QuotaReader` port in `apps/api/src/pono_api/application/ports.py` and readers in `apps/api/src/pono_api/infrastructure/providers/neon.py` and `apps/api/src/pono_api/infrastructure/providers/netlify.py` (limit source recorded; unavailable metric stored as unavailable)
-- [ ] T059 [P] [US3] SMTP mailer behind a `Mailer` port in `apps/api/src/pono_api/infrastructure/mailer.py`
-- [ ] T060 [US3] Quota and alert use case in `apps/api/src/pono_api/application/quotas.py` and job in `apps/api/src/pono_api/workers/quotas.py`, reading at least hourly and on every requested refresh (FR-025, SC-004)
-- [ ] T061 [US3] Quota meters with limit source and alert verdicts in `apps/web/src/features/workshop/QuotaMeter.tsx` and the project detail
+- [X] T055 [US3] Exploration: confirm the provider API endpoints for Netlify credit usage and Neon consumption and plan limits; record the result in `specs/001-project-workshop/research.md` (R-08), applying the fallback when not exposed
+- [X] T056 [P] [US3] Unit tests for threshold evaluation and idempotency in `apps/api/tests/unit/test_quota_alerts.py`
+- [X] T057 [US3] Write migration `apps/api/migrations/versions/0003_quotas.py`: `quota_readings` and `alerts` with RLS and `FORCE` in this migration, and the alert uniqueness key
+- [X] T058 [P] [US3] `QuotaReader` port in `apps/api/src/pono_api/application/ports.py` and readers in `apps/api/src/pono_api/infrastructure/providers/neon.py` and `apps/api/src/pono_api/infrastructure/providers/netlify.py` (limit source recorded; unavailable metric stored as unavailable)
+- [X] T059 [P] [US3] SMTP mailer behind a `Mailer` port in `apps/api/src/pono_api/infrastructure/mailer.py`
+- [X] T060 [US3] Quota and alert use case in `apps/api/src/pono_api/application/quotas.py` and job in `apps/api/src/pono_api/workers/quotas.py`, reading at least hourly and on every requested refresh (FR-025, SC-004)
+- [X] T061 [US3] Quota meters with limit source and alert verdicts in `apps/web/src/features/workshop/QuotaMeter.tsx` and the project detail
 
 ---
 
@@ -176,8 +176,8 @@ date or number remains.
 **Independent Test**: from a second person, reach a project of the first by screen and by direct
 request, and be refused without confirmation that it exists.
 
-- [ ] T067 [P] [US5] Integration tests in `apps/api/tests/security/test_isolation.py`: two people, two organizations; list, detail, refresh and revoke across organizations return `404`; direct SQL as `pono_app` with the other organization's context returns no row, on every table
-- [ ] T068 [US5] Review every route in `apps/api/src/pono_api/api/` so that a missing or foreign resource answers `404` with the `*.not_found` code
+- [X] T067 [P] [US5] Integration tests in `apps/api/tests/security/test_isolation.py`: two people, two organizations; list, detail, refresh and revoke across organizations return `404`; direct SQL as `pono_app` with the other organization's context returns no row, on every table
+- [X] T068 [US5] Review every route in `apps/api/src/pono_api/api/` so that a missing or foreign resource answers `404` with the `*.not_found` code
 
 ---
 

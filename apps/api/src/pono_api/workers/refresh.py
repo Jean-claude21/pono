@@ -12,6 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from pono_api.application.connections import refresh_connection_statuses
+from pono_api.application.quotas import read_quotas
 from pono_api.application.refresh_project import Providers, refresh_project
 from pono_api.domain.projects import REFRESH_INTERVAL
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
@@ -64,6 +65,20 @@ async def refresh_due_projects(
     return count
 
 
+async def read_all_quotas(sessions: async_sessionmaker[AsyncSession], providers: Providers) -> int:
+    """Quota readings of every organization; returns how many alerts were raised."""
+
+    raised = 0
+    for organization_id in await organizations(sessions):
+        try:
+            raised += await read_quotas(
+                sessions, Principal.for_organization(organization_id), providers
+            )
+        except Exception:
+            logger.exception("quota reading of organization %s failed", organization_id)
+    return raised
+
+
 async def refresh_connections(
     sessions: async_sessionmaker[AsyncSession], providers: Providers
 ) -> None:
@@ -79,4 +94,10 @@ async def refresh_connections(
             logger.exception("connection check of organization %s failed", organization_id)
 
 
-__all__ = ["due_projects", "organizations", "refresh_connections", "refresh_due_projects"]
+__all__ = [
+    "due_projects",
+    "organizations",
+    "read_all_quotas",
+    "refresh_connections",
+    "refresh_due_projects",
+]

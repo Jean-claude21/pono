@@ -117,9 +117,20 @@ de `tasks.md`, avec un comportement de repli défini ici.
   - **Coolify** : pas de quota (hébergement propre).
   Quand une métrique n'est pas exposée, la valeur est affichée « non disponible » — jamais estimée
   sans le dire (principe VII). La source de chaque limite est enregistrée (FR-024).
-- **Inconnue traitée par tâche d'exploration** : les points d'API exacts de consommation de crédits
-  Netlify et de limites d'offre Neon sont vérifiés par une tâche dédiée avant de construire les
-  adaptateurs ; le comportement de repli ci-dessus s'applique si l'API ne les expose pas.
+- **Exploration faite (T055, 2026-09-23)**, sur les comptes réels de l'auteur :
+  - **Netlify** : `GET /accounts/{slug}/bandwidth` renvoie la consommation et l'allocation du compte
+    (`used`, `included`, période) → mesure `hosting_bandwidth_bytes`, limite **offre du compte**.
+    Aucun point d'API public de consommation de crédits n'a répondu (`/usage`, `/credits`) : les
+    comptes à crédits n'ont pas de quota lu tant qu'il n'existe pas.
+  - **Neon** : `GET /projects/{id}` renvoie la consommation de la période (`compute_time_seconds`,
+    `data_transfer_bytes`, `synthetic_storage_size`) et la limite de stockage de l'offre
+    (`branch_logical_size_limit_bytes`) → stockage en **offre du compte**. L'offre elle-même se lit
+    sur l'organisation (`GET /organizations/{id}` → `plan`). Les limites de calcul et de transfert
+    ne sont pas exposées : pour une offre gratuite, elles valent celles publiées sur
+    neon.com/pricing (100 CU-heures et 5 Go par projet et par mois, lues le 2026-09-23), affichées
+    **offre gratuite, estimée** ; pour une offre payante, « limite non fournie ».
+  - **Coolify** : aucun quota (serveur propre), rien n'est inventé.
+  - Lister les projets Neon exige l'identifiant d'organisation (`/users/me/organizations`).
 
 ## R-09 — Relevés et tâches de fond
 

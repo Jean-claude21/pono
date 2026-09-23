@@ -675,6 +675,7 @@
                 "type": "null"
               }
             ],
+            "description": "Null when the provider does not state it.",
             "title": "Limit"
           },
           "limitSource": {
@@ -686,8 +687,25 @@
             "type": "string"
           },
           "metric": {
+            "enum": [
+              "hosting_bandwidth_bytes",
+              "db_compute_seconds",
+              "db_storage_bytes",
+              "db_transfer_bytes"
+            ],
             "title": "Metric",
             "type": "string"
+          },
+          "ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio"
           },
           "readAt": {
             "format": "date-time",
@@ -704,6 +722,7 @@
           "used",
           "limit",
           "limitSource",
+          "ratio",
           "readAt"
         ],
         "title": "Quota",

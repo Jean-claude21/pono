@@ -12,6 +12,8 @@ from pono_api.application.ports import (
     ProposalState,
     ProviderAuthorizationError,
     ProviderUnavailableError,
+    RaisedAlert,
+    Recipient,
     RepositoryInfo,
     StoredConnection,
 )
@@ -23,6 +25,7 @@ from pono_api.domain.projects import (
     LinkStatus,
     ResourceStatus,
 )
+from pono_api.domain.quotas import QuotaReading
 from pono_api.infrastructure.manifests import RepositoryManifests
 
 NOW = datetime.now(UTC)
@@ -110,6 +113,7 @@ class FakeHosting:
     environments: dict[str, HostedEnvironment] = field(default_factory=dict)
     refuse: bool = False
     unavailable: bool = False
+    quotas: list[QuotaReading] = field(default_factory=list)
 
     def _answer(self) -> None:
         if self.refuse:
@@ -120,6 +124,10 @@ class FakeHosting:
     async def verify(self) -> str:
         self._answer()
         return self.account
+
+    async def read_quotas(self) -> list[QuotaReading]:
+        self._answer()
+        return list(self.quotas)
 
     async def detect(
         self, repository: str, name: str, default_branch: str
@@ -139,6 +147,10 @@ class FakeDatabase:
     account: str
     projects: dict[str, str] = field(default_factory=dict)
     refuse: bool = False
+    quotas: dict[str, list[QuotaReading]] = field(default_factory=dict)
+
+    async def read_quotas(self, ref: str) -> list[QuotaReading]:
+        return list(self.quotas.get(ref, []))
 
     async def verify(self) -> str:
         if self.refuse:
@@ -250,10 +262,23 @@ def deployment(
 
 
 @dataclass
+class FakeMailer:
+    configured: bool = True
+    sent: list[tuple[Recipient, RaisedAlert]] = field(default_factory=list)
+    fail: bool = False
+
+    async def send_alert(self, recipient: Recipient, alert: RaisedAlert) -> None:
+        if self.fail:
+            raise OSError("mail server unreachable")
+        self.sent.append((recipient, alert))
+
+
+@dataclass
 class World:
     code_host: FakeCodeHost
     factory: FakeFactory
     links: FakeLinks
+    mailer: FakeMailer = field(default_factory=FakeMailer)
 
     @property
     def providers(self) -> Providers:
@@ -262,6 +287,7 @@ class World:
             factory=self.factory,
             manifests=RepositoryManifests(),
             links=self.links,
+            mailer=self.mailer,
         )
 
 

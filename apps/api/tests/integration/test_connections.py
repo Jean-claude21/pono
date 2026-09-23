@@ -186,5 +186,6 @@ def test_the_worker_registers_its_two_jobs(settings: Settings) -> None:
     assert [(job.name, job.interval.total_seconds()) for job in jobs] == [
         ("projects", 300),
         ("connections", 3600),
+        ("quotas", 3600),
     ]
     assert build_jobs(Settings(environment="test", database_app_url=None)) == []

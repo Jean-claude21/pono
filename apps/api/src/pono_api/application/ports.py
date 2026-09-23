@@ -24,6 +24,7 @@ from pono_api.domain.projects import (
     LinkStatus,
     ResourceStatus,
 )
+from pono_api.domain.quotas import QuotaReading
 
 
 class ProviderUnavailableError(RuntimeError):
@@ -146,6 +147,9 @@ class HostingProvider(Protocol):
         self, ref: str, kind: EnvironmentKind, branch: str | None
     ) -> HostedEnvironment: ...
 
+    async def read_quotas(self) -> list[QuotaReading]:
+        """Account-level consumption; empty for a host with no quota (a server of one's own)."""
+
 
 @dataclass(frozen=True, slots=True)
 class DatabaseSnapshot:
@@ -159,6 +163,9 @@ class DatabaseProvider(Protocol):
     async def find_project(self, name: str) -> str | None: ...
 
     async def read_project(self, ref: str) -> DatabaseSnapshot: ...
+
+    async def read_quotas(self, ref: str) -> list[QuotaReading]:
+        """Consumption of one database project in its current billing period."""
 
 
 # --- Manifests --------------------------------------------------------------------------------
@@ -200,6 +207,34 @@ class ManifestReader(Protocol):
         detections: list[Detection],
         database: ProviderRef | None,
     ) -> ProjectManifest: ...
+
+
+# --- Alerts -----------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class Recipient:
+    email: str
+    locale: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class RaisedAlert:
+    project_name: str | None
+    metric: str
+    threshold: int
+    used: float
+    limit: float
+    limit_source: str
+
+
+class Mailer(Protocol):
+    """Sends alert emails. The adapter writes the words, in the recipient's language."""
+
+    @property
+    def configured(self) -> bool: ...
+
+    async def send_alert(self, recipient: Recipient, alert: RaisedAlert) -> None: ...
 
 
 # --- Links ------------------------------------------------------------------------------------
@@ -273,6 +308,7 @@ __all__ = [
     "KeyUse",
     "KeyUseLog",
     "LinkChecker",
+    "Mailer",
     "ManifestDraft",
     "ManifestReader",
     "PreviewRecord",
@@ -280,6 +316,8 @@ __all__ = [
     "ProviderAuthorizationError",
     "ProviderFactory",
     "ProviderUnavailableError",
+    "RaisedAlert",
+    "Recipient",
     "RepositoryInfo",
     "StoredConnection",
 ]

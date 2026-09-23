@@ -6,9 +6,21 @@ import httpx
 
 from pono_api.application.ports import DatabaseSnapshot, KeyUse, ProviderUnavailableError
 from pono_api.domain.projects import ResourceStatus
-from pono_api.infrastructure.providers.http import KeyedClient, as_list, as_object, text
+from pono_api.domain.quotas import LimitSource, Metric, QuotaReading
+from pono_api.infrastructure.providers.http import (
+    KeyedClient,
+    as_list,
+    as_object,
+    text,
+    timestamp,
+)
 
 API_URL = "https://console.neon.tech/api/v2"
+
+# The free plan, as published on neon.com/pricing (read 2026-09-23, research R-08). The API states
+# the storage limit; it does not state these two, so they are shown as estimates.
+FREE_COMPUTE_SECONDS = 100 * 3600  # 100 CU-hours per project and month
+FREE_TRANSFER_BYTES = 5 * 1000**3  # 5 GB of public egress per project and month
 
 
 class NeonDatabase:
@@ -47,6 +59,63 @@ class NeonDatabase:
                 and (reference := text(project, "id")) is not None
             )
         return found.pop() if len(found) == 1 else None
+
+    async def read_quotas(self, ref: str) -> list[QuotaReading]:
+        project = as_object(
+            as_object(await self._client.get(f"/projects/{quote(ref)}", "read_consumption")).get(
+                "project"
+            )
+        )
+        start = timestamp(project.get("consumption_period_start"))
+        if start is None:
+            return []
+        end = timestamp(project.get("consumption_period_end"))
+        free = await self._on_free_plan(text(project, "org_id"))
+
+        def reading(
+            metric: Metric, used: object, limit: object, source: LimitSource
+        ) -> QuotaReading | None:
+            if not isinstance(used, int | float):
+                return None
+            return QuotaReading(
+                metric=metric,
+                used=float(used),
+                limit=float(limit) if isinstance(limit, int | float) and limit else None,
+                limit_source=source,
+                period_start=start.date(),
+                period_end=end.date() if end else None,
+            )
+
+        readings = [
+            reading(
+                Metric.DB_COMPUTE_SECONDS,
+                project.get("compute_time_seconds"),
+                FREE_COMPUTE_SECONDS if free else None,
+                LimitSource.FREE_TIER_ESTIMATE,
+            ),
+            reading(
+                Metric.DB_STORAGE_BYTES,
+                project.get("synthetic_storage_size"),
+                project.get("branch_logical_size_limit_bytes"),
+                LimitSource.ACCOUNT_PLAN,
+            ),
+            reading(
+                Metric.DB_TRANSFER_BYTES,
+                project.get("data_transfer_bytes"),
+                FREE_TRANSFER_BYTES if free else None,
+                LimitSource.FREE_TIER_ESTIMATE,
+            ),
+        ]
+        return [item for item in readings if item is not None]
+
+    async def _on_free_plan(self, organization: str | None) -> bool:
+        if organization is None:
+            user = as_object(await self._client.get("/users/me", "read_plan"))
+            return (text(user, "plan") or "").startswith("free")
+        detail = as_object(
+            await self._client.get(f"/organizations/{quote(organization)}", "read_plan")
+        )
+        return (text(detail, "plan") or "").startswith("free")
 
     async def _organizations(self) -> list[str]:
         # Listing projects needs an organization: a key reaches its user's organizations.

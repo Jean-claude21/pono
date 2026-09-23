@@ -1,5 +1,7 @@
 """Netlify adapter for the hosting port: sites linked to a repository, deploys, previews."""
 
+from urllib.parse import quote
+
 import httpx
 
 from pono_api.application.ports import (
@@ -11,6 +13,7 @@ from pono_api.application.ports import (
     ProviderUnavailableError,
 )
 from pono_api.domain.projects import DeploymentStatus, EnvironmentKind, ResourceStatus
+from pono_api.domain.quotas import LimitSource, Metric, QuotaReading
 from pono_api.infrastructure.providers.http import (
     JsonObject,
     KeyedClient,
@@ -82,6 +85,29 @@ class NetlifyHosting:
         if not known:
             raise ProviderUnavailableError("netlify returned no account")
         return known[0]
+
+    async def read_quotas(self) -> list[QuotaReading]:
+        """Bandwidth of the account against its plan's allowance, both as Netlify states them."""
+
+        account = await self.verify()
+        usage = as_object(
+            await self._client.get(f"/accounts/{quote(account)}/bandwidth", "read_bandwidth")
+        )
+        used, included = usage.get("used"), usage.get("included")
+        start = timestamp(usage.get("period_start_date"))
+        if not isinstance(used, int | float) or start is None:
+            return []
+        end = timestamp(usage.get("period_end_date"))
+        return [
+            QuotaReading(
+                metric=Metric.HOSTING_BANDWIDTH_BYTES,
+                used=float(used),
+                limit=float(included) if isinstance(included, int | float) and included else None,
+                limit_source=LimitSource.ACCOUNT_PLAN,
+                period_start=start.date(),
+                period_end=end.date() if end else None,
+            )
+        ]
 
     async def detect(
         self, repository: str, name: str, default_branch: str

@@ -47,7 +47,7 @@ select = ["E", "F", "I", "N", "UP", "B", "ASYNC", "S", "RUF"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
-"apps/api/tests/**/*.py" = ["S105", "S106"]
+"apps/api/tests/**/*.py" = ["S105", "S106", "S608"]
 "apps/api/migrations/**/*.py" = ["N999"]
 
 [tool.mypy]

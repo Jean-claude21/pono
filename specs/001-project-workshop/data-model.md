@@ -162,25 +162,34 @@ fermée ou fusionnée quitte le projet au relevé suivant.
 | `organization_id` | uuid | |
 | `project_id` | uuid → `projects` | nullable si le quota est au niveau du compte |
 | `connection_id` | uuid → `connections` | |
-| `metric` | text | `hosting_credits`, `db_compute_hours`, `db_storage_bytes`, `db_transfer_bytes` |
+| `metric` | text | `hosting_bandwidth_bytes`, `db_compute_seconds`, `db_storage_bytes`, `db_transfer_bytes` |
 | `used` / `limit` | numeric | `limit` nullable si non disponible |
 | `limit_source` | text | `account_plan` ou `free_tier_estimate` (FR-024) |
 | `period_start` / `period_end` | date | période de facturation |
 | `read_at` | timestamptz | |
+
+Unicité : (`connection_id`, `project_id`, `metric`, `period_start`) — le dernier relevé de la
+période remplace le précédent.
 
 ### `alerts` — Alerte · RLS
 | Colonne | Type | Règle |
 |---|---|---|
 | `id` | uuid | clé |
 | `organization_id` | uuid | |
+| `project_id` | uuid | nullable pour un quota de compte |
 | `connection_id` | uuid | |
 | `metric` | text | |
 | `threshold` | smallint | `80` ou `95` |
+| `ratio` | numeric | consommation / limite au moment de l'alerte |
 | `period_start` | date | |
-| `emailed_at` | timestamptz | nullable |
+| `raised_at` | timestamptz | |
+| `emailed_at` | timestamptz | nullable : reste vide si le courriel n'a pas pu partir |
 
-Unicité : (`organization_id`, `connection_id`, `metric`, `threshold`, `period_start`) — une seule
-alerte par seuil et par période (FR-025).
+Unicité : (`organization_id`, `connection_id`, `project_id`, `metric`, `threshold`, `period_start`)
+— une seule alerte par seuil et par période (FR-025), garantie par la base.
+
+Destinataires : `pono_alert_recipients(organization_id)` (`SECURITY DEFINER`) renvoie le courriel
+et la langue des membres, **uniquement** pour l'organisation dont le contexte RLS est posé.
 
 ## Accès du planificateur
 

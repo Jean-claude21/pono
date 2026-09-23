@@ -73,10 +73,13 @@ class Deployment(ApiModel):
 
 
 class Quota(ApiModel):
-    metric: str
+    metric: Literal[
+        "hosting_bandwidth_bytes", "db_compute_seconds", "db_storage_bytes", "db_transfer_bytes"
+    ]
     used: float
-    limit: float | None
+    limit: float | None = Field(description="Null when the provider does not state it.")
     limit_source: Literal["account_plan", "free_tier_estimate"]
+    ratio: float | None
     read_at: datetime
 
 

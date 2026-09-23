@@ -12,6 +12,7 @@ import {
   reasonLabel,
   stateLabel,
 } from "@/features/workshop/labels";
+import { QuotaMeter, metricLabel, sourceLabel } from "@/features/workshop/QuotaMeter";
 
 const MANIFEST: Record<Detail["manifestStatus"], () => string> = {
   present: m.manifest_present,
@@ -121,6 +122,34 @@ export function ProjectDetail({ project }: { project: Detail }) {
 
       <h2 className="mono-label section-title">{m.detail_environments()}</h2>
       <EnvironmentTable environments={standing} />
+
+      <h2 className="mono-label section-title">{m.detail_quotas()}</h2>
+      {project.quotas.length > 0 ? (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>{m.column_metric()}</th>
+              <th>{m.column_source()}</th>
+              <th className="num">{m.column_usage()}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {project.quotas.map((quota) => (
+              <tr key={`${quota.metric}-${quota.limitSource}`}>
+                <td>{metricLabel(quota)}</td>
+                <td className="mute">{sourceLabel(quota)}</td>
+                <td className="num">
+                  <QuotaMeter quota={quota} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="mute" style={{ marginTop: 14, fontSize: 15 }}>
+          {m.detail_no_quotas()}
+        </p>
+      )}
 
       <h2 className="mono-label section-title">{m.detail_previews()}</h2>
       {project.previews.length > 0 ? (

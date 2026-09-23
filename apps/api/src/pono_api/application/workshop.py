@@ -12,7 +12,15 @@ from uuid import UUID
 from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from pono_api.domain.projects import EnvironmentKind, ManifestStatus, ProjectState, StateReason
+from pono_api.application.quota_views import project_quotas
+from pono_api.domain.projects import (
+    QUOTA_CRITICAL_RATIO,
+    QUOTA_WARNING_RATIO,
+    EnvironmentKind,
+    ManifestStatus,
+    ProjectState,
+    StateReason,
+)
 from pono_api.errors import not_found
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
@@ -95,10 +103,20 @@ async def _load(session: AsyncSession, project_id: UUID | None) -> list[Payload]
         {"ids": ids},
     ):
         deployments[row.project_id].append(row)
-    return [_project(row, environments[row.id], deployments[row.id]) for row in projects]
+    return [
+        _project(
+            row, environments[row.id], deployments[row.id], await project_quotas(session, row.id)
+        )
+        for row in projects
+    ]
 
 
-def _project(row: Row[Any], environments: list[Row[Any]], deployments: list[Row[Any]]) -> Payload:
+def _project(
+    row: Row[Any],
+    environments: list[Row[Any]],
+    deployments: list[Row[Any]],
+    quotas: list[dict[str, object]],
+) -> Payload:
     standing = sorted(
         (e for e in environments if e.kind != EnvironmentKind.PREVIEW.value),
         key=lambda e: (_KIND_ORDER.get(EnvironmentKind(e.kind), 2), e.url or ""),
@@ -121,8 +139,8 @@ def _project(row: Row[Any], environments: list[Row[Any]], deployments: list[Row[
         "environments": [_environment(e) for e in [*standing, *previews[:1]]],
         "previews": [_environment(e) for e in previews],
         "lastDeployment": _deployment(latest) if latest else None,
-        "quota": None,
-        "quotas": [],
+        "quota": quotas[0] if quotas else None,
+        "quotas": quotas,
         "lastActivityAt": _moment(row.last_activity_at),
         "refreshedAt": _moment(row.refreshed_at),
         "stale": row.stale,
@@ -136,6 +154,12 @@ def _summary(project: Payload) -> Payload:
     return {key: value for key, value in project.items() if key not in _SUMMARY_ONLY}
 
 
+def _quota_ratio(project: Payload) -> float:
+    quota = project.get("quota")
+    ratio = quota.get("ratio") if isinstance(quota, dict) else None
+    return ratio if isinstance(ratio, float) else 0.0
+
+
 def verdicts(projects: list[Payload]) -> list[Payload]:
     found: list[Payload] = []
     for code, reason in _VERDICTS:
@@ -144,7 +168,19 @@ def verdicts(projects: list[Payload]) -> list[Payload]:
                 found.append({"projectId": project["id"], "code": code})
             elif reason is None and project["manifestStatus"] == ManifestStatus.PROPOSED.value:
                 found.append({"projectId": project["id"], "code": code})
-    return found
+    # Quotas come right after failures: a paused site is the next thing to break.
+    position = sum(1 for verdict in found if verdict["code"] != "project.manifest_proposed")
+    quota_verdicts = [
+        {
+            "projectId": project["id"],
+            "code": "project.quota_critical"
+            if _quota_ratio(project) > QUOTA_CRITICAL_RATIO
+            else "project.quota_warning",
+        }
+        for project in projects
+        if _quota_ratio(project) > QUOTA_WARNING_RATIO
+    ]
+    return [*found[:position], *quota_verdicts, *found[position:]]
 
 
 async def load_workshop(

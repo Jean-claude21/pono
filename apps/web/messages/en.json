@@ -218,5 +218,18 @@
   "error_connection_provider_unsupported": "This provider is not supported, or its address is missing.",
   "error_service_code_host_unconfigured": "The service has no code host configured.",
   "error_service_database_unconfigured": "The service has no database configured.",
-  "error_service_unreachable": "The service does not answer right now."
+  "error_service_unreachable": "The service does not answer right now.",
+  "quota_source_account_plan": "account plan",
+  "quota_source_free_tier_estimate": "free tier, estimated",
+  "quota_limit_unknown": "limit not stated",
+  "quota_metric_hosting_bandwidth_bytes": "Bandwidth",
+  "quota_metric_db_compute_seconds": "Database compute",
+  "quota_metric_db_storage_bytes": "Database storage",
+  "quota_metric_db_transfer_bytes": "Database transfer",
+  "quota_of": "{used} / {limit}",
+  "detail_quotas": "Monthly quotas",
+  "detail_no_quotas": "No quota tracked for this project.",
+  "column_metric": "Metric",
+  "column_usage": "Usage",
+  "column_source": "Limit source"
 }
