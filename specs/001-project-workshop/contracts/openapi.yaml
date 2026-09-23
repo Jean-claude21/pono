@@ -1,0 +1,303 @@
+openapi: 3.1.0
+info:
+  title: Pono API
+  version: 0.1.0
+  description: >
+    Phase 1 surface of the Pono control plane. Served same-origin behind the console at /api.
+    Errors never carry prose: only a stable code the console translates (error-codes.md).
+servers:
+  - url: /api/v1
+security:
+  - session: []
+
+paths:
+  /auth/login:
+    get:
+      summary: Start sign-in with the code host identity.
+      security: []
+      responses:
+        "302": { description: Redirect to the code host authorization page. }
+  /auth/callback:
+    get:
+      summary: Complete sign-in; creates the personal organization on first sign-in.
+      security: []
+      parameters:
+        - { name: code, in: query, required: true, schema: { type: string } }
+        - { name: state, in: query, required: true, schema: { type: string } }
+      responses:
+        "302": { description: Session cookie set; redirect to the workshop. }
+        "403": { $ref: "#/components/responses/Error" }
+  /auth/logout:
+    post:
+      summary: Revoke the current session.
+      responses:
+        "204": { description: Session revoked. }
+
+  /me:
+    get:
+      summary: Current person, organization and locale.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Error" }
+  /me/locale:
+    put:
+      summary: Persist the explicit language choice.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locale]
+              properties:
+                locale: { $ref: "#/components/schemas/Locale" }
+      responses:
+        "204": { description: Saved. }
+        "422": { $ref: "#/components/responses/Error" }
+
+  /connections:
+    get:
+      summary: Connections of the current organization with their status.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Connection" }
+    post:
+      summary: Register a hosting or database connection authorized at the provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConnectionRequest" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Connection" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /connections/{connectionId}:
+    delete:
+      summary: Revoke a connection immediately (FR-012).
+      parameters: [{ $ref: "#/components/parameters/ConnectionId" }]
+      responses:
+        "204": { description: Revoked. }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /repositories:
+    get:
+      summary: Repositories reachable through the code host connection (FR-014).
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Repository" }
+
+  /projects:
+    get:
+      summary: Workshop list with state, environments, last deployment and quotas.
+      parameters:
+        - name: state
+          in: query
+          schema: { $ref: "#/components/schemas/ProjectState" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workshop" }
+    post:
+      summary: Import a repository as a project; proposes a manifest when absent (FR-018).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [repository]
+              properties:
+                repository: { type: string, example: "owner/name" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectDetail" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /projects/{projectId}:
+    get:
+      summary: Project detail, including every open preview.
+      parameters: [{ $ref: "#/components/parameters/ProjectId" }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectDetail" }
+        "404": { $ref: "#/components/responses/Error" }
+  /projects/{projectId}/refresh:
+    post:
+      summary: Request an immediate reading (FR-022).
+      parameters: [{ $ref: "#/components/parameters/ProjectId" }]
+      responses:
+        "202": { description: Reading queued. }
+        "404": { $ref: "#/components/responses/Error" }
+
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: pono_session
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ConnectionId:
+      name: connectionId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Error:
+      description: Stable, language-independent error.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Locale:
+      type: string
+      enum: [fr, en]
+    ProjectState:
+      type: string
+      enum: [healthy, active, warning, failing, idle]
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code]
+          properties:
+            code: { type: string, example: project.already_imported }
+            field: { type: string }
+    Me:
+      type: object
+      required: [personId, login, organizationId]
+      properties:
+        personId: { type: string, format: uuid }
+        login: { type: string }
+        organizationId: { type: string, format: uuid }
+        locale: { oneOf: [{ $ref: "#/components/schemas/Locale" }, { type: "null" }] }
+    Connection:
+      type: object
+      required: [id, kind, provider, status, statusCheckedAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [code_host, hosting, database] }
+        provider: { type: string }
+        status: { type: string, enum: [active, expired, revoked] }
+        statusCheckedAt: { type: string, format: date-time }
+    ConnectionRequest:
+      type: object
+      required: [kind, provider, authorization]
+      properties:
+        kind: { type: string, enum: [hosting, database] }
+        provider: { type: string }
+        authorization:
+          type: string
+          description: Provider-issued authorization; stored encrypted, never returned.
+          writeOnly: true
+    Repository:
+      type: object
+      required: [fullName, defaultBranch, alreadyImported]
+      properties:
+        fullName: { type: string }
+        defaultBranch: { type: string }
+        alreadyImported: { type: boolean }
+    Environment:
+      type: object
+      required: [id, kind, linkStatus]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [production, preview, development] }
+        url: { type: [string, "null"] }
+        linkStatus: { type: string, enum: [up, down, unknown, missing] }
+        linkCheckedAt: { type: [string, "null"], format: date-time }
+    Deployment:
+      type: object
+      required: [status, startedAt]
+      properties:
+        status: { type: string, enum: [building, succeeded, failed, cancelled] }
+        commitSha: { type: string }
+        author: { type: string }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: [string, "null"], format: date-time }
+    Quota:
+      type: object
+      required: [metric, used, limitSource]
+      properties:
+        metric: { type: string }
+        used: { type: number }
+        limit: { type: [number, "null"] }
+        limitSource: { type: string, enum: [account_plan, free_tier_estimate] }
+        readAt: { type: string, format: date-time }
+    ProjectSummary:
+      type: object
+      required: [id, repository, state, manifestStatus, environments, refreshedAt]
+      properties:
+        id: { type: string, format: uuid }
+        repository: { type: string }
+        state: { $ref: "#/components/schemas/ProjectState" }
+        stateReason: { type: string }
+        manifestStatus: { type: string, enum: [present, proposed, absent] }
+        environments:
+          type: array
+          description: Production, development and the most recent preview only.
+          items: { $ref: "#/components/schemas/Environment" }
+        lastDeployment: { oneOf: [{ $ref: "#/components/schemas/Deployment" }, { type: "null" }] }
+        quota: { oneOf: [{ $ref: "#/components/schemas/Quota" }, { type: "null" }] }
+        refreshedAt: { type: string, format: date-time }
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/ProjectSummary"
+        - type: object
+          properties:
+            manifestProposalUrl: { type: [string, "null"] }
+            previews:
+              type: array
+              items: { $ref: "#/components/schemas/Environment" }
+            quotas:
+              type: array
+              items: { $ref: "#/components/schemas/Quota" }
+    Workshop:
+      type: object
+      required: [projects, counts, verdicts]
+      properties:
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/ProjectSummary" }
+        counts:
+          type: object
+          description: Number of projects per state, shown on each filter (FR-027).
+          additionalProperties: { type: integer }
+        verdicts:
+          type: array
+          description: What needs a decision, shown before the list.
+          items:
+            type: object
+            required: [projectId, code]
+            properties:
+              projectId: { type: string, format: uuid }
+              code: { type: string, example: project.production_down }
