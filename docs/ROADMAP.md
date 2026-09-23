@@ -210,6 +210,10 @@ Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniqueme
 
 ## Phase 3 — Le serveur MCP et le plugin · *en cours sur `003-mcp-server`*
 
+> **Où on en est (2026-09-23, nuit).** Spec Kit : specify → clarify (1 question : l'agent
+> demande un retour arrière, une personne le confirme) → plan → tasks → analyze. 28 tâches ;
+> implémentation en cours (`specs/003-mcp-server`).
+>
 > **Ouverte le 2026-09-23 avant la fermeture des phases 1 et 2 (D-017).** Dettes de preuve
 > restantes, à solder avant d'affirmer quoi que ce soit : chronométrage de la reprise (T071 de la
 > phase 1) ; validation, invalidation et retour arrière réels, démonstration enregistrée (T038

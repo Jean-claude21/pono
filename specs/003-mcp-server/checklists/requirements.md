@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,6 +31,6 @@
 
 ## Notes
 
-- One clarification remains: FR-011, rollback from an agent. Asked to the author on 2026-09-23.
+- FR-011 clarified by the author on 2026-09-23 (option A): an agent only requests a rollback; a person confirms it in the console.
 - "Claude" and "Codex" appear as the clients the author targets (input and roadmap), not as design
   choices; the domain stays free of their names (FR-018).

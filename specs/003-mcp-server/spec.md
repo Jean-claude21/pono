@@ -8,6 +8,12 @@
 
 **Input**: User description: "Phase 3 de la roadmap de Pono : « Le serveur MCP et le plugin ». Livrable unique : piloter ses projets depuis Claude et depuis Codex, avec les mêmes droits que dans la console, sans qu'aucune capacité ne soit réservée à un agent (D-005). Serveur MCP distant sur l'adresse de la console ; serveur d'autorisation OAuth propre avec enregistrement dynamique de client et consentement humain dans la console ; outils qui correspondent aux capacités de la console des phases 1 et 2, annotés lecture seule ou destructif ; la validation d'une mise en ligne reste un geste humain ; instructions servies par le serveur (D-006) ; agents connectés visibles et révocables dans la console, chaque action tracée ; plugin léger pour Claude, même connexion depuis Codex ; politique de confidentialité publiée. Preuve de fin : une même action donne le même résultat depuis la console, depuis Claude et depuis Codex ; aucun chemin réservé à un agent ; soumission au répertoire de connecteurs décidée par un humain."
 
+## Clarifications
+
+### Session 2026-09-23
+
+- Q: L'agent peut-il déclencher un retour arrière de la production ? → A: Non. Il peut seulement le demander ; la demande apparaît dans la console et une personne la confirme ou l'écarte. Ce qui touche la production reste un geste humain, comme la validation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Relier son agent à son atelier, en donnant son accord (Priority: P1)
@@ -89,8 +95,9 @@ qu'aucun outil ne permet de valider une mise en ligne.
    dans la console.
 4. **Given** un outil qui modifie quelque chose, **When** le client d'agent le présente, **Then** il
    est annoté comme destructif ; un outil de lecture est annoté lecture seule.
-5. **Given** un retour arrière demandé par l'agent, **When** il s'exécute, **Then** il suit la règle
-   fixée en clarification (FR-011).
+5. **Given** un agent qui demande un retour arrière, **When** la demande arrive, **Then** la
+   production ne change pas ; la console montre la demande, et seule une personne peut la confirmer
+   ou l'écarter (FR-011).
 
 ---
 
@@ -207,9 +214,10 @@ lues et gardées par Pono, sans affirmation non prouvée.
   proposé qu'à un accès « lecture et actions ».
 - **FR-010**: Aucun outil MUST NOT permettre de valider une mise en ligne ; la réponse à une
   tentative indique que la validation se fait dans la console.
-- **FR-011**: Le retour arrière depuis un agent : [NEEDS CLARIFICATION: l'agent peut-il déclencher un
-  retour arrière de la production (outil destructif), seulement le demander pour qu'une personne le
-  confirme dans la console, ou pas du tout ?]
+- **FR-011**: L'agent MUST pouvoir seulement **demander** un retour arrière. La demande apparaît
+  dans la console, sur le projet et dans le bandeau de verdict ; une personne la confirme (le retour
+  arrière de la phase 2 s'exécute alors) ou l'écarte. Une demande non traitée expire au bout de
+  24 heures. Demande, confirmation, refus et expiration sont inscrits au journal.
 - **FR-012**: Toute action faite par un agent MUST être inscrite au journal de preuves du projet,
   auteur « agent » avec le nom du client et la personne qui a donné l'accès.
 
@@ -239,6 +247,8 @@ lues et gardées par Pono, sans affirmation non prouvée.
   (lecture seule, lecture et actions) ; révocable.
 - **Accès** : les jetons de courte durée et de renouvellement issus d'un consentement ; conservés
   sous forme non réversible.
+- **Demande de retour arrière** : une demande d'agent en attente, confirmée ou écartée par une
+  personne dans la console, ou expirée.
 - **Appel d'outil tracé** : une entrée du journal de preuves, auteur agent, avec le client et la
   personne.
 
@@ -249,7 +259,8 @@ lues et gardées par Pono, sans affirmation non prouvée.
 - **SC-001**: Pour chaque outil, le résultat depuis Claude, depuis Codex et depuis la console est
   identique sur un même projet réel (mêmes faits, mêmes codes), vérifié outil par outil.
 - **SC-002**: Aucune capacité n'est accessible par un agent sans l'être aussi par la console ; la
-  validation d'une mise en ligne reste impossible depuis un agent.
+  validation d'une mise en ligne et l'exécution d'un retour arrière restent impossibles depuis un
+  agent.
 - **SC-003**: Relier un nouvel agent prend moins de 2 minutes, de l'ajout de l'adresse au premier
   outil qui répond, sans saisir de clé.
 - **SC-004**: Un accès coupé dans la console est refusé dès l'appel suivant.

@@ -1,0 +1,135 @@
+openapi: 3.1.0
+info:
+  title: Pono API — phase 3 additions
+  version: 0.3.0
+  description: >
+    Console routes added by 003-mcp-server. Merged over the phase 1 and 2 contracts by the contract
+    check. The agent tools and the authorization server follow the MCP and OAuth 2.1 standards and
+    are described in mcp-tools.md, not here.
+servers:
+  - url: /api/v1
+security:
+  - session: []
+
+paths:
+  /oauth/consent:
+    get:
+      summary: What an agent asks for, to show the person before they decide.
+      parameters:
+        - { name: request, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConsentRequest" }
+        "404": { $ref: "#/components/responses/Error" }
+  /oauth/consent/{decision}:
+    parameters:
+      - { name: decision, in: path, required: true, schema: { type: string, enum: [approve, deny] } }
+    post:
+      summary: The person's decision; answers where to send the agent back.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [request]
+              properties:
+                request: { type: string }
+                access: { type: string, enum: [read, act], description: Required to approve. }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [redirectUrl]
+                properties:
+                  redirectUrl: { type: string }
+        "404": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+
+  /agents:
+    get:
+      summary: Agents that hold a live access to the person's workshop.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AgentGrant" }
+  /agents/{grantId}:
+    parameters:
+      - { name: grantId, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      summary: Cut an agent's access at once.
+      responses:
+        "204": { description: Revoked. }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/rollback-requests/{requestId}/{decision}:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: requestId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: decision, in: path, required: true, schema: { type: string, enum: [confirm, dismiss] } }
+    post:
+      summary: A person confirms (runs the rollback) or dismisses an agent's rollback request.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectDetail" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+components:
+  schemas:
+    ConsentRequest:
+      type: object
+      required: [clientName, scopes, organizationName, expiresAt]
+      properties:
+        clientName: { type: string }
+        scopes:
+          type: array
+          items: { type: string, enum: ["pono:read", "pono:act"] }
+        organizationName: { type: string }
+        expiresAt: { type: string, format: date-time }
+    AgentGrant:
+      type: object
+      required: [id, clientName, access, grantedAt]
+      properties:
+        id: { type: string, format: uuid }
+        clientName: { type: string }
+        access: { type: string, enum: [read, act] }
+        grantedAt: { type: string, format: date-time }
+        lastUsedAt: { type: [string, "null"], format: date-time }
+    RollbackRequest:
+      type: object
+      required: [id, clientName, requestedAt]
+      properties:
+        id: { type: string, format: uuid }
+        clientName: { type: string }
+        requestedAt: { type: string, format: date-time }
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/ProjectSummary"
+        - type: object
+          required: [protection, canRollback]
+          properties:
+            manifestProposalUrl: { type: [string, "null"] }
+            previews:
+              type: array
+              items: { $ref: "#/components/schemas/Environment" }
+            quotas:
+              type: array
+              items: { $ref: "#/components/schemas/Quota" }
+            protection: { $ref: "#/components/schemas/Protection" }
+            canRollback: { type: boolean }
+            rollbackRequest:
+              oneOf:
+                - $ref: "#/components/schemas/RollbackRequest"
+                - type: "null"
