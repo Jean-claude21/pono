@@ -163,6 +163,12 @@ async def test_a_repository_is_imported_once_per_organization(
         LECTIO: False,
         NETTIO: True,
     }
+    projects = (await client.get("/api/v1/projects")).json()["projects"]
+    # The existing project is offered instead (spec edge case).
+    assert {r["fullName"]: r["projectId"] for r in repositories} == {
+        LECTIO: None,
+        NETTIO: projects[0]["id"],
+    }
 
 
 @pytest.mark.parametrize(
@@ -350,3 +356,35 @@ async def test_refresh_and_detail_of_an_unknown_project_are_not_found(
     ):
         assert response.status_code == 404
         assert response.json() == {"error": {"code": "project.not_found"}}
+
+
+async def test_a_closed_proposal_can_be_asked_for_again(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity, world: World
+) -> None:
+    await connect_everything(client, identity)
+    stage_nettio(world)
+    project = (await client.post("/api/v1/projects", json={"repository": NETTIO})).json()
+    path = f"/api/v1/projects/{project['id']}/manifest-proposal"
+
+    too_early = await client.post(path)
+    assert (too_early.status_code, too_early.json()["error"]["code"]) == (
+        409,
+        "project.manifest_not_absent",
+    )
+
+    world.code_host.proposal_states[project["manifestProposalUrl"]] = "closed"
+    await client.post(f"/api/v1/projects/{project['id']}/refresh")
+    assert (await client.get(f"/api/v1/projects/{project['id']}")).json()["manifestStatus"] == (
+        "absent"
+    )
+
+    again = await client.post(path)
+
+    assert again.status_code == 200
+    assert again.json()["manifestStatus"] == "proposed"
+    assert again.json()["manifestProposalUrl"] == f"https://code.test/{NETTIO}/pull/2"
+    assert len(world.code_host.proposals) == 2
+    unknown = await client.post(
+        "/api/v1/projects/01980000-0000-7000-8000-000000000000/manifest-proposal"
+    )
+    assert unknown.status_code == 404

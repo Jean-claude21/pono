@@ -14,7 +14,11 @@ from pono_api.api.schemas import (
     Repository,
     Workshop,
 )
-from pono_api.application.import_project import import_project, list_repositories
+from pono_api.application.import_project import (
+    import_project,
+    list_repositories,
+    propose_manifest_again,
+)
 from pono_api.application.quotas import read_quotas
 from pono_api.application.refresh_project import Providers, refresh_project
 from pono_api.application.workshop import load_project, load_workshop, project_exists
@@ -57,6 +61,16 @@ async def create_project(
 async def read_project(
     project_id: UUID, sessions: SessionsDep, principal: PrincipalDep
 ) -> ProjectDetail:
+    return ProjectDetail.model_validate(await load_project(sessions, principal, project_id))
+
+
+@router.post("/projects/{project_id}/manifest-proposal")
+async def request_manifest_proposal(
+    project_id: UUID, sessions: SessionsDep, principal: PrincipalDep, providers: ProvidersDep
+) -> ProjectDetail:
+    """Propose a manifest again after the person closed the previous proposal."""
+
+    await propose_manifest_again(sessions, principal, providers, project_id)
     return ProjectDetail.model_validate(await load_project(sessions, principal, project_id))
 
 

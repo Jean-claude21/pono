@@ -182,8 +182,17 @@ function ProjectRow({ project }: { project: ProjectSummary }) {
       </td>
       <td>
         <span className={`state state-${project.state}`}>{stateLabel(project.state)}</span>
+        <small
+          className="mute"
+          style={{ display: "block", marginTop: 4, fontSize: 12 }}
+          title={project.refreshedAt ? dateTime(project.refreshedAt) : undefined}
+        >
+          {project.refreshedAt
+            ? m.refreshed_when({ when: relativeTime(project.refreshedAt) })
+            : m.never_refreshed()}
+        </small>
         {project.stale ? (
-          <small className="mono-label" style={{ display: "block", marginTop: 4, color: "var(--warning)" }}>
+          <small className="mono-label" style={{ display: "block", marginTop: 2, color: "var(--warning)" }}>
             {m.stale_label()}
           </small>
         ) : null}

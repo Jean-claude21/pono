@@ -45,6 +45,7 @@ class Repository(ApiModel):
     full_name: str
     default_branch: str
     already_imported: bool
+    project_id: UUID | None = Field(description="The project it already is, when imported.")
 
 
 class ImportRequest(ApiModel):
@@ -127,6 +128,8 @@ class Me(ApiModel):
     login: str
     organization_id: UUID
     locale: Literal["fr", "en"] | None
+    email: str | None = Field(description="Where quota alerts are sent; null when unknown.")
+    alert_emails_enabled: bool = Field(description="False while the service has no mail server.")
     code_host_install_url: str | None
 
 

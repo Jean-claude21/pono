@@ -110,6 +110,8 @@ createServer((request, response) => {
       login: "alice",
       organizationId: "01990000-0000-7000-8000-00000000bbbb",
       locale: null,
+      email: null,
+      alertEmailsEnabled: false,
       codeHostInstallUrl: "https://code-host.example.test/install",
     });
   }

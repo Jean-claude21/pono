@@ -54,6 +54,10 @@ ProposalState = Literal["open", "merged", "closed"]
 class CodeHost(Protocol):
     """Reads repositories and proposes changes. It has no merge operation, by design."""
 
+    @property
+    def provider(self) -> str:
+        """The adapter id stored on the connection; opaque to the domain."""
+
     async def find_installation(self, account_id: str) -> str | None:
         """The installation on the person's own account, if they installed Pono there."""
 

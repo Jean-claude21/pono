@@ -111,16 +111,25 @@ le moindre écran définitif.
 
 ---
 
-## Phase 1 — L'atelier qui tient les projets · *livrée sur `dev` le 2026-09-23, fermeture en attente*
+## Phase 1 — L'atelier qui tient les projets · *en ligne sur `dev`, fermeture en attente*
 
+> **Où on en est (2026-09-23).** Spec Kit : specify → clarify → plan → tasks → analyze →
+> implement → **converge**. 84 tâches sur 88 faites ; les 4 restantes attendent un geste de l’auteur (`specs/001-project-workshop/tasks.md`).
+>
 > **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
 > fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice (0001 à 0003) et
-> étanchéité de deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ;
-> service, worker et console en ligne sur Coolify (`docs/VERITE_ET_PREUVES.md`,
-> `specs/001-project-workshop/tasks.md`).
+> étanchéité de deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
+> l'application ; console, service et worker en ligne sur Coolify ; 223 tests du service, 17
+> Vitest, 9 Playwright (`docs/VERITE_ET_PREUVES.md`).
 >
-> **Reste, pour fermer.** Le chronométrage de la reprise par les deux premiers utilisateurs
-> (`[bloquant]`), puis la fusion `dev` → `main` par l'auteur.
+> **Reste, pour fermer.**
+> - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002).
+> - `[auteur]` Un compte SMTP pour les alertes par courriel (T082) ; un domaine pour le HTTPS
+>   (T085) ; la permission « Email addresses: read » de l'app GitHub (T081).
+> - `[auteur]` Fusion `dev` → `main` (T074, pull request #5).
+>
+> **Ensuite, avant la phase 2.** Héberger Pono en région US pour disposer de toutes les
+> fonctionnalités de Neon (consigne de l'auteur, `docs/EXPLOITATION.md`).
 
 ### Objective
 Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'eux sans rien chercher.

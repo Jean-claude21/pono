@@ -233,5 +233,14 @@
   "column_usage": "Consommation",
   "column_source": "Source de la limite",
   "error_service_identity_unconfigured": "Le service n’a pas de fournisseur d’identité configuré.",
-  "error_service_providers_unconfigured": "Le service n’a pas de fournisseurs configurés."
+  "error_service_providers_unconfigured": "Le service n’a pas de fournisseurs configurés.",
+  "error_project_manifest_not_absent": "Un manifeste est déjà présent ou proposé pour ce projet.",
+  "manifest_propose_again": "Proposer un manifeste",
+  "manifest_proposing": "Proposition en cours…",
+  "alerts_title": "Alertes",
+  "alerts_body": "Les alertes de quota partent à cette adresse. Ton fournisseur de code la garde privée : indique-la ici.",
+  "alerts_email_label": "Adresse des alertes",
+  "alerts_save": "Enregistrer",
+  "alerts_saved": "Adresse enregistrée.",
+  "alerts_mail_off": "L’envoi de courriel n’est pas encore configuré : les alertes restent visibles dans l’atelier."
 }

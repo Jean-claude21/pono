@@ -55,20 +55,20 @@ PROPOSAL_BODY = (
 
 async def _load(
     sessions: async_sessionmaker[AsyncSession], principal: Principal
-) -> tuple[StoredConnection | None, list[StoredConnection], set[str]]:
+) -> tuple[StoredConnection | None, list[StoredConnection], dict[str, UUID]]:
     async with unit_of_work(sessions, principal) as session:
         code = await active_code_host(session)
         connections = await load_connections(session)
         imported = {
-            str(name).lower()
-            for name in (await session.execute(text("SELECT repository FROM projects"))).scalars()
+            str(row.repository).lower(): row.id
+            for row in await session.execute(text("SELECT id, repository FROM projects"))
         }
     return code, connections, imported
 
 
 async def _code_host_installation(
     sessions: async_sessionmaker[AsyncSession], principal: Principal, code_host: CodeHost
-) -> tuple[StoredConnection, list[StoredConnection], set[str]]:
+) -> tuple[StoredConnection, list[StoredConnection], dict[str, UUID]]:
     code, connections, imported = await _load(sessions, principal)
     if code is None:
         # The app is often installed before the person ever opens Connections: link it now
@@ -105,6 +105,7 @@ async def list_repositories(
             "fullName": repository.full_name,
             "defaultBranch": repository.default_branch,
             "alreadyImported": repository.full_name.lower() in imported,
+            "projectId": imported.get(repository.full_name.lower()),
         }
         for repository in sorted(repositories, key=lambda item: item.full_name.lower())
     ]
@@ -164,6 +165,53 @@ async def import_project(
 
     await refresh_project(sessions, principal, project_id, providers)
     return project_id
+
+
+async def propose_manifest_again(
+    sessions: async_sessionmaker[AsyncSession],
+    principal: Principal,
+    providers: Providers,
+    project_id: UUID,
+) -> None:
+    """A closed proposal is never reopened on its own; the person may ask for a new one."""
+
+    async with unit_of_work(sessions, principal) as session:
+        row = (
+            await session.execute(
+                text(
+                    "SELECT repository, default_branch, manifest_status FROM projects "
+                    "WHERE id = :id"
+                ),
+                {"id": project_id},
+            )
+        ).first()
+    if row is None:
+        raise ApiError("project.not_found", 404)
+    if row.manifest_status != ManifestStatus.ABSENT.value:
+        raise ApiError("project.manifest_not_absent", 409)
+    code_host = _code_host(providers)
+    code, connections, _ = await _code_host_installation(sessions, principal, code_host)
+    repository = RepositoryInfo(full_name=row.repository, default_branch=row.default_branch)
+    log = KeyUseLog()
+    manifest, status, proposal_url = await _manifest_for(
+        code_host, code.external_ref, repository, connections, providers, log
+    )
+    if status is ManifestStatus.ABSENT:
+        raise ApiError("provider.unavailable", 503)
+    async with unit_of_work(sessions, principal) as session:
+        await session.execute(
+            text(
+                "UPDATE projects SET manifest = CAST(:manifest AS jsonb), "
+                "manifest_status = :status, manifest_proposal_url = :proposal_url WHERE id = :id"
+            ),
+            {
+                "id": project_id,
+                "manifest": manifest.model_dump_json(by_alias=True, exclude_none=True),
+                "status": status.value,
+                "proposal_url": proposal_url,
+            },
+        )
+        await record_key_uses(session, principal.organization_id, log)
 
 
 async def _manifest_for(
@@ -274,4 +322,4 @@ async def _find_database(
     return None
 
 
-__all__ = ["import_project", "list_repositories"]
+__all__ = ["import_project", "list_repositories", "propose_manifest_again"]

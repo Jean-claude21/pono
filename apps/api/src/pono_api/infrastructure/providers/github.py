@@ -61,6 +61,8 @@ def _pull_request_path(proposal_url: str) -> str:
 
 
 class GitHubCodeHost:
+    provider = "github"
+
     def __init__(
         self,
         *,

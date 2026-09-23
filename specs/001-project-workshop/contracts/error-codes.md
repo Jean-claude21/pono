@@ -17,6 +17,7 @@ points deviennent des tirets bas.
 | `connection.provider_unsupported` | 422 | aucun adaptateur pour ce fournisseur, ou adresse manquante |
 | `project.already_imported` | 409 | le dépôt est déjà un projet de l'organisation (FR-017) |
 | `project.repository_unreachable` | 422 | le dépôt n'est pas accessible par la connexion |
+| `project.manifest_not_absent` | 409 | un manifeste est déjà présent ou proposé : pas de nouvelle proposition |
 | `project.not_found` | 404 | inconnu **ou** appartenant à une autre organisation (US5, scénario 2) |
 | `request.invalid` | 422 | requête mal formée ; `field` nomme le champ (dont une langue hors `fr` / `en`) |
 | `provider.unavailable` | 503 | le fournisseur ne répond pas ; l'état précédent est conservé |
