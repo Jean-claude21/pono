@@ -58,13 +58,16 @@ dépend jamais de la politique d'un fournisseur d'intelligence artificielle. *(D
 - **Le code est en anglais**, la documentation de `docs/` en français. **Aucune chaîne visible
   en dur** : l'interface passe par les catalogues d'i18n, français et anglais dès la phase 1. *(D-013)*
 - **Un seul chemin technique en V1.** Aucun second fournisseur ni canevas métier avant que le
-  premier chemin soit éprouvé de bout en bout. *(D-009)*
+  premier chemin soit éprouvé de bout en bout. Seule exception validée : deux hébergeurs en
+  phase 1. *(D-009, D-014)*
 - **Jamais de secret en dur.** Aucune clé commitée, aucune clé exposée au client, aucun secret
-  dans un message ou un journal. Accès aux fournisseurs par autorisation, pas par clé
-  permanente. *(D-007)*
+  dans un message ou un journal. Accès aux fournisseurs **par autorisation** dès que le
+  fournisseur le permet ; à défaut, la clé est **chiffrée au repos et chacun de ses usages est
+  tracé**. *(D-007)*
 - **Aucun crédit d'intelligence artificielle facturé.** Le modèle est à prix fixe ; seul le
   runtime hébergé est payé à l'usage. *(D-008)*
-- **`main` ne reçoit que du validé** : travail sur branche de phase, fusion après revue humaine.
+- **`main` ne reçoit que du validé** : travail sur branche de phase, fusion par pull request
+  uniquement, jamais par push direct.
 - **Toute migration de production est un geste choisi**, jamais automatique. Une migration
   destructrice est nommée en clair avant d'être proposée.
 
@@ -91,4 +94,4 @@ Cette constitution prime sur toute autre pratique. Toute complexité doit être 
 utilisateur réel, jamais par une élégance technique ni par une intuition. Les amendements sont
 documentés et datés dans `docs/DECISIONS.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-22 | **Last Amended**: 2026-09-22
+**Version**: 1.2.0 | **Ratified**: 2026-09-22 | **Last Amended**: 2026-09-23

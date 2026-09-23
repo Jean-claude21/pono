@@ -186,7 +186,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 - **FR-010**: La connexion à un fournisseur de code MUST passer par une autorisation que la personne
   accorde chez ce fournisseur ; aucune clé permanente ne lui est demandée.
 - **FR-011**: Toute donnée d'accès conservée MUST être chiffrée au repos et n'apparaître dans aucun
-  écran, journal ou message.
+  écran, journal ou message. Quand un fournisseur n'offre pas d'autorisation et impose une clé,
+  chaque utilisation de cette clé MUST être tracée : connexion, action, date (D-007).
 - **FR-012**: La personne MUST pouvoir révoquer une connexion depuis Pono, avec effet immédiat.
 - **FR-013**: L'atelier MUST afficher l'état de chaque connexion : active, expirée ou révoquée.
 
@@ -206,7 +207,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
 - **FR-029**: Le système MUST NOT écrire directement sur une branche d'un dépôt : toute écriture est
   une proposition de modification que la personne accepte ou refuse.
 - **FR-030**: La connexion au fournisseur de code MUST ne demander que les permissions nécessaires :
-  lire les dépôts choisis et y proposer des modifications.
+  lire les dépôts choisis et y proposer des modifications. Quand le fournisseur n'offre pas de
+  permission plus fine qu'une écriture, le garde-fou de FR-029 la borne (research R-03).
 
 **État des projets**
 
@@ -236,8 +238,9 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
   de base du chemin unique (D-009), rapportée à la **limite réelle de l'offre de la personne** quand
   le fournisseur l'expose, sinon à la limite de l'offre gratuite. L'atelier MUST afficher la source
   de chaque limite : « offre du compte » ou « offre gratuite, estimée ».
-- **FR-025**: Le système MUST prévenir la personne à 80 % puis à 95 % d'un quota, une seule fois par
-  seuil et par période de facturation, dans l'atelier et par courriel.
+- **FR-025**: Le système MUST relever les quotas au moins toutes les heures et à chaque relevé
+  demandé, et prévenir la personne à 80 % puis à 95 % d'un quota, une seule fois par seuil et par
+  période de facturation, dans l'atelier et par courriel.
 
 **Atelier**
 

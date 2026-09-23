@@ -11,6 +11,9 @@ description: "Task list for 001-project-workshop"
 **Tests**: included. The plan requires pytest coverage ≥ 90 % and treats the isolation (FR-007,
 SC-006) and no-direct-write (FR-029) guarantees as gates; they are proven by tests, not by review.
 
+**Numbering**: T075–T080 were added after `speckit-analyze`; they keep their number and sit in
+their execution phase.
+
 **Organization**: grouped by user story so each story can be implemented, tested and demonstrated on
 its own. All code, identifiers and comments are in English (D-013).
 
@@ -33,6 +36,7 @@ its own. All code, identifiers and comments are in English (D-013).
 - [ ] T005 [P] Create `apps/api/Dockerfile` (single image, `pono-api` and `pono-worker` entrypoints, non-root user, `HEALTHCHECK` without curl) and extend `.dockerignore`
 - [ ] T006 [P] Create `.github/workflows/ci.yml`: web typecheck + build, api `ruff`, `mypy`, `pytest` with a Postgres service container, and an SDK freshness check
 - [ ] T007 [P] Add root scripts in `package.json`: `api:dev`, `api:check`, `sdk:generate`, `check:all`
+- [ ] T079 [P] Create `apps/api/tests/bootstrap_roles.sql` creating the `pono_owner` and `pono_app` roles in the test database, and run it in `.github/workflows/ci.yml` before migrations
 
 ---
 
@@ -64,6 +68,7 @@ decision.
 - [ ] T025 [P] Create `packages/sdk` (`@pono/sdk`): `openapi-typescript` generation from the service OpenAPI and an `openapi-fetch` client; wire `pnpm sdk:generate`
 - [ ] T026 [P] Security test `apps/api/tests/security/test_rls_catalog.py`: every table in the public schema has `relrowsecurity` and `relforcerowsecurity`, and `pono_app` is neither owner nor `BYPASSRLS`
 - [ ] T027 [P] Tests `apps/api/tests/integration/test_auth.py`: allow-list refusal, first sign-in creates organization and membership, logout revokes the session
+- [ ] T076 [P] Log redaction filter in `apps/api/src/pono_api/infrastructure/logging.py` (ported from KYA-Platform's sensitive-fragment filter) with test `apps/api/tests/security/test_log_redaction.py` (FR-011)
 
 **Checkpoint**: a person on the allow-list signs in, lands on an empty workshop, in French.
 
@@ -87,7 +92,7 @@ deployment and at least one responding link, with no field filled in.
 
 ### Implementation for User Story 1
 
-- [ ] T033 [US1] Write migration `apps/api/migrations/versions/0002_projects.py`: `connections`, `projects`, `environments`, `deployments` with RLS and `FORCE` in this migration, and the uniqueness rules of `data-model.md`
+- [ ] T033 [US1] Write migration `apps/api/migrations/versions/0002_projects.py`: `connections`, `connection_events`, `projects`, `environments`, `deployments` with RLS and `FORCE` in this migration, and the uniqueness rules of `data-model.md`
 - [ ] T034 [P] [US1] Domain entities and state rules in `apps/api/src/pono_api/domain/projects.py` (no provider name; `provider` is an opaque adapter id)
 - [ ] T035 [P] [US1] Provider ports `CodeHost`, `HostingProvider`, `DatabaseProvider` in `apps/api/src/pono_api/application/ports.py`
 - [ ] T036 [US1] GitHub adapter in `apps/api/src/pono_api/infrastructure/providers/github.py`, ported from KYA-Platform: installation tokens, repository listing, file read, latest commit across branches, branch + commit + pull request restricted to `pono/*`
@@ -101,6 +106,9 @@ deployment and at least one responding link, with no field filled in.
 - [ ] T044 [US1] Refresh use case in `apps/api/src/pono_api/application/refresh_project.py`: read deployments and activity, check links, evaluate state, stamp `refreshed_at`, keep the previous state marked stale when a provider is unavailable
 - [ ] T045 [US1] Routes `/connections`, `/repositories`, `/projects` (POST), `/projects/{id}`, `/projects/{id}/refresh` in `apps/api/src/pono_api/api/projects.py` and `apps/api/src/pono_api/api/connections.py`
 - [ ] T046 [US1] Scheduled refresh job (every project at most every 15 minutes, per organization) in `apps/api/src/pono_api/workers/refresh.py`
+- [ ] T075 [US1] Record every use of a permanent provider key in `connection_events` from `apps/api/src/pono_api/application/connection_events.py`, wrapping the hosting and database adapters (FR-011, D-007)
+- [ ] T077 [US1] Refresh each connection's status (active, expired, revoked) in `apps/api/src/pono_api/workers/refresh.py` (FR-013)
+- [ ] T078 [US1] Track the manifest proposal in `apps/api/src/pono_api/application/refresh_project.py`: merged → `present`, closed unmerged → `absent`, never proposed again without a request
 - [ ] T047 [US1] Console connection screen in `apps/web/src/features/connections/` and route `apps/web/src/routes/workshop/connections.tsx` (code host installation link, hosting and database connections, status, revoke)
 - [ ] T048 [US1] Console import screen in `apps/web/src/features/projects/ImportProject.tsx` and route `apps/web/src/routes/workshop/import.tsx`
 - [ ] T049 [US1] Console project detail in `apps/web/src/features/projects/ProjectDetail.tsx` and route `apps/web/src/routes/workshop/projects.$projectId.tsx` (all previews, manifest status and proposal link, refresh button)
@@ -121,7 +129,7 @@ opening a random project's production link with its last deployment identified.
 - [ ] T051 [US2] Workshop query in `apps/api/src/pono_api/application/workshop.py`: summaries, counts per state, verdict codes of `contracts/error-codes.md`
 - [ ] T052 [US2] Extend `GET /projects` with the `state` filter and the workshop payload in `apps/api/src/pono_api/api/projects.py`
 - [ ] T053 [US2] Workshop screen in `apps/web/src/features/workshop/Workshop.tsx` and route `apps/web/src/routes/workshop/index.tsx`, following `design/admin.html` with `@pono/design` classes (table, state dots, meters, verdict banner, filter tabs with counts)
-- [ ] T054 [US2] Playwright render check at 1440 px of the workshop in both themes of data (empty, healthy, failing) in `apps/web/tests/e2e/workshop.spec.ts`
+- [ ] T054 [US2] Playwright render check at 1440 px of the workshop with empty, healthy and failing data in `apps/web/tests/e2e/workshop.spec.ts`
 
 **Checkpoint**: the MVP — US1 + US2 — is usable by the two first users.
 
@@ -140,7 +148,7 @@ email, never twice for the same threshold and period.
 - [ ] T057 [US3] Write migration `apps/api/migrations/versions/0003_quotas.py`: `quota_readings` and `alerts` with RLS and `FORCE` in this migration, and the alert uniqueness key
 - [ ] T058 [P] [US3] `QuotaReader` port in `apps/api/src/pono_api/application/ports.py` and readers in `apps/api/src/pono_api/infrastructure/providers/neon.py` and `apps/api/src/pono_api/infrastructure/providers/netlify.py` (limit source recorded; unavailable metric stored as unavailable)
 - [ ] T059 [P] [US3] SMTP mailer behind a `Mailer` port in `apps/api/src/pono_api/infrastructure/mailer.py`
-- [ ] T060 [US3] Quota and alert use case in `apps/api/src/pono_api/application/quotas.py` and job in `apps/api/src/pono_api/workers/quotas.py`
+- [ ] T060 [US3] Quota and alert use case in `apps/api/src/pono_api/application/quotas.py` and job in `apps/api/src/pono_api/workers/quotas.py`, reading at least hourly and on every requested refresh (FR-025, SC-004)
 - [ ] T061 [US3] Quota meters with limit source and alert verdicts in `apps/web/src/features/workshop/QuotaMeter.tsx` and the project detail
 
 ---
@@ -154,6 +162,7 @@ date or number remains.
 
 - [ ] T062 [US4] Complete `apps/web/messages/en.json` for every key, including `error_*` keys for all codes of `contracts/error-codes.md`
 - [ ] T063 [P] [US4] Localized formatting helpers (dates, relative times, numbers, percentages) with `Intl` in `apps/web/src/lib/format.ts`
+- [ ] T080 [P] [US4] Vitest tests for the formatting helpers in `apps/web/src/lib/format.test.ts`
 - [ ] T064 [US4] Language switcher in `apps/web/src/features/i18n/LocaleSwitcher.tsx`, persisting through `PUT /me/locale` and the `pono_locale` cookie
 - [ ] T065 [P] [US4] Check `apps/web/scripts/check-hardcoded-strings.mjs` failing on visible text literals in `.tsx` files, wired into CI
 - [ ] T066 [US4] Playwright test in `apps/web/tests/e2e/i18n.spec.ts`: browser language, explicit choice kept after reload, no mixed-language screen

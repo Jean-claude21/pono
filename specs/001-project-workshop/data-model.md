@@ -62,6 +62,17 @@ Politique : `id = ANY (current_setting('pono.organization_ids')::uuid[])`.
 
 Unicité : (`organization_id`, `provider`, `external_ref`).
 
+### `connection_events` — Trace d'usage · RLS
+| Colonne | Type | Règle |
+|---|---|---|
+| `id` | uuid | clé |
+| `organization_id` | uuid | |
+| `connection_id` | uuid → `connections` | |
+| `action` | text | opération effectuée chez le fournisseur (lecture de déploiements, relevé de quota…) |
+| `occurred_at` | timestamptz | |
+
+Écrite à chaque utilisation d'une clé permanente (FR-011, D-007) ; jamais la clé elle-même.
+
 ## Projets
 
 ### `projects` — Projet · RLS · objet ancre
@@ -80,6 +91,16 @@ Unicité : (`organization_id`, `provider`, `external_ref`).
 | `refreshed_at` | timestamptz | heure du dernier relevé (FR-023) |
 
 Unicité : (`organization_id`, `repository`) — FR-017.
+
+**Correspondance des états** — spec (français) ↔ code (anglais) :
+
+| Spec | Code |
+|---|---|
+| en bonne santé | `healthy` |
+| actif | `active` |
+| attention | `warning` |
+| en panne | `failing` |
+| en veille | `idle` |
 
 **Évaluation de l'état** (dans cet ordre, première règle vraie) :
 
