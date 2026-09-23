@@ -14,6 +14,9 @@ Identifiants : UUID v7. Horodatages : `timestamptz`, UTC. Noms de tables et de c
 | `login` | text | doit figurer dans la liste autorisée (FR-009) |
 | `email` | text | destinataire des alertes |
 | `locale` | text | `fr` ou `en`, nullable (FR-003) |
+| `chat_id` | text | nullable ; conversation de messagerie reliée par la personne (D-015) |
+| `chat_link_digest` | bytea | nullable ; empreinte SHA-256 du code de liaison en cours |
+| `chat_link_expires_at` | timestamptz | nullable ; fin de validité du code (15 minutes) |
 | `created_at` | timestamptz | |
 
 Politique : `id = current_setting('pono.person_id')::uuid`.
@@ -184,12 +187,13 @@ période remplace le précédent.
 | `period_start` | date | |
 | `raised_at` | timestamptz | |
 | `emailed_at` | timestamptz | nullable : reste vide si le courriel n'a pas pu partir |
+| `chat_sent_at` | timestamptz | nullable : reste vide si la messagerie n'a pas pu partir |
 
 Unicité : (`organization_id`, `connection_id`, `project_id`, `metric`, `threshold`, `period_start`)
 — une seule alerte par seuil et par période (FR-025), garantie par la base.
 
-Destinataires : `pono_alert_recipients(organization_id)` (`SECURITY DEFINER`) renvoie le courriel
-et la langue des membres, **uniquement** pour l'organisation dont le contexte RLS est posé.
+Destinataires : `pono_alert_recipients(organization_id)` (`SECURITY DEFINER`) renvoie le courriel,
+la conversation de messagerie et la langue des membres (migration `0004_chat_alerts`), **uniquement** pour l'organisation dont le contexte RLS est posé.
 
 ## Accès du planificateur
 

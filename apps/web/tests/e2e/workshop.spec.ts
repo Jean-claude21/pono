@@ -67,3 +67,20 @@ test("without a session the console sends the person back to sign in", async ({ 
   await expect(page).toHaveURL(/\/\?error=auth.session_required/);
   await expect(page.getByRole("alert")).toBeVisible();
 });
+
+test("the person links and unlinks the chat for quota alerts", async ({ page }, info) => {
+  await open(page, "healthy");
+  await page.goto("/workshop/connections");
+  await page.waitForLoadState("networkidle");
+
+  await page.getByRole("button", { name: "Relier Telegram" }).click();
+  const open_ = page.getByRole("link", { name: "Ouvrir Telegram" });
+  await expect(open_).toHaveAttribute("href", /start=one-time-code$/);
+  await page.getByRole("button", { name: "C’est fait" }).click();
+  await expect(page.getByText("Relié : tes alertes arrivent sur Telegram")).toBeVisible();
+  await noHorizontalScroll(page);
+  await info.attach("chat-linked", { body: await page.screenshot(), contentType: "image/png" });
+
+  await page.getByRole("button", { name: "Délier" }).click();
+  await expect(page.getByRole("button", { name: "Relier Telegram" })).toBeVisible();
+});

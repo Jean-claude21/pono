@@ -86,6 +86,12 @@ async def test_workshop_surface_matches_the_contract(
         await client.post(f"/api/v1/projects/{UNKNOWN}/refresh"), "/projects/{projectId}/refresh"
     )
     conforms(await client.get("/api/v1/me"), "/me")
+    link = await client.post("/api/v1/me/chat-link")
+    conforms(link, "/me/chat-link")
+    conforms(await client.post("/api/v1/me/chat-link/confirm"), "/me/chat-link/confirm")
+    world.messenger.start(link.json()["url"], "4242")
+    conforms(await client.post("/api/v1/me/chat-link/confirm"), "/me/chat-link/confirm")
+    conforms(await client.delete("/api/v1/me/chat"), "/me/chat")
 
     duplicate = await client.post(
         "/api/v1/connections",

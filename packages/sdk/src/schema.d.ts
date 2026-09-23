@@ -144,6 +144,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Forget Chat */
+        delete: operations["forget_chat_api_v1_me_chat_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/chat-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Chat
+         * @description A one-time link that opens the chat; starting it lets the service find the chat (D-015).
+         */
+        post: operations["start_chat_api_v1_me_chat_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/chat-link/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Chat */
+        post: operations["confirm_chat_api_v1_me_chat_link_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/email": {
         parameters: {
             query?: never;
@@ -282,6 +336,19 @@ export interface components {
             /** Email */
             email: string;
         };
+        /** ChatLink */
+        ChatLink: {
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /**
+             * Url
+             * @description Opens the chat with the one-time code.
+             */
+            url: string;
+        };
         /** Connection */
         Connection: {
             /** Externalref */
@@ -415,6 +482,16 @@ export interface components {
              * @description False while the service has no mail server.
              */
             alertEmailsEnabled: boolean;
+            /**
+             * Chatalertsenabled
+             * @description False while the service has no chat bot configured.
+             */
+            chatAlertsEnabled: boolean;
+            /**
+             * Chatlinked
+             * @description True when the person linked a chat for quota alerts.
+             */
+            chatLinked: boolean;
             /** Codehostinstallurl */
             codeHostInstallUrl: string | null;
             /**
@@ -872,6 +949,95 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Me"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forget_chat_api_v1_me_chat_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_chat_api_v1_me_chat_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatLink"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_chat_api_v1_me_chat_link_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

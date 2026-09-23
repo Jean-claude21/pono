@@ -32,10 +32,19 @@ type Props = {
   installUrl: string | null | undefined;
   alertEmail: string | null | undefined;
   alertEmailsEnabled: boolean;
+  chatLinked: boolean;
+  chatAlertsEnabled: boolean;
 };
 
 /** Connections (US1, FR-010 to FR-013): link the code host, add keys, see status, revoke. */
-export function Connections({ connections, installUrl, alertEmail, alertEmailsEnabled }: Props) {
+export function Connections({
+  connections,
+  installUrl,
+  alertEmail,
+  alertEmailsEnabled,
+  chatLinked,
+  chatAlertsEnabled,
+}: Props) {
   const router = useRouter();
   const client = createPonoClient();
   const [failure, setFailure] = useState<string | null>(null);
@@ -86,6 +95,25 @@ export function Connections({ connections, installUrl, alertEmail, alertEmailsEn
     setAddressSaved(false);
     const done = await run(() => client.PUT("/api/v1/me/email", { body: { email } }));
     setAddressSaved(done);
+  }
+
+  // Linking the chat (D-015): a one-time link, "Start" in the chat, then a confirmation here.
+  const [chatUrl, setChatUrl] = useState<string | null>(null);
+
+  async function startChat() {
+    setBusy(true);
+    setFailure(null);
+    const { data, error } = await client.POST("/api/v1/me/chat-link");
+    setBusy(false);
+    if (error || !data) {
+      setFailure(errorCode(error));
+      return;
+    }
+    setChatUrl(data.url);
+  }
+
+  async function confirmChat() {
+    if (await run(() => client.POST("/api/v1/me/chat-link/confirm"))) setChatUrl(null);
   }
 
   async function connect(event: FormEvent<HTMLFormElement>) {
@@ -199,8 +227,48 @@ export function Connections({ connections, installUrl, alertEmail, alertEmailsEn
 
       <h2 className="mono-label section-title">{m.alerts_title()}</h2>
       <p style={{ marginTop: 14, fontSize: 15, color: "var(--ink-soft)", maxWidth: "44em" }}>
-        {m.alerts_body()}
+        {m.alerts_intro()}
       </p>
+
+      <h3 className="alerts-channel">{m.alerts_chat_title()}</h3>
+      {!chatAlertsEnabled ? (
+        <p className="notice">{m.alerts_chat_off()}</p>
+      ) : chatLinked ? (
+        <div className="alerts-row">
+          <span className="state state-healthy">{m.alerts_chat_linked()}</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={busy}
+            onClick={() => run(() => client.DELETE("/api/v1/me/chat"))}
+          >
+            {m.alerts_chat_unlink()}
+          </button>
+        </div>
+      ) : chatUrl ? (
+        <div>
+          <p style={{ fontSize: 15, color: "var(--ink-soft)", maxWidth: "44em" }}>
+            {m.alerts_chat_pending()}
+          </p>
+          <div className="alerts-row">
+            <a className="btn btn-primary btn-sm" href={chatUrl} target="_blank" rel="noreferrer">
+              {m.alerts_chat_open()}
+            </a>
+            <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={confirmChat}>
+              {m.alerts_chat_confirm()}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="alerts-row">
+          <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={startChat}>
+            {m.alerts_chat_link()}
+          </button>
+        </div>
+      )}
+
+      <h3 className="alerts-channel">{m.alerts_email_title()}</h3>
+      <p style={{ fontSize: 15, color: "var(--ink-soft)", maxWidth: "44em" }}>{m.alerts_body()}</p>
       {alertEmailsEnabled ? null : <p className="notice">{m.alerts_mail_off()}</p>}
       <form className="form" onSubmit={saveAddress}>
         <div className="field">

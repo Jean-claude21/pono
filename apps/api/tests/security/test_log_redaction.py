@@ -22,6 +22,13 @@ def test_token_shapes_are_redacted(secret: str) -> None:
     assert secret not in redact(f"calling the provider with {secret} now")
 
 
+def test_chat_bot_tokens_in_request_paths_are_redacted() -> None:
+    token = "123456789:" + "AAbbCC_dd-" * 4
+    line = redact(f"HTTP Request: GET https://api.telegram.org/bot{token}/getUpdates")
+    assert token not in line
+    assert "getUpdates" in line
+
+
 def test_credentials_inside_urls_are_redacted() -> None:
     line = redact("connecting to postgresql://pono_app:s3cr3t-pass@host.example/pono")
     assert "s3cr3t-pass" not in line

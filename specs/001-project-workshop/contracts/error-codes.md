@@ -19,9 +19,11 @@ points deviennent des tirets bas.
 | `project.repository_unreachable` | 422 | le dépôt n'est pas accessible par la connexion |
 | `project.manifest_not_absent` | 409 | un manifeste est déjà présent ou proposé : pas de nouvelle proposition |
 | `project.not_found` | 404 | inconnu **ou** appartenant à une autre organisation (US5, scénario 2) |
+| `chat.link_expired` | 409 | aucun code de liaison en cours, ou il a expiré : en demander un nouveau |
+| `chat.link_not_found` | 409 | le message de démarrage n'est pas encore arrivé : appuyer sur « Démarrer » puis réessayer |
 | `request.invalid` | 422 | requête mal formée ; `field` nomme le champ (dont une langue hors `fr` / `en`) |
 | `provider.unavailable` | 503 | le fournisseur ne répond pas ; l'état précédent est conservé |
-| `service.*_unconfigured` | 503 | configuration manquante du service (base, identité, fournisseurs) |
+| `service.*_unconfigured` | 503 | configuration manquante du service (base, identité, fournisseurs, messagerie) |
 
 **Règle de cloisonnement** : une ressource d'une autre organisation répond **404**, jamais 403, pour
 ne pas confirmer son existence.

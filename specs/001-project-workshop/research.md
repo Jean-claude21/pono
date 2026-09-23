@@ -150,6 +150,24 @@ de `tasks.md`, avec un comportement de repli défini ici.
 - **Rationale** : FR-025 sans lier le produit à un fournisseur de courriel.
 - **Alternatives considered** : SDK d'un fournisseur de courriel (rejeté : couplage inutile).
 
+## R-10b — Messagerie d'alerte (2026-09-23, D-015)
+
+- **Decision** : port `ChatMessenger` avec un adaptateur Telegram (API Bot, HTTP simple, sans SDK),
+  configuré par un seul jeton de bot côté service (`PONO_TELEGRAM_BOT_TOKEN`). La personne relie sa
+  conversation elle-même : la console demande un lien `t.me/<bot>?start=<code>` (code à usage
+  unique, 15 minutes, seule son empreinte est stockée), la personne appuie sur « Démarrer », puis la
+  console demande la confirmation ; le service cherche le message `/start <code>` dans
+  `getUpdates` et enregistre l'identifiant de la conversation. Pas de webhook : aucune adresse
+  publique n'est requise, aucun processus d'écoute permanent.
+- **Rationale** : FR-025 sans serveur d'envoi de courriel ; la personne reçoit l'alerte sur son
+  téléphone. Le fournisseur reste dans l'adaptateur (constitution III).
+- **Limite connue** : `getUpdates` garde 24 heures et 100 messages en attente ; au-delà, une liaison
+  peut échouer et se relance. Suffisant pour les premiers utilisateurs ; un webhook viendra si
+  l'usage grandit.
+- **Alternatives considered** : webhook Telegram (demande HTTPS et un point d'entrée public ;
+  inutile à cette échelle) ; saisie manuelle de l'identifiant de conversation (rejeté : personne
+  ne le connaît).
+
 ## R-11 — Base de Pono et déploiement
 
 - **Decision** : un projet Neon `pono` (offre gratuite), branches `main` et `dev`. Sur Coolify :

@@ -70,6 +70,7 @@ def create_app(
             "status": "ok",
             "database": database,
             "email": "configured" if settings.smtp_configured else "not_configured",
+            "chat": "configured" if settings.chat_configured else "not_configured",
         }
 
     for router in (health, auth.router, me.router, connections.router, projects.router):

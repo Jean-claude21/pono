@@ -228,11 +228,27 @@ Each phase ends on its checkpoint; nothing is marked done without its test or it
 - [X] T081 Read the person's verified email at sign-in (code host account permission "email addresses: read", `/user/emails` in `apps/api/src/pono_api/infrastructure/providers/github_identity.py`) and let them set an alert address in the console when the code host gives none (`apps/api/src/pono_api/api/me.py`, `apps/web/src/routes/workshop/connections.tsx`) per FR-025 (partial)
   - *The console field works now. Reading a private address at sign-in also needs the app's account permission "Email addresses: read", granted by the author in the GitHub App settings.*
 - [ ] T082 Configure SMTP for `pono-api` and `pono-worker` on Coolify and prove one alert email received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004 (partial)
-  - *Waits for an SMTP account from the author.*
+  - *Waits for an SMTP account from the author. No longer blocking the phase: alerts leave by chat (D-015, Phase 10).*
 - [X] T083 Show the time of the last reading in each workshop row, and mark it stale when a provider did not answer, in `apps/web/src/features/workshop/Workshop.tsx` per FR-023 (partial)
 - [X] T084 Move the code host adapter id out of `apps/api/src/pono_api/application/connections.py` into the adapter, exposed through the `CodeHost` port, per Constitution III (partial)
-- [ ] T085 Serve the console over HTTPS on a domain so the session cookie is `Secure`, and record it in `docs/EXPLOITATION.md`, per plan: R-04 session decision (partial)
-  - *Waits for a domain from the author (the previous one expired).*
+- [X] T085 Serve the console over HTTPS on a domain so the session cookie is `Secure`, and record it in `docs/EXPLOITATION.md`, per plan: R-04 session decision (partial)
+  - *Served on Coolify's default domain (`sslip.io`) with a Let's Encrypt certificate; http redirects to https and cookies are `Secure`. Sign-in needs the https callback URL added to the GitHub App.*
 - [X] T086 Open the existing project from "Open" on an already imported repository (`projectId` in the repositories payload, `apps/web/src/features/projects/ImportProject.tsx`) per spec edge case "même dépôt importé deux fois" (partial)
 - [X] T087 Let the person ask again for a manifest proposal on a project whose proposal was closed (`POST /projects/{id}/manifest-proposal`, project detail) per spec edge case "proposition refusée ou fermée" (partial)
 - [X] T088 Remove the owner database URL from the `pono-worker` environment on Coolify per plan: R-02 roles decision (partial)
+
+---
+
+## Phase 10: Chat alerts (D-015)
+
+Clarification 2026-09-23: quota alerts leave the workshop by a chat the person links themselves;
+email stays possible when a mail server exists. Source: FR-025 (amended), research R-10b.
+
+- [X] T089 Add migration `apps/api/migrations/versions/0004_chat_alerts.py`: `people.chat_id`, `people.chat_link_digest`, `people.chat_link_expires_at`, `alerts.chat_sent_at`, and `pono_alert_recipients` returning the chat too, per data-model
+- [X] T090 [P] Add the `ChatMessenger` port and a chat-capable `Recipient` in `apps/api/src/pono_api/application/ports.py`, and the Telegram adapter in `apps/api/src/pono_api/infrastructure/chat.py` with unit tests on a mocked transport in `apps/api/tests/unit/test_chat.py`, per R-10b
+- [X] T091 Link, confirm and unlink a chat in `apps/api/src/pono_api/application/chat_link.py`, and send alerts to linked chats in `apps/api/src/pono_api/application/quotas.py`, with integration tests in `apps/api/tests/integration/test_chat_alerts.py`, per FR-025
+- [X] T092 Expose `POST /me/chat-link`, `POST /me/chat-link/confirm`, `DELETE /me/chat`, `chatLinked` / `chatAlertsEnabled` on `/me` and `chat` in the health probe (`apps/api/src/pono_api/api/me.py`, `main.py`), regenerate `packages/sdk`, per contracts/openapi.yaml
+- [X] T093 Let the person link and unlink the chat from the Alerts section of `apps/web/src/features/connections/Connections.tsx`, with French and English catalog entries and the e2e mock updated, per FR-025 and D-013
+- [ ] T094 Configure the bot token on `pono-api` and `pono-worker`, link the author's chat and prove one alert received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004
+  - *Waits for the bot token from the author (`@BotFather`).*
+

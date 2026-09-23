@@ -134,4 +134,9 @@ async def test_health_reports_the_database(
     client: httpx.AsyncClient, migrated_database: None
 ) -> None:
     body = (await client.get("/api/v1/health")).json()
-    assert body == {"status": "ok", "database": "ok", "email": "not_configured"}
+    assert body == {
+        "status": "ok",
+        "database": "ok",
+        "email": "not_configured",
+        "chat": "not_configured",
+    }
