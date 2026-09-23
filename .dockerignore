@@ -10,3 +10,13 @@ docs
 *.log
 .env
 .env.*
+**/__pycache__
+**/*.pyc
+**/.venv
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/tests
+.coverage
+.github
+specs

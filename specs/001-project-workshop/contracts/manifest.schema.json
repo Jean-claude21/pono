@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pono.dev/schemas/project-manifest/1.json",
+  "title": "Pono project manifest",
+  "description": "Versioned in the repository at .pono/project.json. The source of truth for a project (D-003). Holds identifiers only, never secrets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "environments"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind"],
+        "properties": {
+          "kind": { "enum": ["production", "preview", "development"] },
+          "branch": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "hosting": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["provider", "ref"],
+            "properties": {
+              "provider": { "type": "string", "description": "Adapter id, e.g. netlify or coolify." },
+              "ref": { "type": "string", "description": "Site or application identifier at the provider." }
+            }
+          }
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "ref"],
+      "properties": {
+        "provider": { "type": "string", "description": "Adapter id, e.g. neon." },
+        "ref": { "type": "string", "description": "Project identifier at the provider." },
+        "branches": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Environment kind to database branch name."
+        }
+      }
+    },
+    "importedFrom": {
+      "enum": ["studio-project-yaml", "fluxio", "livio", "provider-detection"],
+      "description": "Where the pre-filled values came from, for traceability."
+    }
+  }
+}

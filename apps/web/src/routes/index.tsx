@@ -1,32 +1,58 @@
 import { createFileRoute } from "@tanstack/react-router";
+import * as m from "@/paraglide/messages.js";
+import { errorMessage } from "@/lib/i18n";
+import { LocaleSwitcher } from "@/features/i18n/LocaleSwitcher";
+
+type LandingSearch = { error?: string };
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): LandingSearch => ({
+    error: typeof search.error === "string" ? search.error : undefined,
+  }),
   component: Landing,
 });
 
-// Access is on request while Pono is being built: one action, one question.
-// The copy below is French until phase 1 moves every string into the i18n catalogs.
-const ACCESS_REQUEST_URL =
-  "mailto:messanjeanclaude@gmail.com?subject=Acc%C3%A8s%20Pono&body=Quel%20projet%20veux-tu%20poser%20en%20premier%20%3F%0A%0A";
+type ProjectState = "healthy" | "active" | "warning" | "failing" | "idle";
 
 const narrowTracking = { letterSpacing: "0.08em" };
 
-type ProjectState = "healthy" | "active" | "warning" | "failing" | "idle";
+// Access is on request while Pono is being built: one action, one question.
+function accessRequestUrl(): string {
+  const subject = encodeURIComponent(m.access_request_subject());
+  const body = encodeURIComponent(`${m.access_request_body()}\n\n`);
+  return `mailto:messanjeanclaude@gmail.com?subject=${subject}&body=${body}`;
+}
 
 function Landing() {
+  const { error } = Route.useSearch();
+  const accessUrl = accessRequestUrl();
   return (
     <>
       <header className="site-header">
         <a className="monogram" href="/">
           <b>P</b>Pono
         </a>
-        <a className="btn btn-ghost btn-sm" href={ACCESS_REQUEST_URL}>
-          Demander un accès
-        </a>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <LocaleSwitcher />
+          <a className="btn btn-ghost btn-sm" href="/api/v1/auth/login">
+            {m.sign_in()}
+          </a>
+          <a className="btn btn-ghost btn-sm" href={accessUrl}>
+            {m.access_request_cta()}
+          </a>
+        </div>
       </header>
 
+      {error ? (
+        <div className="wrap" style={{ paddingTop: 24 }}>
+          <div className="verdict" role="alert">
+            <p>{errorMessage(error)}</p>
+          </div>
+        </div>
+      ) : null}
+
       <main>
-        <Hero />
+        <Hero accessUrl={accessUrl} />
         <Problem />
         <Benefits />
         <Mechanism />
@@ -35,11 +61,11 @@ function Landing() {
         <section className="cta-band">
           <div className="wrap">
             <div>
-              <h2>Quel projet veux-tu poser en premier&nbsp;?</h2>
-              <p>Accès sur demande, pendant la construction.</p>
+              <h2>{m.cta_title()}</h2>
+              <p>{m.cta_body()}</p>
             </div>
-            <a className="btn btn-primary" href={ACCESS_REQUEST_URL}>
-              Demander un accès
+            <a className="btn btn-primary" href={accessUrl}>
+              {m.access_request_cta()}
             </a>
           </div>
         </section>
@@ -48,7 +74,8 @@ function Landing() {
       <footer className="site-footer">
         <div className="wrap">
           <span className="monogram" style={{ fontSize: 16 }}>
-            <b style={{ width: 22, height: 22, fontSize: 12 }}>P</b>Pose. Ça tient.
+            <b style={{ width: 22, height: 22, fontSize: 12 }}>P</b>
+            {m.footer_signature()}
           </span>
           <span className="mono-label">Pono · 2026</span>
         </div>
@@ -57,49 +84,57 @@ function Landing() {
   );
 }
 
-function Hero() {
+function Hero({ accessUrl }: Readonly<{ accessUrl: string }>) {
   return (
     <section className="hero">
       <div className="wrap">
         <div>
-          <p className="mono-label">Poste de contrôle des projets construits par agent</p>
+          <p className="mono-label">{m.hero_eyebrow()}</p>
           <h1 style={{ marginTop: 20 }}>
-            Construis depuis Claude. <span>Ton app tient, et elle est à toi.</span>
+            {m.hero_title_lead()} <span>{m.hero_title_rest()}</span>
           </h1>
-          <p className="lede">
-            Ton agent écrit le code. Pono tient l’état réel de chaque projet et refuse ce qui casse la
-            production. Ton dépôt, ta base et ton hébergement restent à ton nom.
-          </p>
+          <p className="lede">{m.hero_lede()}</p>
           <div className="actions">
-            <a className="btn btn-primary" href={ACCESS_REQUEST_URL}>
-              Demander un accès
+            <a className="btn btn-primary" href={accessUrl}>
+              {m.access_request_cta()}
             </a>
             <a className="btn btn-ghost" href="#mechanism">
-              Comment ça marche
+              {m.hero_how_it_works()}
             </a>
           </div>
           <p className="fine">
-            <b>Démarre à 0 €</b> avec les paliers gratuits de tes fournisseurs. Aucun crédit d’IA.
+            <b>{m.hero_fine_strong()}</b> {m.hero_fine_rest()}
           </p>
         </div>
 
         {/* The proof sits in the first screen: the workshop, and the moment that matters. */}
         <figure className="proof" style={{ margin: 0 }}>
           <div className="proof-head">
-            <span className="mono-label">Atelier</span>
-            <span className="mono-label">6 projets</span>
+            <span className="mono-label">{m.proof_workshop()}</span>
+            <span className="mono-label">{m.proof_projects_count({ count: 6 })}</span>
           </div>
-          <ProofRow name="lectio" state="active" detail="preview #12" usage="102/300" />
-          <ProofRow name="vestio" state="healthy" detail="en ligne" usage="186/300" />
-          <ProofRow name="boutiqflow" state="warning" detail="quota bas" usage="264/300" nearLimit />
+          <ProofRow
+            name="lectio"
+            state="active"
+            detail={m.proof_detail_preview({ number: 12 })}
+            usage="102/300"
+          />
+          <ProofRow name="vestio" state="healthy" detail={m.proof_detail_online()} usage="186/300" />
+          <ProofRow
+            name="boutiqflow"
+            state="warning"
+            detail={m.proof_detail_quota_low()}
+            usage="264/300"
+            nearLimit
+          />
           <div className="verdict">
-            <span className="mono-label">Mise en ligne refusée · nyatefe</span>
-            <h3>Une migration supprime une table en production.</h3>
-            <p>Rien n’a été exécuté. Ce refus vient du système, pas de l’agent.</p>
+            <span className="mono-label">{m.proof_refused_label({ project: "nyatefe" })}</span>
+            <h3>{m.proof_refused_title()}</h3>
+            <p>{m.proof_refused_body()}</p>
           </div>
           <figcaption className="proof-caption">
             <span className="mono-label" style={narrowTracking}>
-              maquette · données de l’atelier
+              {m.proof_caption()}
             </span>
           </figcaption>
         </figure>
@@ -114,7 +149,13 @@ function ProofRow({
   detail,
   usage,
   nearLimit = false,
-}: Readonly<{ name: string; state: ProjectState; detail: string; usage: string; nearLimit?: boolean }>) {
+}: Readonly<{
+  name: string;
+  state: ProjectState;
+  detail: string;
+  usage: string;
+  nearLimit?: boolean;
+}>) {
   return (
     <div className="proof-row">
       <span className={`state state-${state}`}>{name}</span>
@@ -129,18 +170,12 @@ function ProofRow({
 }
 
 function Problem() {
-  const questions = [
-    "Tu as plusieurs projets en ligne. Lequel tourne encore ?",
-    "Quelle base est branchée sur lequel ?",
-    "Qui a déployé en dernier, et qu’est-ce qui est parti ?",
-  ];
+  const questions = [m.problem_q1(), m.problem_q2(), m.problem_q3()];
   return (
     <section className="section">
       <div className="wrap">
-        <p className="mono-label">Le problème</p>
-        <h2 style={{ marginTop: 14 }}>
-          Si tu dois chercher pour répondre, tes projets ne sont pas tenus.
-        </h2>
+        <p className="mono-label">{m.problem_label()}</p>
+        <h2 style={{ marginTop: 14 }}>{m.problem_title()}</h2>
         <div className="questions">
           {questions.map((question, index) => (
             <p className="question" key={question}>
@@ -156,27 +191,19 @@ function Problem() {
 
 function Benefits() {
   const cells = [
+    { label: m.benefit_state_label(), title: m.benefit_state_title(), body: m.benefit_state_body() },
     {
-      label: "État",
-      title: "Chaque projet, tel qu’il est",
-      body: "Environnements, dernier déploiement, liens qui marchent. Lu chez tes fournisseurs, jamais saisi à la main.",
+      label: m.benefit_guardrails_label(),
+      title: m.benefit_guardrails_title(),
+      body: m.benefit_guardrails_body(),
     },
-    {
-      label: "Garde-fous",
-      title: "La production ne se casse pas",
-      body: "Rien ne part sans ta validation. Le refus est mécanique : ton agent ne peut pas l’argumenter.",
-    },
-    {
-      label: "Quotas",
-      title: "Prévenu avant la pause",
-      body: "Tes paliers gratuits surveillés. L’alerte arrive avant que ton site ne s’arrête.",
-    },
+    { label: m.benefit_quotas_label(), title: m.benefit_quotas_title(), body: m.benefit_quotas_body() },
   ];
   return (
     <section className="section alt">
       <div className="wrap">
-        <p className="mono-label">Ce que tu obtiens</p>
-        <h2 style={{ marginTop: 14 }}>L’état réel, les garde-fous, et tes quotas, au même endroit.</h2>
+        <p className="mono-label">{m.benefits_label()}</p>
+        <h2 style={{ marginTop: 14 }}>{m.benefits_title()}</h2>
         <div className="grid-3">
           {cells.map((cell) => (
             <div className="cell" key={cell.label}>
@@ -192,30 +219,20 @@ function Benefits() {
 }
 
 function Mechanism() {
-  const limits = [
-    "Ce n’est pas un éditeur de code : tu restes dans ton agent.",
-    "Un seul chemin technique pour l’instant.",
-    "Pas d’IA revendue au compteur.",
-  ];
+  const limits = [m.limit_not_editor(), m.limit_single_path(), m.limit_no_ai_resale()];
   return (
     <section className="section" id="mechanism">
       <div className="wrap split">
         <div>
-          <p className="mono-label">Le mécanisme</p>
-          <h2 style={{ marginTop: 14 }}>Ton agent écrit. Pono tient. Tout reste chez toi.</h2>
-          <p className="intro">
-            Tu restes dans Claude, Codex ou ChatGPT — celui que tu paies déjà. Pono ne revend pas
-            d’intelligence : il tient l’état et les règles.
-          </p>
+          <p className="mono-label">{m.mechanism_label()}</p>
+          <h2 style={{ marginTop: 14 }}>{m.mechanism_title()}</h2>
+          <p className="intro">{m.mechanism_intro()}</p>
         </div>
         <div>
           <div className="verdict healthy">
-            <span className="mono-label">Prêt pour la production · lectio</span>
-            <h3>Trois garde-fous sont verts.</h3>
-            <p>
-              Aucun secret dans le dépôt · preview vérifiée · migrations additives. Il ne manque que
-              ta validation.
-            </p>
+            <span className="mono-label">{m.mechanism_ready_label({ project: "lectio" })}</span>
+            <h3>{m.mechanism_ready_title()}</h3>
+            <p>{m.mechanism_ready_body()}</p>
           </div>
           <div className="limits">
             {limits.map((limit) => (
@@ -233,17 +250,17 @@ function Mechanism() {
 
 function Faq() {
   const entries = [
-    { question: "Est-ce pour moi ?", answer: "Si tu construis déjà avec un agent et que tes projets s’éparpillent, oui." },
-    { question: "Et si Pono s’arrête ?", answer: "Tes projets continuent de tourner : ils sont sur tes comptes, pas les nôtres." },
-    { question: "Pourquoi pas Replit ?", answer: "Replit fabrique vite, et bien. Pono tient ce qui est fabriqué, et ne le retient pas." },
-    { question: "Combien ça coûte ?", answer: "Prix fixe, jamais de crédits. Les paliers gratuits suffisent pour démarrer." },
+    { question: m.faq_for_me_question(), answer: m.faq_for_me_answer() },
+    { question: m.faq_if_pono_stops_question(), answer: m.faq_if_pono_stops_answer() },
+    { question: m.faq_why_not_replit_question(), answer: m.faq_why_not_replit_answer() },
+    { question: m.faq_price_question(), answer: m.faq_price_answer() },
   ];
   return (
     <section className="section">
       <div className="wrap split">
         <div>
-          <p className="mono-label">Questions</p>
-          <h2 style={{ marginTop: 14 }}>Ce qu’on se demande avant de poser un projet.</h2>
+          <p className="mono-label">{m.faq_label()}</p>
+          <h2 style={{ marginTop: 14 }}>{m.faq_title()}</h2>
         </div>
         <dl className="faq" style={{ margin: 0 }}>
           {entries.map((entry) => (

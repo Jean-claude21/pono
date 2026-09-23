@@ -186,6 +186,22 @@ la phase 1 les déplace dans les catalogues.
 
 ---
 
+## D-014 — Deux hébergeurs dès la phase 1 : Netlify et Coolify
+
+**Validé le 2026-09-23.** Amende D-009 pour l'hébergement seulement.
+
+**Tranché ainsi.** Le chemin de la phase 1 comprend un fournisseur de code (GitHub), **deux
+hébergeurs** (Netlify et Coolify) et un fournisseur de base (Neon). Supabase reste dehors.
+
+**Pourquoi.** Inventaire du 2026-09-22 : les projets réels de l'auteur sont répartis entre Netlify
+(lectio-reads, fluxio-runtime-test, vestio…) et Coolify (firmo, nettio, pono). Avec un seul
+hébergeur, la preuve de fin de la phase 1 — cinq projets réels — est inatteignable. L'adaptateur
+Coolify est en lecture seule et existe déjà dans KYA-Platform.
+
+**Ce que ça coûte.** Un adaptateur de plus à maintenir, sans quota à relever côté Coolify.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.
