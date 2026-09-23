@@ -55,3 +55,16 @@ jobs:
       # The SDK must match the service: a changed contract without a regenerated SDK fails here.
       - run: uv run python apps/api/scripts/export_openapi.py /tmp/openapi.json
       - run: diff /tmp/openapi.json packages/sdk/openapi.json
+
+  # The images Coolify builds: a missing file fails here, not on the server.
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f apps/api/Dockerfile -t pono-api .
+      - run: docker build -f apps/web/Dockerfile -t pono-web .
+      - name: The console image starts and answers
+        run: |
+          docker run -d --name web -p 3000:3000 pono-web
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/health && exit 0; sleep 2; done
+          docker logs web; exit 1
