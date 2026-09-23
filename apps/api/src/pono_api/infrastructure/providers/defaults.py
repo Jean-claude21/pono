@@ -2,6 +2,7 @@
 
 from pono_api.application.refresh_project import Providers
 from pono_api.config import Settings
+from pono_api.infrastructure.chat import TelegramMessenger
 from pono_api.infrastructure.crypto import CredentialCipher
 from pono_api.infrastructure.link_checker import HttpLinkChecker
 from pono_api.infrastructure.mailer import SmtpMailer
@@ -28,6 +29,7 @@ def default_providers(settings: Settings) -> Providers:
             settings.smtp_password,
             settings.smtp_from,
         ),
+        messenger=TelegramMessenger(settings.telegram_bot_token),
     )
 
 

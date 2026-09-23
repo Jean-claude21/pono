@@ -113,23 +113,26 @@ le moindre écran définitif.
 
 ## Phase 1 — L'atelier qui tient les projets · *en ligne sur `dev`, fermeture en attente*
 
-> **Où on en est (2026-09-23).** Spec Kit : specify → clarify → plan → tasks → analyze →
-> implement → **converge**. 84 tâches sur 88 faites ; les 4 restantes attendent un geste de l’auteur (`specs/001-project-workshop/tasks.md`).
+> **Où on en est (2026-09-23, après-midi).** Spec Kit : specify → clarify → plan → tasks → analyze →
+> implement → converge, puis une clarification (alertes par Telegram, D-015) → tasks (phase 10) →
+> implement. 90 tâches sur 94 faites ; les 4 restantes attendent un geste de l’auteur (`specs/001-project-workshop/tasks.md`).
 >
 > **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
-> fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice (0001 à 0003) et
-> étanchéité de deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
-> l'application ; console, service et worker en ligne sur Coolify ; 223 tests du service, 17
-> Vitest, 9 Playwright (`docs/VERITE_ET_PREUVES.md`).
+> fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice et étanchéité de
+> deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
+> l'application ; console, service et worker en ligne sur Coolify, **en HTTPS** ; lectio-reads
+> importé en ligne, manifeste fusionné ; 236 tests du service, 17 Vitest, 10 Playwright
+> (`docs/VERITE_ET_PREUVES.md`).
+>
+> **Tranché le 2026-09-23 (D-015).** Les alertes partent par Telegram (le courriel n'est plus
+> bloquant). Pono reste à Francfort : Neon y ouvre désormais toutes ses fonctionnalités.
 >
 > **Reste, pour fermer.**
 > - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002).
-> - `[auteur]` Un compte SMTP pour les alertes par courriel (T082) ; un domaine pour le HTTPS
->   (T085) ; la permission « Email addresses: read » de l'app GitHub (T081).
-> - `[auteur]` Fusion `dev` → `main` (T074, pull request #5).
->
-> **Ensuite, avant la phase 2.** Héberger Pono en région US pour disposer de toutes les
-> fonctionnalités de Neon (consigne de l'auteur, `docs/EXPLOITATION.md`).
+> - `[auteur]` Créer le bot Telegram et donner son jeton (T094) ; ajouter l'adresse de retour
+>   `https` à l'app GitHub.
+> - `[auteur]` Importer les trois derniers projets en ligne ; fusion `dev` → `main` (T074, #5).
+> - `[facultatif]` Un compte SMTP pour les alertes par courriel (T082).
 
 ### Objective
 Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'eux sans rien chercher.

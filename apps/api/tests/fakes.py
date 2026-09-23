@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from pono_api.application.ports import (
+    ChatRecipient,
+    ChatStart,
     DatabaseSnapshot,
     DeploymentRecord,
     DetectedEnvironment,
@@ -275,11 +277,43 @@ class FakeMailer:
 
 
 @dataclass
+class FakeMessenger:
+    """A chat bot: people start it with a code; alerts and confirmations are recorded."""
+
+    configured: bool = True
+    starts: list[ChatStart] = field(default_factory=list)
+    sent: list[tuple[ChatRecipient, RaisedAlert]] = field(default_factory=list)
+    linked: list[ChatRecipient] = field(default_factory=list)
+    fail: bool = False
+
+    async def link_url(self, code: str) -> str:
+        return f"https://chat.test/pono_bot?start={code}"
+
+    async def started_chats(self) -> list[ChatStart]:
+        if self.fail:
+            raise ProviderUnavailableError("chat unreachable")
+        return list(self.starts)
+
+    def start(self, url: str, chat_id: str) -> None:
+        """The person opens the link and presses Start."""
+        self.starts.append(ChatStart(code=url.rsplit("=", 1)[1], chat_id=chat_id))
+
+    async def send_linked(self, recipient: ChatRecipient) -> None:
+        self.linked.append(recipient)
+
+    async def send_alert(self, recipient: ChatRecipient, alert: RaisedAlert) -> None:
+        if self.fail:
+            raise ProviderUnavailableError("chat unreachable")
+        self.sent.append((recipient, alert))
+
+
+@dataclass
 class World:
     code_host: FakeCodeHost
     factory: FakeFactory
     links: FakeLinks
     mailer: FakeMailer = field(default_factory=FakeMailer)
+    messenger: FakeMessenger = field(default_factory=FakeMessenger)
 
     @property
     def providers(self) -> Providers:
@@ -289,6 +323,7 @@ class World:
             manifests=RepositoryManifests(),
             links=self.links,
             mailer=self.mailer,
+            messenger=self.messenger,
         )
 
 

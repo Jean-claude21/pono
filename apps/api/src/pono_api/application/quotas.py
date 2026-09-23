@@ -2,7 +2,8 @@
 
 Readings are taken per organization: the account quotas of each hosting connection, and the
 quotas of each project's database. An alert is inserted once per resource, metric, threshold and
-billing period; the database's unique key makes a second insert a no-op, so the email is sent once.
+billing period; the database's unique key makes a second insert a no-op, so it is sent once, by
+email and by chat.
 """
 
 import logging
@@ -16,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from pono_api.application.connection_events import record_key_uses
 from pono_api.application.connections import load_connections
 from pono_api.application.ports import (
+    ChatRecipient,
     KeyUseLog,
     ProviderAuthorizationError,
     ProviderUnavailableError,
@@ -63,7 +65,7 @@ async def read_quotas(
         ]
         await record_key_uses(session, principal.organization_id, log)
     if raised:
-        await _email(sessions, principal, providers, raised)
+        await _notify(sessions, principal, providers, raised)
     return len(raised)
 
 
@@ -189,35 +191,55 @@ async def _raise(
     return raised
 
 
-async def _email(
+async def _notify(
     sessions: async_sessionmaker[AsyncSession],
     principal: Principal,
     providers: Providers,
     raised: list[tuple[UUID, RaisedAlert]],
 ) -> None:
-    mailer = providers.mailer
-    if mailer is None or not mailer.configured:
+    """Email and chat, each on its own: one channel failing never holds the other back."""
+
+    mailer, messenger = providers.mailer, providers.messenger
+    mailing = mailer is not None and mailer.configured
+    chatting = messenger is not None and messenger.configured
+    if not (mailing or chatting):
         return
     async with unit_of_work(sessions, principal) as session:
-        recipients = [
-            Recipient(email=row.email, locale=row.locale)
-            for row in await session.execute(
-                text("SELECT email, locale FROM pono_alert_recipients(:organization_id)"),
+        rows = list(
+            await session.execute(
+                text("SELECT email, chat_id, locale FROM pono_alert_recipients(:organization_id)"),
                 {"organization_id": principal.organization_id},
             )
-        ]
-    sent: list[UUID] = []
+        )
+    emailed: list[UUID] = []
+    chatted: list[UUID] = []
     for alert_id, alert in raised:
-        try:
-            for recipient in recipients:
-                await mailer.send_alert(recipient, alert)
-        except Exception:  # an unreachable mail server never loses the alert itself
-            logger.exception("alert email could not be sent")
-            continue
-        sent.append(alert_id)
+        if mailer is not None and mailing:
+            try:
+                for row in rows:
+                    if row.email:
+                        await mailer.send_alert(
+                            Recipient(email=row.email, locale=row.locale), alert
+                        )
+                emailed.append(alert_id)
+            except Exception:  # an unreachable mail server never loses the alert itself
+                logger.exception("alert email could not be sent")
+        if messenger is not None and chatting:
+            try:
+                for row in rows:
+                    if row.chat_id:
+                        await messenger.send_alert(
+                            ChatRecipient(chat_id=row.chat_id, locale=row.locale), alert
+                        )
+                chatted.append(alert_id)
+            except Exception:  # an unreachable chat never loses the alert itself
+                logger.exception("alert chat message could not be sent")
     async with unit_of_work(sessions, principal) as session:
         await session.execute(
-            text("UPDATE alerts SET emailed_at = now() WHERE id = ANY(:ids)"), {"ids": sent}
+            text("UPDATE alerts SET emailed_at = now() WHERE id = ANY(:ids)"), {"ids": emailed}
+        )
+        await session.execute(
+            text("UPDATE alerts SET chat_sent_at = now() WHERE id = ANY(:ids)"), {"ids": chatted}
         )
 
 

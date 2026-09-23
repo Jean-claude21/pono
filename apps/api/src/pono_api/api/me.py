@@ -1,4 +1,4 @@
-"""The signed-in person: identity, organization, language (FR-003) and alert address (FR-025)."""
+"""The signed-in person: identity, organization, language (FR-003) and alert channels (FR-025)."""
 
 from typing import Literal
 
@@ -6,8 +6,9 @@ from fastapi import APIRouter, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
-from pono_api.api.dependencies import PrincipalDep, SessionsDep, SettingsDep
-from pono_api.api.schemas import Me
+from pono_api.api.dependencies import PrincipalDep, ProvidersDep, SessionsDep, SettingsDep
+from pono_api.api.schemas import ChatLink, Me
+from pono_api.application.chat_link import confirm_chat_link, start_chat_link, unlink_chat
 from pono_api.errors import ApiError
 from pono_api.infrastructure.database.rls import unit_of_work
 
@@ -29,7 +30,7 @@ async def read_me(sessions: SessionsDep, principal: PrincipalDep, settings: Sett
     async with unit_of_work(sessions, principal) as session:
         row = (
             await session.execute(
-                text("SELECT login, locale, email FROM people WHERE id = :id"),
+                text("SELECT login, locale, email, chat_id FROM people WHERE id = :id"),
                 {"id": principal.person_id},
             )
         ).first()
@@ -43,6 +44,8 @@ async def read_me(sessions: SessionsDep, principal: PrincipalDep, settings: Sett
         email=row.email,
         alert_emails_enabled=settings.smtp_configured,
         code_host_install_url=settings.code_host_install_url,
+        chat_linked=row.chat_id is not None,
+        chat_alerts_enabled=settings.chat_configured,
     )
 
 
@@ -69,6 +72,30 @@ async def choose_alert_address(
             text("UPDATE people SET email = :email WHERE id = :id"),
             {"email": choice.email, "id": principal.person_id},
         )
+    return Response(status_code=204)
+
+
+@router.post("/me/chat-link")
+async def start_chat(
+    sessions: SessionsDep, principal: PrincipalDep, providers: ProvidersDep
+) -> ChatLink:
+    """A one-time link that opens the chat; starting it lets the service find the chat (D-015)."""
+
+    link = await start_chat_link(sessions, principal, providers.messenger)
+    return ChatLink(url=link.url, expires_at=link.expires_at)
+
+
+@router.post("/me/chat-link/confirm", status_code=204)
+async def confirm_chat(
+    sessions: SessionsDep, principal: PrincipalDep, providers: ProvidersDep
+) -> Response:
+    await confirm_chat_link(sessions, principal, providers.messenger)
+    return Response(status_code=204)
+
+
+@router.delete("/me/chat", status_code=204)
+async def forget_chat(sessions: SessionsDep, principal: PrincipalDep) -> Response:
+    await unlink_chat(sessions, principal)
     return Response(status_code=204)
 
 

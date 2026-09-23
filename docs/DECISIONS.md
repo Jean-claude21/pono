@@ -202,6 +202,29 @@ Coolify est en lecture seule et existe déjà dans KYA-Platform.
 
 ---
 
+## D-015 — Les alertes passent par Telegram ; Pono reste en Europe
+
+**Validé le 2026-09-23** par l'auteur (« Configure telegram », « Choisis la meilleure option »).
+
+**Tranché ainsi.**
+1. **Canal d'alerte.** Hors de l'atelier, une alerte de quota part par Telegram, que la personne
+   relie elle-même depuis la console. Le courriel reste possible dès qu'un serveur d'envoi existe ;
+   il n'est plus bloquant pour fermer la phase 1. Telegram vit dans un adaptateur, derrière le port
+   `ChatMessenger` : aucun nom de fournisseur dans le domaine (D-002).
+2. **Région.** La base de Pono reste à Francfort (`aws-eu-central-1`), à côté du serveur Coolify
+   (Contabo, France). Le déplacement vers les États-Unis, demandé pour que toutes les
+   fonctionnalités de Neon marchent, n'est plus nécessaire : depuis le 18 septembre 2026, Neon ouvre
+   ses fonctions, son stockage objet et sa passerelle IA à Francfort comme à Virginie et à l'Ohio.
+
+**Pourquoi.** Telegram arrive sur le téléphone sans compte d'envoi ni domaine vérifié, gratuitement.
+Pour la région : la déplacer aux États-Unis ajouterait environ 90 ms à chaque requête (serveur en
+France, base outre-Atlantique) sans rien débloquer.
+
+**Ce que ça coûte.** Un adaptateur de messagerie à maintenir. Si un jour une fonctionnalité Neon
+n'existe qu'aux États-Unis, la décision de région se rouvre, serveur compris.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

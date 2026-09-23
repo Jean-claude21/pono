@@ -85,6 +85,9 @@ function workshop(scenario, state) {
   };
 }
 
+// The chat linking flow keeps its state here: link, confirm, unlink.
+let chatLinked = false;
+
 function scenarioOf(request) {
   const match = /pono_session=(\w+)/.exec(request.headers.cookie ?? "");
   return match && match[1] in SCENARIOS ? match[1] : null;
@@ -104,6 +107,22 @@ createServer((request, response) => {
     response.writeHead(204);
     return response.end();
   }
+  if (url.pathname === "/api/v1/me/chat-link" && request.method === "POST") {
+    return send(response, 200, {
+      url: "https://chat.example.test/pono_bot?start=one-time-code",
+      expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+    });
+  }
+  if (url.pathname === "/api/v1/me/chat-link/confirm" && request.method === "POST") {
+    chatLinked = true;
+    response.writeHead(204);
+    return response.end();
+  }
+  if (url.pathname === "/api/v1/me/chat" && request.method === "DELETE") {
+    chatLinked = false;
+    response.writeHead(204);
+    return response.end();
+  }
   if (url.pathname === "/api/v1/me") {
     return send(response, 200, {
       personId: "01990000-0000-7000-8000-00000000aaaa",
@@ -113,6 +132,8 @@ createServer((request, response) => {
       email: null,
       alertEmailsEnabled: false,
       codeHostInstallUrl: "https://code-host.example.test/install",
+      chatLinked,
+      chatAlertsEnabled: true,
     });
   }
   if (url.pathname === "/api/v1/projects") {

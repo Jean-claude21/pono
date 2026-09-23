@@ -20,6 +20,8 @@ function ConnectionsPage() {
       installUrl={me.codeHostInstallUrl}
       alertEmail={me.email}
       alertEmailsEnabled={me.alertEmailsEnabled}
+      chatLinked={me.chatLinked}
+      chatAlertsEnabled={me.chatAlertsEnabled}
     />
   );
 }

@@ -281,6 +281,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .link-status.unknown, .link-status.missing { color: var(--ink-mute); }
 .notice { margin-top: 20px; padding: 12px 16px; border: 1px solid var(--hairline); font-size: 14px; color: var(--ink-soft); }
 .notice.warning { border-color: var(--warning); color: var(--warning); }
+.alerts-channel { margin: 26px 0 10px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.alerts-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
 .form { display: grid; gap: 14px; max-width: 520px; margin-top: 18px; }
 .field { display: grid; gap: 6px; }
 .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); }

@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     smtp_password: SecretStr | None = None
     smtp_from: str | None = None
 
+    # Quota alerts by chat (D-015): the one bot the service speaks through.
+    telegram_bot_token: SecretStr | None = None
+
     session_ttl_hours: int = 720
 
     @field_validator("allowed_logins", mode="before")
@@ -73,6 +76,10 @@ class Settings(BaseSettings):
     @property
     def smtp_configured(self) -> bool:
         return bool(self.smtp_host and self.smtp_from)
+
+    @property
+    def chat_configured(self) -> bool:
+        return self.telegram_bot_token is not None
 
     @property
     def secure_cookies(self) -> bool:

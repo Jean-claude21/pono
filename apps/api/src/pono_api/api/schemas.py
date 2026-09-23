@@ -131,9 +131,19 @@ class Me(ApiModel):
     email: str | None = Field(description="Where quota alerts are sent; null when unknown.")
     alert_emails_enabled: bool = Field(description="False while the service has no mail server.")
     code_host_install_url: str | None
+    chat_linked: bool = Field(description="True when the person linked a chat for quota alerts.")
+    chat_alerts_enabled: bool = Field(
+        description="False while the service has no chat bot configured."
+    )
+
+
+class ChatLink(ApiModel):
+    url: str = Field(description="Opens the chat with the one-time code.")
+    expires_at: datetime
 
 
 __all__ = [
+    "ChatLink",
     "Connection",
     "ConnectionRequest",
     "Deployment",

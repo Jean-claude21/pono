@@ -241,6 +241,43 @@ class Mailer(Protocol):
     async def send_alert(self, recipient: Recipient, alert: RaisedAlert) -> None: ...
 
 
+@dataclass(frozen=True, slots=True)
+class ChatRecipient:
+    chat_id: str
+    locale: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ChatStart:
+    """A private chat that was started with a code."""
+
+    code: str
+    chat_id: str
+
+
+class ChatMessenger(Protocol):
+    """Sends alerts to a chat the person linked themselves (D-015). The adapter writes the words.
+
+    Linking needs no public address: the link carries a one-time code, the person sends it by
+    starting the chat, and `started_chats` returns the codes the bot received.
+    """
+
+    @property
+    def configured(self) -> bool: ...
+
+    async def link_url(self, code: str) -> str:
+        """Opens the chat so that starting it sends the code back."""
+        ...
+
+    async def started_chats(self) -> list[ChatStart]:
+        """Private chats recently started with a code, oldest first."""
+        ...
+
+    async def send_linked(self, recipient: ChatRecipient) -> None: ...
+
+    async def send_alert(self, recipient: ChatRecipient, alert: RaisedAlert) -> None: ...
+
+
 # --- Links ------------------------------------------------------------------------------------
 
 
@@ -300,6 +337,9 @@ class ProviderFactory(Protocol):
 
 
 __all__ = [
+    "ChatMessenger",
+    "ChatRecipient",
+    "ChatStart",
     "CodeHost",
     "DatabaseProvider",
     "DatabaseSnapshot",

@@ -16,6 +16,26 @@
         "title": "AlertAddress",
         "type": "object"
       },
+      "ChatLink": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "url": {
+            "description": "Opens the chat with the one-time code.",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "expiresAt"
+        ],
+        "title": "ChatLink",
+        "type": "object"
+      },
       "Connection": {
         "properties": {
           "externalRef": {
@@ -343,6 +363,16 @@
             "title": "Alertemailsenabled",
             "type": "boolean"
           },
+          "chatAlertsEnabled": {
+            "description": "False while the service has no chat bot configured.",
+            "title": "Chatalertsenabled",
+            "type": "boolean"
+          },
+          "chatLinked": {
+            "description": "True when the person linked a chat for quota alerts.",
+            "title": "Chatlinked",
+            "type": "boolean"
+          },
           "codeHostInstallUrl": {
             "anyOf": [
               {
@@ -403,7 +433,9 @@
           "locale",
           "email",
           "alertEmailsEnabled",
-          "codeHostInstallUrl"
+          "codeHostInstallUrl",
+          "chatLinked",
+          "chatAlertsEnabled"
         ],
         "title": "Me",
         "type": "object"
@@ -1319,6 +1351,140 @@
           }
         },
         "summary": "Read Me",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/chat": {
+      "delete": {
+        "operationId": "forget_chat_api_v1_me_chat_delete",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Forget Chat",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/chat-link": {
+      "post": {
+        "description": "A one-time link that opens the chat; starting it lets the service find the chat (D-015).",
+        "operationId": "start_chat_api_v1_me_chat_link_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatLink"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Chat",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/chat-link/confirm": {
+      "post": {
+        "operationId": "confirm_chat_api_v1_me_chat_link_confirm_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Chat",
         "tags": [
           "me"
         ]

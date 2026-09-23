@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from pono_api.application.connection_events import record_key_uses
 from pono_api.application.connections import load_connections
 from pono_api.application.ports import (
+    ChatMessenger,
     CodeHost,
     DeploymentRecord,
     HostedEnvironment,
@@ -66,6 +67,7 @@ class Providers:
     manifests: ManifestReader
     links: LinkChecker
     mailer: Mailer | None = None
+    messenger: ChatMessenger | None = None
 
 
 @dataclass(slots=True)

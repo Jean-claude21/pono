@@ -17,6 +17,10 @@
 - Q: Quand un projet a plusieurs previews ouvertes, faut-il les afficher toutes ? → A: La plus récente dans la ligne du projet ; toutes dans le détail du projet.
 - Q: Au bout de combien de secondes un lien vérifié est-il en panne ? → A: 10 secondes, après une seconde tentative.
 
+### Session 2026-09-23
+
+- Q: Par quel canal la personne reçoit-elle une alerte de quota hors de l'atelier ? → A: Par Telegram, qu'elle relie elle-même depuis la console ; le courriel reste possible quand un serveur d'envoi est configuré.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Importer un projet et voir son état réel (Priority: P1)
@@ -240,7 +244,8 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
   de chaque limite : « offre du compte » ou « offre gratuite, estimée ».
 - **FR-025**: Le système MUST relever les quotas au moins toutes les heures et à chaque relevé
   demandé, et prévenir la personne à 80 % puis à 95 % d'un quota, une seule fois par seuil et par
-  période de facturation, dans l'atelier et par courriel.
+  période de facturation, dans l'atelier, et hors de l'atelier par une messagerie que la personne
+  relie elle-même depuis la console (Telegram), ou par courriel quand un serveur d'envoi est configuré.
 
 **Atelier**
 
@@ -300,7 +305,11 @@ projet de l'autre, par l'écran comme par une requête directe, et constater un 
   fournisseur de base ; les autres fournisseurs sont hors périmètre.
 - Quand un fournisseur n'expose pas la limite de l'offre du compte, les limites de l'offre gratuite
   en vigueur servent d'estimation, révisable, et présentée comme telle (FR-024).
-- Le courriel d'alerte est envoyé à l'adresse de la personne connue par son fournisseur de code.
+- Le courriel d'alerte est envoyé à l'adresse de la personne connue par son fournisseur de code,
+  ou à celle qu'elle indique dans la console.
+- La messagerie d'alerte se relie par un lien à usage unique, valable 15 minutes, ouvert depuis la
+  console ; Pono ne reçoit que l'identifiant de la conversation, jamais de message d'une autre
+  personne. Délier la messagerie arrête les alertes par ce canal.
 - Les décisions d'architecture déjà tranchées (D-002, D-003, D-007, D-010, D-012) s'appliquent au
   plan ; cette spécification ne les répète pas.
 - Hors périmètre de la phase : runtime de développement, serveur pour agents, plugin, garde-fous de
