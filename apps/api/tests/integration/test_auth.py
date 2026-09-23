@@ -104,6 +104,23 @@ async def test_the_saved_language_follows_the_person_at_sign_in(
     assert again.cookies["pono_locale"] == "en"
 
 
+async def test_a_valid_session_skips_the_code_host_on_sign_in(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
+) -> None:
+    anonymous = await client.get("/api/v1/auth/login")
+    assert anonymous.headers["location"].startswith("https://code-host.test/authorize")
+
+    await sign_in_as(client, identity, ALICE)
+    returning = await client.get("/api/v1/auth/login")
+
+    assert returning.status_code == 302
+    assert returning.headers["location"] == "http://console.test/workshop"
+
+    await client.post("/api/v1/auth/logout")
+    signed_out = await client.get("/api/v1/auth/login")
+    assert signed_out.headers["location"].startswith("https://code-host.test/authorize")
+
+
 async def test_the_person_sets_where_alerts_go(
     clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
 ) -> None:

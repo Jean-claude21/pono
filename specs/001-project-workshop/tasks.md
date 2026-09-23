@@ -190,7 +190,7 @@ request, and be refused without confirmation that it exists.
 - [X] T072 [P] Update `docs/EXPLOITATION.md`, `README.md` and `CLAUDE.md` for the running service, worker and GitHub App
 - [X] T073 Run `specs/001-project-workshop/quickstart.md` scenarios 1 to 13 and fix every failure
   - *11 scénarios prouvés (tests automatisés et import réel). Le 5 (fusionner la proposition) est un geste de l'auteur sur GitHub ; il est couvert par un test d'intégration. Le 13 est testé sans révoquer l'installation réelle.*
-- [ ] T074 Close phase 1 in `docs/ROADMAP.md` with its evidence, then merge `001-project-workshop` into `dev` and `dev` into `main` through pull requests
+- [X] T074 Close phase 1 in `docs/ROADMAP.md` with its evidence, then merge `001-project-workshop` into `dev` and `dev` into `main` through pull requests
 
 ---
 
@@ -251,4 +251,11 @@ email stays possible when a mail server exists. Source: FR-025 (amended), resear
 - [X] T093 Let the person link and unlink the chat from the Alerts section of `apps/web/src/features/connections/Connections.tsx`, with French and English catalog entries and the e2e mock updated, per FR-025 and D-013
 - [ ] T094 Configure the bot token on `pono-api` and `pono-worker`, link the author's chat and prove one alert received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004
   - *Bot configured and the author's chat linked in production on 2026-09-23 (confirmation message received, token redacted in logs). Left: the first real alert, when a quota crosses 80 %; no consumption is faked in production.*
+
+---
+
+## Phase 11: Convergence
+
+- [X] T095 Send a person whose session is still valid straight to the workshop when they press "Sign in", without a round trip to the code host, in `apps/api/src/pono_api/api/auth.py`, per SC-002 (partial)
+  - *Found by the author on 2026-09-23: every "Sign in" from the landing went through GitHub again, even with a valid 30-day session, and counted in the resume time.*
 

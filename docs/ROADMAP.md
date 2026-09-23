@@ -111,28 +111,30 @@ le moindre écran définitif.
 
 ---
 
-## Phase 1 — L'atelier qui tient les projets · *en ligne sur `dev`, fermeture en attente*
+## Phase 1 — L'atelier qui tient les projets · *fusionnée dans `main` le 2026-09-23, fermeture en attente de la mesure*
 
 > **Où on en est (2026-09-23, après-midi).** Spec Kit : specify → clarify → plan → tasks → analyze →
 > implement → converge, puis une clarification (alertes par Telegram, D-015) → tasks (phase 10) →
-> implement. 90 tâches sur 94 faites ; les 4 restantes attendent l’auteur ou le premier quota franchi (`specs/001-project-workshop/tasks.md`).
+> implement → converge (T095). 92 tâches sur 95 faites ; restent T071 (mesure), T094 (première vraie alerte) et T082 (SMTP, facultatif) (`specs/001-project-workshop/tasks.md`).
 >
 > **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
 > fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice et étanchéité de
 > deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
 > l'application ; console, service et worker en ligne sur Coolify, **en HTTPS**
 > (`pono-staging.13.140.178.49.sslip.io`) ; alertes Telegram reliées ; lectio-reads
-> importé en ligne, manifeste fusionné ; 236 tests du service, 17 Vitest, 10 Playwright
+> importé en ligne, manifeste fusionné ; 237 tests du service, 17 Vitest, 10 Playwright
 > (`docs/VERITE_ET_PREUVES.md`).
 >
 > **Tranché le 2026-09-23 (D-015).** Les alertes partent par Telegram (le courriel n'est plus
 > bloquant). Pono reste à Francfort : Neon y ouvre désormais toutes ses fonctionnalités.
 >
 > **Reste, pour fermer.**
-> - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002).
+> - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002). Premier
+>   essai de l'auteur : environ 1 min, connexion GitHub comprise ; corrigé depuis (T095 : une session
+>   valide ouvre l'atelier sans repasser par GitHub). À refaire.
+> - `[fait]` Fusion `dev` → `main` (T074, #5) ; nettio importé en ligne.
 > - `[attente]` La première vraie alerte Telegram, au premier quota au-delà de 80 % (T094) : bot
 >   configuré et conversation de l'auteur reliée en production.
-> - `[auteur]` Importer les trois derniers projets en ligne ; fusion `dev` → `main` (T074, #5).
 > - `[facultatif]` Un compte SMTP pour les alertes par courriel (T082).
 
 ### Objective
