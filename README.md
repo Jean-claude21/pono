@@ -28,7 +28,11 @@ Le mandat complet : [docs/MANDAT.md](docs/MANDAT.md).
 | Chemin | Ce qu'il porte |
 |---|---|
 | `docs/` | Mandat, principes, positionnement, décisions, registre de vérité |
-| `apps/web/` | La surface web : landing publique, puis la console |
+| `apps/web/` | La surface web : landing publique et console (TanStack Start) |
+| `apps/api/` | Le service FastAPI et le worker : domaine, adaptateurs, relevés |
+| `packages/design/` | Le système visuel, source unique |
+| `packages/sdk/` | Le client TypeScript, généré depuis l'OpenAPI du service |
+| `specs/` | Les phases conduites par Spec Kit |
 | `.specify/` | Spec Kit : constitution, gabarits, workflow |
 | `CLAUDE.md` | Le contexte du projet — lu par tous les agents |
 | `AGENTS.md` | Le point d'entrée des agents non-Claude, renvoie vers `CLAUDE.md` |
@@ -45,15 +49,20 @@ NNN-slug   une branche par phase, nommée par Spec Kit.
 
 ```bash
 pnpm install
-pnpm --filter @pono/web dev
+uv sync
+pnpm api:dev                 # service sur :8000 (variables : apps/api/.env.example)
+pnpm --filter @pono/web dev  # console sur :3000
+pnpm check:all               # contrôles du service et de la console
 ```
 
 ## Outillage
 
-- Node 22 · pnpm 11
-- TanStack Start · Vite · Tailwind 4 · TypeScript
+- Node 22 · pnpm 11 · Python 3.14 · uv
+- TanStack Start · Vite · Tailwind 4 · TypeScript · Paraglide JS
+- FastAPI · SQLAlchemy async · Alembic · Postgres (Neon) avec RLS forcée
 - Spec Kit : `v0.16.0` (`5dce710ce099067c7d3f2ef47a37b9a1c300b327`), exécuté par `uvx`.
 
 ## État
 
-Base posée. Première tranche à venir : l'atelier qui tient les projets existants.
+Phase 1 livrée sur `dev` : l'atelier tient l'état réel des projets importés — environnements,
+liens vérifiés, derniers déploiements, quotas et alertes — en français et en anglais.

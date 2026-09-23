@@ -19,11 +19,14 @@ garde-fous mécaniques avant la production, et rien qui appartienne à Pono.
 
 ## Phase en cours
 
-**Phase 0 fermée** : design v2 validé, paquet `@pono/design`, console déployée sur Coolify
-(`docs/EXPLOITATION.md`).
+**Phase 0 fermée** : design v2 validé, paquet `@pono/design`, console déployée sur Coolify.
 
-**Prochaine : phase 1 — l'atelier qui tient les projets**, conduite par Spec Kit
-(`docs/ROADMAP.md`). Livrable unique : voir l'état réel de ses propres projets au même endroit.
+**Phase 1 livrée sur `dev`** (`specs/001-project-workshop`) : service FastAPI, worker et console
+en ligne sur Coolify (`docs/EXPLOITATION.md`). Reste à la fermer : le chronométrage de la reprise
+par les deux premiers utilisateurs (SC-002), puis la fusion `dev` → `main` par l'auteur.
+
+**Tests locaux** : `PONO_TEST_OWNER_URL` / `PONO_TEST_APP_URL` vers un Postgres portant les deux
+rôles de `apps/api/tests/bootstrap_roles.sql` ; la branche Neon `test` marche aussi, en plus lent.
 
 ## Le système visuel
 
