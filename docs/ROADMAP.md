@@ -115,12 +115,13 @@ le moindre écran définitif.
 
 > **Où on en est (2026-09-23, après-midi).** Spec Kit : specify → clarify → plan → tasks → analyze →
 > implement → converge, puis une clarification (alertes par Telegram, D-015) → tasks (phase 10) →
-> implement. 90 tâches sur 94 faites ; les 4 restantes attendent un geste de l’auteur (`specs/001-project-workshop/tasks.md`).
+> implement. 90 tâches sur 94 faites ; les 4 restantes attendent l’auteur ou le premier quota franchi (`specs/001-project-workshop/tasks.md`).
 >
 > **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
 > fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice et étanchéité de
 > deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
-> l'application ; console, service et worker en ligne sur Coolify, **en HTTPS** ; lectio-reads
+> l'application ; console, service et worker en ligne sur Coolify, **en HTTPS**
+> (`pono-staging.13.140.178.49.sslip.io`) ; alertes Telegram reliées ; lectio-reads
 > importé en ligne, manifeste fusionné ; 236 tests du service, 17 Vitest, 10 Playwright
 > (`docs/VERITE_ET_PREUVES.md`).
 >
@@ -129,8 +130,8 @@ le moindre écran définitif.
 >
 > **Reste, pour fermer.**
 > - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002).
-> - `[auteur]` Créer le bot Telegram et donner son jeton (T094) ; ajouter l'adresse de retour
->   `https` à l'app GitHub.
+> - `[attente]` La première vraie alerte Telegram, au premier quota au-delà de 80 % (T094) : bot
+>   configuré et conversation de l'auteur reliée en production.
 > - `[auteur]` Importer les trois derniers projets en ligne ; fusion `dev` → `main` (T074, #5).
 > - `[facultatif]` Un compte SMTP pour les alertes par courriel (T082).
 
