@@ -49,7 +49,7 @@ relay and worker runner. No user story can start before this phase is complete.
 decision.
 
 - [X] T008 Create the Neon project `pono` with branches `main` and `dev`, and roles `pono_owner` (owns the schema) and `pono_app` (NOBYPASSRLS, not owner); store both connection strings outside the repository and record the project and branch identifiers in `docs/EXPLOITATION.md`
-- [ ] T009 Register the Pono GitHub App with permissions `metadata:read`, `contents:write`, `pull_requests:write`, `deployments:read`, user authorization enabled, callback `{PUBLIC_URL}/api/v1/auth/callback`; record the app id and installation link in `docs/EXPLOITATION.md` (owner)
+- [X] T009 Register the Pono GitHub App with permissions `metadata:read`, `contents:write`, `pull_requests:write`, `deployments:read`, user authorization enabled, callback `{PUBLIC_URL}/api/v1/auth/callback`; record the app id and installation link in `docs/EXPLOITATION.md` (owner)
 - [X] T010 [P] Implement settings in `apps/api/src/pono_api/config.py` (pydantic-settings, `SecretStr` for every secret, allowed logins parsed as a set)
 - [X] T011 [P] Port the async database resources from KYA-Platform into `apps/api/src/pono_api/infrastructure/database/session.py` (engine factory, asyncpg URL normalization)
 - [X] T012 Implement the RLS transaction context in `apps/api/src/pono_api/infrastructure/database/rls.py`: open each unit of work with `SET LOCAL pono.person_id` and `SET LOCAL pono.organization_ids`
