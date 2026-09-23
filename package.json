@@ -13,6 +13,6 @@
     "api:dev": "uv run --package pono-api uvicorn pono_api.main:app --app-dir apps/api/src --reload --port 8000",
     "api:check": "uv run ruff check apps/api && uv run ruff format --check apps/api && uv run mypy && uv run pytest",
     "sdk:generate": "pnpm --filter @pono/sdk generate",
-    "check:all": "pnpm typecheck && pnpm build && pnpm api:check"
+    "check:all": "pnpm build && pnpm typecheck && pnpm api:check"
   }
 }

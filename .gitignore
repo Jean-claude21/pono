@@ -25,3 +25,7 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 .coverage
+
+# Paraglide output, generated at build time
+apps/web/src/paraglide/
+apps/web/project.inlang/cache/

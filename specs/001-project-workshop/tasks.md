@@ -62,10 +62,10 @@ decision.
 - [X] T019 Implement GitHub App user sign-in in `apps/api/src/pono_api/api/auth.py` (`/auth/login`, `/auth/callback` with state check, `/auth/logout`), refusing logins outside the allow-list with `auth.not_allowed`, and creating the personal organization and `owner` membership on first sign-in
 - [X] T020 Implement `/me` and `PUT /me/locale` in `apps/api/src/pono_api/api/me.py`
 - [X] T021 [P] Implement the worker runner in `apps/api/src/pono_api/workers/runner.py` (ported from KYA-Platform: scheduled jobs, per-organization RLS context, graceful shutdown) and the `pono-worker` entrypoint
-- [ ] T022 Create the same-origin relay route `apps/web/src/routes/api/$.ts` forwarding `/api/*` to the internal service URL with the session cookie
-- [ ] T023 Install Paraglide JS in `apps/web` (`project.inlang/settings.json`, `messages/fr.json`, `messages/en.json`, Vite plugin, strategy `cookie → preferredLanguage → baseLocale fr`, cookie `pono_locale`)
-- [ ] T024 Move every landing string of `apps/web/src/routes/index.tsx` into `apps/web/messages/fr.json` and render them through Paraglide messages
-- [ ] T025 [P] Create `packages/sdk` (`@pono/sdk`): `openapi-typescript` generation from the service OpenAPI and an `openapi-fetch` client; wire `pnpm sdk:generate`
+- [X] T022 Create the same-origin relay route `apps/web/src/routes/api/$.ts` forwarding `/api/*` to the internal service URL with the session cookie
+- [X] T023 Install Paraglide JS in `apps/web` (`project.inlang/settings.json`, `messages/fr.json`, `messages/en.json`, Vite plugin, strategy `cookie → preferredLanguage → baseLocale fr`, cookie `pono_locale`)
+- [X] T024 Move every landing string of `apps/web/src/routes/index.tsx` into `apps/web/messages/fr.json` and render them through Paraglide messages
+- [X] T025 [P] Create `packages/sdk` (`@pono/sdk`): `openapi-typescript` generation from the service OpenAPI and an `openapi-fetch` client; wire `pnpm sdk:generate`
 - [X] T026 [P] Security test `apps/api/tests/security/test_rls_catalog.py`: every table in the public schema has `relrowsecurity` and `relforcerowsecurity`, and `pono_app` is neither owner nor `BYPASSRLS`
 - [X] T027 [P] Tests `apps/api/tests/integration/test_auth.py`: allow-list refusal, first sign-in creates organization and membership, logout revokes the session
 - [X] T076 [P] Log redaction filter in `apps/api/src/pono_api/infrastructure/logging.py` (ported from KYA-Platform's sensitive-fragment filter) with test `apps/api/tests/security/test_log_redaction.py` (FR-011)

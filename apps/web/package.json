@@ -17,6 +17,7 @@
     "srvx": "0.11.22"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.25.4",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.20.4",
     "@types/react": "^19.0.0",

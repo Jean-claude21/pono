@@ -16,8 +16,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @pono/web typecheck
+      # The build generates the Paraglide messages that the typecheck reads.
       - run: pnpm --filter @pono/web build
+      - run: pnpm --filter @pono/web typecheck
 
   api:
     runs-on: ubuntu-latest
@@ -46,3 +47,6 @@ jobs:
       - run: uv run ruff format --check apps/api
       - run: uv run mypy
       - run: uv run pytest
+      # The SDK must match the service: a changed contract without a regenerated SDK fails here.
+      - run: uv run python apps/api/scripts/export_openapi.py /tmp/openapi.json
+      - run: diff /tmp/openapi.json packages/sdk/openapi.json
