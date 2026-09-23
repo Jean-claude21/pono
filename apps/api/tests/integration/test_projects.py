@@ -185,10 +185,24 @@ async def test_unreachable_or_malformed_repositories_are_refused(
     assert (response.status_code, response.json()["error"]["code"]) == (status, code)
 
 
-async def test_without_a_code_host_nothing_can_be_listed_or_imported(
+async def test_an_installed_app_is_linked_on_first_use_without_a_click(
     clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
 ) -> None:
     await sign_in_as(client, identity, ALICE)
+
+    repositories = await client.get("/api/v1/repositories")
+
+    assert repositories.status_code == 200
+    assert [r["fullName"] for r in repositories.json()] == [LECTIO, NETTIO]
+    connections = (await client.get("/api/v1/connections")).json()
+    assert [(c["kind"], c["status"]) for c in connections] == [("code_host", "active")]
+
+
+async def test_without_the_app_installed_nothing_can_be_listed_or_imported(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity, world: World
+) -> None:
+    await sign_in_as(client, identity, ALICE)
+    world.code_host.account_installations.clear()
     for response in (
         await client.get("/api/v1/repositories"),
         await client.post("/api/v1/projects", json={"repository": LECTIO}),

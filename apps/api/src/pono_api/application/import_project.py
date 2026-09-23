@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from pono_api.application.connection_events import record_key_uses
-from pono_api.application.connections import active_code_host, load_connections
+from pono_api.application.connections import active_code_host, link_code_host, load_connections
 from pono_api.application.ports import (
     CodeHost,
     Detection,
@@ -53,9 +53,9 @@ PROPOSAL_BODY = (
 )
 
 
-async def _code_host_installation(
+async def _load(
     sessions: async_sessionmaker[AsyncSession], principal: Principal
-) -> tuple[StoredConnection, list[StoredConnection], set[str]]:
+) -> tuple[StoredConnection | None, list[StoredConnection], set[str]]:
     async with unit_of_work(sessions, principal) as session:
         code = await active_code_host(session)
         connections = await load_connections(session)
@@ -63,7 +63,24 @@ async def _code_host_installation(
             str(name).lower()
             for name in (await session.execute(text("SELECT repository FROM projects"))).scalars()
         }
+    return code, connections, imported
+
+
+async def _code_host_installation(
+    sessions: async_sessionmaker[AsyncSession], principal: Principal, code_host: CodeHost
+) -> tuple[StoredConnection, list[StoredConnection], set[str]]:
+    code, connections, imported = await _load(sessions, principal)
     if code is None:
+        # The app is often installed before the person ever opens Connections: link it now
+        # rather than send them to click a button whose only job is this lookup.
+        try:
+            await link_code_host(sessions, principal, code_host)
+        except ApiError as error:
+            if error.code == "connection.code_host_not_installed":
+                raise ApiError("connection.code_host_missing", 422) from error
+            raise
+        code, connections, imported = await _load(sessions, principal)
+    if code is None:  # pragma: no cover - the link above either stored it or raised
         raise ApiError("connection.code_host_missing", 422)
     return code, connections, imported
 
@@ -78,7 +95,7 @@ async def list_repositories(
     sessions: async_sessionmaker[AsyncSession], principal: Principal, providers: Providers
 ) -> list[dict[str, object]]:
     code_host = _code_host(providers)
-    code, _, imported = await _code_host_installation(sessions, principal)
+    code, _, imported = await _code_host_installation(sessions, principal, code_host)
     try:
         repositories = await code_host.list_repositories(code.external_ref)
     except ProviderUnavailableError as error:
@@ -102,7 +119,7 @@ async def import_project(
     if not REPOSITORY_NAME.match(repository_name):
         raise ApiError("request.invalid", 422, "repository")
     code_host = _code_host(providers)
-    code, connections, imported = await _code_host_installation(sessions, principal)
+    code, connections, imported = await _code_host_installation(sessions, principal, code_host)
     if repository_name.lower() in imported:
         raise ApiError("project.already_imported", 409)
     try:
