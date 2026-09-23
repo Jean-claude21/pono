@@ -4,19 +4,25 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from pono_api.application.ports import (
+    ChangedFile,
+    ChangeRequest,
     ChatRecipient,
     ChatStart,
+    CheckState,
     DatabaseSnapshot,
     DeploymentRecord,
     DetectedEnvironment,
     HostedEnvironment,
     KeyUse,
+    PreviewState,
     ProposalState,
+    ProtectionRefusedError,
     ProviderAuthorizationError,
     ProviderUnavailableError,
     RaisedAlert,
     Recipient,
     RepositoryInfo,
+    RollbackUnsupportedError,
     StoredConnection,
 )
 from pono_api.application.refresh_project import Providers
@@ -28,6 +34,7 @@ from pono_api.domain.projects import (
     ResourceStatus,
 )
 from pono_api.domain.quotas import QuotaReading
+from pono_api.domain.releases import ProtectionStatus
 from pono_api.infrastructure.manifests import RepositoryManifests
 
 NOW = datetime.now(UTC)
@@ -51,6 +58,15 @@ class FakeCodeHost:
     active: bool = True
     unavailable: bool = False
     authors: dict[str, str] = field(default_factory=lambda: {"abc123": "alice"})
+    # Guarded release (002): open changes per repository, their files, the checks Pono publishes.
+    changes: dict[str, list[ChangeRequest]] = field(default_factory=dict)
+    finished: dict[tuple[str, int], ChangeRequest] = field(default_factory=dict)
+    change_file_sets: dict[tuple[str, int], list[ChangedFile]] = field(default_factory=dict)
+    checks: list[tuple[str, str, CheckState]] = field(default_factory=list)
+    protection: dict[str, ProtectionStatus] = field(default_factory=dict)
+    protection_refusal: str | None = None
+    protected: list[tuple[str, str]] = field(default_factory=list)
+    checks_unavailable: bool = False
 
     def _answer(self) -> None:
         if self.unavailable:
@@ -108,6 +124,57 @@ class FakeCodeHost:
         self._answer()
         return self.proposal_states.get(proposal_url, "open")
 
+    async def list_changes(
+        self, installation_id: str, repository: str, base_branch: str
+    ) -> list[ChangeRequest]:
+        self._answer()
+        return [c for c in self.changes.get(repository, []) if c.base_branch == base_branch]
+
+    async def read_change(
+        self, installation_id: str, repository: str, number: int
+    ) -> ChangeRequest:
+        self._answer()
+        return self.finished[(repository, number)]
+
+    async def change_files(
+        self, installation_id: str, repository: str, number: int
+    ) -> list[ChangedFile]:
+        self._answer()
+        return list(self.change_file_sets.get((repository, number), []))
+
+    async def set_release_check(
+        self,
+        installation_id: str,
+        repository: str,
+        head_sha: str,
+        state: CheckState,
+        *,
+        summary: str,
+        details_url: str | None,
+    ) -> None:
+        self._answer()
+        if self.checks_unavailable:
+            raise ProviderUnavailableError("checks down")
+        self.checks.append((repository, head_sha, state))
+
+    async def read_protection(
+        self, installation_id: str, repository: str, branch: str
+    ) -> ProtectionStatus:
+        self._answer()
+        return self.protection.get(repository, ProtectionStatus.UNPROTECTED)
+
+    async def apply_protection(self, installation_id: str, repository: str, branch: str) -> None:
+        self._answer()
+        if self.protection_refusal:
+            raise ProtectionRefusedError(self.protection_refusal)
+        self.protected.append((repository, branch))
+        self.protection[repository] = ProtectionStatus.PROTECTED
+
+    def check_of(self, head_sha: str) -> CheckState | None:
+        """The last state Pono published for a commit, as the code host would show it."""
+        states = [state for _, sha, state in self.checks if sha == head_sha]
+        return states[-1] if states else None
+
 
 @dataclass
 class FakeHosting:
@@ -117,12 +184,26 @@ class FakeHosting:
     refuse: bool = False
     unavailable: bool = False
     quotas: list[QuotaReading] = field(default_factory=list)
+    previews: dict[tuple[int, str], PreviewState] = field(default_factory=dict)
+    rolled_back: list[tuple[str, str]] = field(default_factory=list)
+    rollback_unsupported: bool = False
 
     def _answer(self) -> None:
         if self.refuse:
             raise ProviderAuthorizationError("refused")
         if self.unavailable:
             raise ProviderUnavailableError("down")
+
+    async def find_preview(self, ref: str, change_number: int, head_sha: str) -> PreviewState:
+        self._answer()
+        return self.previews.get((change_number, head_sha), PreviewState("absent"))
+
+    async def rollback(self, ref: str, target: DeploymentRecord) -> str:
+        self._answer()
+        if self.rollback_unsupported:
+            raise RollbackUnsupportedError("image pruned")
+        self.rolled_back.append((ref, target.external_ref))
+        return f"rollback-{target.external_ref}"
 
     async def verify(self) -> str:
         self._answer()

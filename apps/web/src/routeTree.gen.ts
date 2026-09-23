@@ -17,6 +17,7 @@ import { Route as WorkshopIndexRouteImport } from './routes/workshop/index'
 import { Route as WorkshopConnectionsRouteImport } from './routes/workshop/connections'
 import { Route as WorkshopImportRouteImport } from './routes/workshop/import'
 import { Route as WorkshopProjectsProjectIdRouteImport } from './routes/workshop/projects.$projectId'
+import { Route as WorkshopProjectsProjectIdJournalRouteImport } from './routes/workshop/projects.$projectId_.journal'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +60,12 @@ const WorkshopProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => WorkshopRoute,
   } as any)
+const WorkshopProjectsProjectIdJournalRoute =
+  WorkshopProjectsProjectIdJournalRouteImport.update({
+    id: '/projects/$projectId_/journal',
+    path: '/projects/$projectId/journal',
+    getParentRoute: () => WorkshopRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId_/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/workshop/import'
     | '/workshop/'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId/journal'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '/workshop/import'
     | '/workshop'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId/journal'
   id:
     | '__root__'
     | '/'
@@ -120,6 +132,7 @@ export interface FileRouteTypes {
     | '/workshop/import'
     | '/workshop/'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId_/journal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkshopProjectsProjectIdRouteImport
       parentRoute: typeof WorkshopRoute
     }
+    '/workshop/projects/$projectId_/journal': {
+      id: '/workshop/projects/$projectId_/journal'
+      path: '/projects/$projectId/journal'
+      fullPath: '/workshop/projects/$projectId/journal'
+      preLoaderRoute: typeof WorkshopProjectsProjectIdJournalRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
   }
 }
 
@@ -195,6 +215,7 @@ interface WorkshopRouteChildren {
   WorkshopImportRoute: typeof WorkshopImportRoute
   WorkshopIndexRoute: typeof WorkshopIndexRoute
   WorkshopProjectsProjectIdRoute: typeof WorkshopProjectsProjectIdRoute
+  WorkshopProjectsProjectIdJournalRoute: typeof WorkshopProjectsProjectIdJournalRoute
 }
 
 const WorkshopRouteChildren: WorkshopRouteChildren = {
@@ -202,6 +223,7 @@ const WorkshopRouteChildren: WorkshopRouteChildren = {
   WorkshopImportRoute: WorkshopImportRoute,
   WorkshopIndexRoute: WorkshopIndexRoute,
   WorkshopProjectsProjectIdRoute: WorkshopProjectsProjectIdRoute,
+  WorkshopProjectsProjectIdJournalRoute: WorkshopProjectsProjectIdJournalRoute,
 }
 
 const WorkshopRouteWithChildren = WorkshopRoute._addFileChildren(

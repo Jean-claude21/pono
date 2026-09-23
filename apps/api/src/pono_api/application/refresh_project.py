@@ -32,6 +32,7 @@ from pono_api.application.ports import (
     ProviderUnavailableError,
     StoredConnection,
 )
+from pono_api.application.protection_state import store_protection
 from pono_api.application.quota_views import project_quotas
 from pono_api.domain.manifest import (
     ManifestEnvironment,
@@ -52,6 +53,7 @@ from pono_api.domain.projects import (
     evaluate_state,
     latest_activity,
 )
+from pono_api.domain.releases import ProtectionStatus
 from pono_api.errors import not_found
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
@@ -68,6 +70,8 @@ class Providers:
     links: LinkChecker
     mailer: Mailer | None = None
     messenger: ChatMessenger | None = None
+    console_url: str | None = None
+    """Where a code host check links back to (002)."""
 
 
 @dataclass(slots=True)
@@ -98,6 +102,7 @@ class Reading:
     last_commit_at: datetime | None = None
     stale: bool = False
     connection_statuses: dict[UUID, ConnectionStatus] = field(default_factory=dict)
+    protection: ProtectionStatus | None = None
     needed: dict[UUID, ConnectionStatus] = field(default_factory=dict)
 
 
@@ -215,6 +220,12 @@ async def _read_repository(
             )
             if content is not None:
                 reading.manifest = parse_manifest(content)
+        branch = reading.manifest.production_branch
+        if branch is not None:
+            # 002 FR-013: read at import and at every reading.
+            reading.protection = await code_host.read_protection(
+                installation, project.repository, branch
+            )
     except ManifestInvalidError:
         logger.warning(
             "project %s: manifest in the repository is invalid; kept the last one", project.id
@@ -433,6 +444,10 @@ async def _write(
                 {"id": connection_id, "status": status.value},
             )
         await record_key_uses(session, principal.organization_id, log)
+        if reading.protection is not None:
+            await store_protection(
+                session, principal.organization_id, project.id, reading.protection, now
+            )
 
         common = {
             "id": project.id,

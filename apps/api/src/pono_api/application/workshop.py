@@ -13,6 +13,7 @@ from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from pono_api.application.quota_views import project_quotas
+from pono_api.domain.manifest import ProjectManifest
 from pono_api.domain.projects import (
     QUOTA_CRITICAL_RATIO,
     QUOTA_WARNING_RATIO,
@@ -28,7 +29,8 @@ Payload = dict[str, object]
 
 _PROJECTS = (
     "SELECT id, repository, name, state, state_reason, manifest_status, manifest_proposal_url, "
-    "database_status, last_activity_at, refreshed_at, stale FROM projects"
+    "database_status, last_activity_at, refreshed_at, stale, manifest, protection_status, "
+    "protection_checked_at FROM projects"
 )
 # Most urgent first; within a verdict, the order of the list.
 _VERDICTS: tuple[tuple[str, StateReason | None], ...] = (
@@ -36,6 +38,15 @@ _VERDICTS: tuple[tuple[str, StateReason | None], ...] = (
     ("project.deployment_failed", StateReason.DEPLOYMENT_FAILED),
     ("connection.expired", StateReason.CONNECTION_EXPIRED),
     ("project.manifest_proposed", None),
+)
+# Guarded release (002): after failures and quotas, what blocks or waits for the person.
+_RELEASE_VERDICTS = (
+    "release.merged_without_approval",
+    "rollback.failed",
+    "release.refused",
+    "project.unprotected",
+    "project.protection_unavailable",
+    "release.awaiting_approval",
 )
 _NEVER = datetime.min.replace(tzinfo=UTC)
 _KIND_ORDER = {EnvironmentKind.PRODUCTION: 0, EnvironmentKind.DEVELOPMENT: 1}
@@ -103,12 +114,82 @@ async def _load(session: AsyncSession, project_id: UUID | None) -> list[Payload]
         {"ids": ids},
     ):
         deployments[row.project_id].append(row)
+    release = await _release_facts(session, ids)
     return [
-        _project(
-            row, environments[row.id], deployments[row.id], await project_quotas(session, row.id)
-        )
+        {
+            **_project(
+                row,
+                environments[row.id],
+                deployments[row.id],
+                await project_quotas(session, row.id),
+            ),
+            "protection": {
+                "status": row.protection_status,
+                "branch": ProjectManifest.model_validate(row.manifest).production_branch,
+                "checkedAt": _moment(row.protection_checked_at),
+            },
+            "canRollback": release["rollback_ready"].get(row.id, 0) >= 2,
+            "_verdicts": release["codes"].get(row.id, set()),
+        }
         for row in projects
     ]
+
+
+async def _release_facts(session: AsyncSession, ids: list[UUID]) -> dict[str, Any]:
+    """What the guarded release adds to each project: its verdict codes and rollback readiness."""
+
+    codes: dict[UUID, set[str]] = defaultdict(set)
+    for row in await session.execute(
+        text(
+            "SELECT DISTINCT project_id, verdict FROM releases "
+            "WHERE project_id = ANY(:ids) AND state = 'open'"
+        ),
+        {"ids": ids},
+    ):
+        if row.verdict == "refused":
+            codes[row.project_id].add("release.refused")
+        elif row.verdict == "awaiting_approval":
+            codes[row.project_id].add("release.awaiting_approval")
+    for row in await session.execute(
+        text(
+            "SELECT DISTINCT ON (r.project_id) r.project_id, EXISTS (SELECT 1 FROM "
+            "release_approvals a WHERE a.release_id = r.id AND a.head_sha = r.head_sha) "
+            "AS approved "
+            "FROM releases r WHERE r.project_id = ANY(:ids) AND r.state = 'merged' "
+            "ORDER BY r.project_id, r.closed_at DESC"
+        ),
+        {"ids": ids},
+    ):
+        if not row.approved:
+            codes[row.project_id].add("release.merged_without_approval")
+    for row in await session.execute(
+        text(
+            "SELECT DISTINCT ON (project_id) project_id, status FROM rollbacks "
+            "WHERE project_id = ANY(:ids) ORDER BY project_id, requested_at DESC"
+        ),
+        {"ids": ids},
+    ):
+        if row.status == "failed":
+            codes[row.project_id].add("rollback.failed")
+    for row in await session.execute(
+        text("SELECT id, protection_status FROM projects WHERE id = ANY(:ids)"), {"ids": ids}
+    ):
+        if row.protection_status == "unprotected":
+            codes[row.id].add("project.unprotected")
+        elif row.protection_status == "unavailable_on_plan":
+            codes[row.id].add("project.protection_unavailable")
+    ready = {
+        row.project_id: row.succeeded
+        for row in await session.execute(
+            text(
+                "SELECT e.project_id, count(*) AS succeeded FROM deployments d "
+                "JOIN environments e ON e.id = d.environment_id WHERE e.project_id = ANY(:ids) "
+                "AND e.kind = 'production' AND d.status = 'succeeded' GROUP BY e.project_id"
+            ),
+            {"ids": ids},
+        )
+    }
+    return {"codes": codes, "rollback_ready": ready}
 
 
 def _project(
@@ -147,11 +228,15 @@ def _project(
     }
 
 
-_SUMMARY_ONLY = ("manifestProposalUrl", "previews", "quotas")
+_SUMMARY_ONLY = ("manifestProposalUrl", "previews", "quotas", "protection", "canRollback")
 
 
 def _summary(project: Payload) -> Payload:
-    return {key: value for key, value in project.items() if key not in _SUMMARY_ONLY}
+    return {
+        key: value
+        for key, value in project.items()
+        if key not in _SUMMARY_ONLY and not key.startswith("_")
+    }
 
 
 def _quota_ratio(project: Payload) -> float:
@@ -180,7 +265,13 @@ def verdicts(projects: list[Payload]) -> list[Payload]:
         for project in projects
         if _quota_ratio(project) > QUOTA_WARNING_RATIO
     ]
-    return [*found[:position], *quota_verdicts, *found[position:]]
+    release_verdicts = [
+        {"projectId": project["id"], "code": code}
+        for code in _RELEASE_VERDICTS
+        for project in projects
+        if code in project.get("_verdicts", set())  # type: ignore[operator]
+    ]
+    return [*found[:position], *quota_verdicts, *release_verdicts, *found[position:]]
 
 
 async def load_workshop(
@@ -208,7 +299,7 @@ async def load_project(
         projects = await _load(session, project_id)
     if not projects:
         raise not_found("project")
-    return projects[0]
+    return {key: value for key, value in projects[0].items() if not key.startswith("_")}
 
 
 async def project_exists(session: AsyncSession, project_id: UUID) -> bool:

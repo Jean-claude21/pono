@@ -181,11 +181,12 @@ async def test_the_worker_reads_every_due_project_under_its_organization(
     }
 
 
-def test_the_worker_registers_its_two_jobs(settings: Settings) -> None:
+def test_the_worker_registers_its_jobs(settings: Settings) -> None:
     jobs = build_jobs(settings)
     assert [(job.name, job.interval.total_seconds()) for job in jobs] == [
         ("projects", 300),
         ("connections", 3600),
         ("quotas", 3600),
+        ("releases", 60),
     ]
     assert build_jobs(Settings(environment="test", database_app_url=None)) == []

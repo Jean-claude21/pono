@@ -104,10 +104,78 @@ class ProjectSummary(ApiModel):
     )
 
 
+class Protection(ApiModel):
+    status: Literal["protected", "unprotected", "unavailable_on_plan", "unknown"]
+    branch: str | None = None
+    checked_at: datetime | None = None
+
+
 class ProjectDetail(ProjectSummary):
     manifest_proposal_url: str | None
     previews: list[Environment]
     quotas: list[Quota]
+    protection: Protection
+    can_rollback: bool = Field(
+        description="False when production has no earlier successful deployment."
+    )
+
+
+# --- guarded release (002) ------------------------------------------------------------------------
+
+
+class Finding(ApiModel):
+    code: str
+    file: str | None = None
+    line: int | None = None
+    operation: str | None = None
+    url: str | None = None
+
+
+class GuardResult(ApiModel):
+    guard: Literal["secrets", "migrations", "preview"]
+    status: Literal["pending", "passed", "failed"]
+    reason: str | None = Field(None, description="Stable code, translated by the console.")
+    findings: list[Finding] = Field(description="Where the guard failed; never a secret value.")
+    checked_at: datetime
+
+
+class Release(ApiModel):
+    id: UUID
+    change_number: int
+    change_url: str
+    title: str
+    author: str
+    head_sha: str
+    head_branch: str | None
+    verdict: Literal["evaluating", "refused", "awaiting_approval", "approved"]
+    state: Literal["open", "merged", "closed"]
+    opened_at: datetime
+    evaluated_at: datetime | None
+    approved_by: str | None
+    approved_at: datetime | None
+    guards: list[GuardResult]
+
+
+class ApprovalRequest(ApiModel):
+    head_sha: str = Field(min_length=7, description="The exact commit the person saw.")
+
+
+class Rollback(ApiModel):
+    id: UUID
+    status: Literal["queued", "succeeded", "failed"]
+    to_commit: str | None
+    requested_at: datetime
+
+
+class JournalEntry(ApiModel):
+    id: UUID
+    kind: str = Field(examples=["release.refused"])
+    actor_kind: Literal["person", "agent", "pono"]
+    actor: str | None
+    head_sha: str | None
+    change_number: int | None
+    occurred_at: datetime
+    detail: dict[str, object]
 
 
 class Verdict(ApiModel):
@@ -143,17 +211,24 @@ class ChatLink(ApiModel):
 
 
 __all__ = [
+    "ApprovalRequest",
     "ChatLink",
     "Connection",
     "ConnectionRequest",
     "Deployment",
     "Environment",
+    "Finding",
+    "GuardResult",
     "ImportRequest",
+    "JournalEntry",
     "Me",
     "ProjectDetail",
     "ProjectSummary",
+    "Protection",
     "Quota",
+    "Release",
     "Repository",
+    "Rollback",
     "Verdict",
     "Workshop",
 ]

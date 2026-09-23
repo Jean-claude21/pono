@@ -5,28 +5,59 @@
   "description": "Versioned in the repository at .pono/project.json. The source of truth for a project (D-003). Holds identifiers only, never secrets.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "name", "environments"],
+  "required": [
+    "schemaVersion",
+    "name",
+    "environments"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "name": { "type": "string", "minLength": 1 },
+    "schemaVersion": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
     "environments": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["kind"],
+        "required": [
+          "kind"
+        ],
         "properties": {
-          "kind": { "enum": ["production", "preview", "development"] },
-          "branch": { "type": "string" },
-          "url": { "type": "string", "format": "uri" },
+          "kind": {
+            "enum": [
+              "production",
+              "preview",
+              "development"
+            ]
+          },
+          "branch": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
           "hosting": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["provider", "ref"],
+            "required": [
+              "provider",
+              "ref"
+            ],
             "properties": {
-              "provider": { "type": "string", "description": "Adapter id, e.g. netlify or coolify." },
-              "ref": { "type": "string", "description": "Site or application identifier at the provider." }
+              "provider": {
+                "type": "string",
+                "description": "Adapter id, e.g. netlify or coolify."
+              },
+              "ref": {
+                "type": "string",
+                "description": "Site or application identifier at the provider."
+              }
             }
           }
         }
@@ -35,20 +66,87 @@
     "database": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["provider", "ref"],
+      "required": [
+        "provider",
+        "ref"
+      ],
       "properties": {
-        "provider": { "type": "string", "description": "Adapter id, e.g. neon." },
-        "ref": { "type": "string", "description": "Project identifier at the provider." },
+        "provider": {
+          "type": "string",
+          "description": "Adapter id, e.g. neon."
+        },
+        "ref": {
+          "type": "string",
+          "description": "Project identifier at the provider."
+        },
         "branches": {
           "type": "object",
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "description": "Environment kind to database branch name."
         }
       }
     },
     "importedFrom": {
-      "enum": ["studio-project-yaml", "fluxio", "livio", "provider-detection"],
+      "enum": [
+        "studio-project-yaml",
+        "fluxio",
+        "livio",
+        "provider-detection"
+      ],
       "description": "Where the pre-filled values came from, for traceability."
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What the release guards read (specs/002-guarded-release). Optional.",
+      "properties": {
+        "migrations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Folders holding the SQL migrations; conventional folders when absent."
+        },
+        "exampleFiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Files that only hold example values, skipped by the secrets guard."
+        },
+        "declaredDestructions": {
+          "type": "array",
+          "description": "Destructive migrations chosen by the person; each must ship alone in its change.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "operation"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operation": {
+                "enum": [
+                  "drop_table",
+                  "drop_column",
+                  "rename",
+                  "alter_type",
+                  "truncate",
+                  "delete_all"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
