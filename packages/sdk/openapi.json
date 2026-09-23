@@ -1,6 +1,21 @@
 {
   "components": {
     "schemas": {
+      "AlertAddress": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "AlertAddress",
+        "type": "object"
+      },
       "Connection": {
         "properties": {
           "externalRef": {
@@ -323,6 +338,11 @@
       },
       "Me": {
         "properties": {
+          "alertEmailsEnabled": {
+            "description": "False while the service has no mail server.",
+            "title": "Alertemailsenabled",
+            "type": "boolean"
+          },
           "codeHostInstallUrl": {
             "anyOf": [
               {
@@ -333,6 +353,18 @@
               }
             ],
             "title": "Codehostinstallurl"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where quota alerts are sent; null when unknown.",
+            "title": "Email"
           },
           "locale": {
             "anyOf": [
@@ -369,6 +401,8 @@
           "login",
           "organizationId",
           "locale",
+          "email",
+          "alertEmailsEnabled",
           "codeHostInstallUrl"
         ],
         "title": "Me",
@@ -741,12 +775,26 @@
           "fullName": {
             "title": "Fullname",
             "type": "string"
+          },
+          "projectId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The project it already is, when imported.",
+            "title": "Projectid"
           }
         },
         "required": [
           "fullName",
           "defaultBranch",
-          "alreadyImported"
+          "alreadyImported",
+          "projectId"
         ],
         "title": "Repository",
         "type": "object"
@@ -1276,6 +1324,59 @@
         ]
       }
     },
+    "/api/v1/me/email": {
+      "put": {
+        "description": "Where quota alerts go when the code host keeps the person's address private (FR-025).",
+        "operationId": "choose_alert_address_api_v1_me_email_put",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertAddress"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Choose Alert Address",
+        "tags": [
+          "me"
+        ]
+      }
+    },
     "/api/v1/me/locale": {
       "put": {
         "operationId": "choose_locale_api_v1_me_locale_put",
@@ -1511,6 +1612,66 @@
           }
         },
         "summary": "Read Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/manifest-proposal": {
+      "post": {
+        "description": "Propose a manifest again after the person closed the previous proposal.",
+        "operationId": "request_manifest_proposal_api_v1_projects__project_id__manifest_proposal_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Manifest Proposal",
         "tags": [
           "projects"
         ]

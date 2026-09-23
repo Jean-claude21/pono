@@ -55,8 +55,12 @@ export function ImportProject({ repositories }: Props) {
                   <small className="figures">{repository.defaultBranch}</small>
                 </td>
                 <td className="num">
-                  {repository.alreadyImported ? (
-                    <Link className="btn btn-ghost btn-sm" to="/workshop">
+                  {repository.alreadyImported && repository.projectId ? (
+                    <Link
+                      className="btn btn-ghost btn-sm"
+                      to="/workshop/projects/$projectId"
+                      params={{ projectId: repository.projectId }}
+                    >
                       {m.import_open()}
                     </Link>
                   ) : (

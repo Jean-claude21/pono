@@ -27,10 +27,15 @@ const STATUS: Record<Connection["status"], [() => string, string]> = {
   revoked: [m.status_revoked, "state-idle"],
 };
 
-type Props = { connections: Connection[]; installUrl: string | null | undefined };
+type Props = {
+  connections: Connection[];
+  installUrl: string | null | undefined;
+  alertEmail: string | null | undefined;
+  alertEmailsEnabled: boolean;
+};
 
 /** Connections (US1, FR-010 to FR-013): link the code host, add keys, see status, revoke. */
-export function Connections({ connections, installUrl }: Props) {
+export function Connections({ connections, installUrl, alertEmail, alertEmailsEnabled }: Props) {
   const router = useRouter();
   const client = createPonoClient();
   const [failure, setFailure] = useState<string | null>(null);
@@ -71,6 +76,16 @@ export function Connections({ connections, installUrl }: Props) {
         params: { path: { connection_id: connectionId } },
       }),
     );
+  }
+
+  const [addressSaved, setAddressSaved] = useState(false);
+
+  async function saveAddress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const email = String(new FormData(event.currentTarget).get("email") ?? "").trim();
+    setAddressSaved(false);
+    const done = await run(() => client.PUT("/api/v1/me/email", { body: { email } }));
+    setAddressSaved(done);
   }
 
   async function connect(event: FormEvent<HTMLFormElement>) {
@@ -178,6 +193,31 @@ export function Connections({ connections, installUrl }: Props) {
         <div>
           <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>
             {busy ? m.connect_running() : m.connect_action()}
+          </button>
+        </div>
+      </form>
+
+      <h2 className="mono-label section-title">{m.alerts_title()}</h2>
+      <p style={{ marginTop: 14, fontSize: 15, color: "var(--ink-soft)", maxWidth: "44em" }}>
+        {m.alerts_body()}
+      </p>
+      {alertEmailsEnabled ? null : <p className="notice">{m.alerts_mail_off()}</p>}
+      <form className="form" onSubmit={saveAddress}>
+        <div className="field">
+          <label htmlFor="email">{m.alerts_email_label()}</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={alertEmail ?? ""}
+          />
+          {addressSaved ? <small>{m.alerts_saved()}</small> : null}
+        </div>
+        <div>
+          <button type="submit" className="btn btn-ghost btn-sm" disabled={busy}>
+            {m.alerts_save()}
           </button>
         </div>
       </form>

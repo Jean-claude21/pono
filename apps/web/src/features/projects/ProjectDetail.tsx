@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
-import { createPonoClient, type Environment, type ProjectDetail as Detail } from "@pono/sdk";
+import {
+  createPonoClient,
+  errorCode,
+  type Environment,
+  type ProjectDetail as Detail,
+} from "@pono/sdk";
 import * as m from "@/paraglide/messages.js";
 import { dateTime, relativeTime } from "@/lib/format";
+import { errorMessage } from "@/lib/i18n";
 import {
   deploymentStatusLabel,
   environmentLabel,
@@ -30,6 +36,23 @@ const DATABASE: Record<string, () => string> = {
 export function ProjectDetail({ project }: { project: Detail }) {
   const router = useRouter();
   const [queued, setQueued] = useState(false);
+  const [proposing, setProposing] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  async function proposeAgain() {
+    setProposing(true);
+    setFailure(null);
+    const { error } = await createPonoClient().POST(
+      "/api/v1/projects/{project_id}/manifest-proposal",
+      { params: { path: { project_id: project.id } } },
+    );
+    setProposing(false);
+    if (error) {
+      setFailure(errorCode(error));
+      return;
+    }
+    await router.invalidate();
+  }
 
   async function refresh() {
     setQueued(true);
@@ -70,6 +93,11 @@ export function ProjectDetail({ project }: { project: Detail }) {
       </div>
 
       {queued ? <p className="notice">{m.detail_refresh_queued()}</p> : null}
+      {failure ? (
+        <div className="verdict" role="alert" style={{ marginTop: 20 }}>
+          <p>{errorMessage(failure)}</p>
+        </div>
+      ) : null}
       {project.stale && project.refreshedAt ? (
         <p className="notice warning">
           {m.detail_stale({ when: dateTime(project.refreshedAt) })}
@@ -107,6 +135,18 @@ export function ProjectDetail({ project }: { project: Detail }) {
                   {m.manifest_open_proposal()}
                 </a>
               </>
+            ) : null}
+            {project.manifestStatus === "absent" ? (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={proposeAgain}
+                  disabled={proposing}
+                >
+                  {proposing ? m.manifest_proposing() : m.manifest_propose_again()}
+                </button>
+              </div>
             ) : null}
           </dd>
         </div>

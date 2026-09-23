@@ -220,3 +220,19 @@ request, and be refused without confirmation that it exists.
 4. **Finally** Polish: deploy, import the five real projects, measure, close the phase.
 
 Each phase ends on its checkpoint; nothing is marked done without its test or its measurement.
+
+---
+
+## Phase 9: Convergence
+
+- [X] T081 Read the person's verified email at sign-in (code host account permission "email addresses: read", `/user/emails` in `apps/api/src/pono_api/infrastructure/providers/github_identity.py`) and let them set an alert address in the console when the code host gives none (`apps/api/src/pono_api/api/me.py`, `apps/web/src/routes/workshop/connections.tsx`) per FR-025 (partial)
+  - *The console field works now. Reading a private address at sign-in also needs the app's account permission "Email addresses: read", granted by the author in the GitHub App settings.*
+- [ ] T082 Configure SMTP for `pono-api` and `pono-worker` on Coolify and prove one alert email received, recorded in `docs/VERITE_ET_PREUVES.md`, per SC-004 (partial)
+  - *Waits for an SMTP account from the author.*
+- [X] T083 Show the time of the last reading in each workshop row, and mark it stale when a provider did not answer, in `apps/web/src/features/workshop/Workshop.tsx` per FR-023 (partial)
+- [X] T084 Move the code host adapter id out of `apps/api/src/pono_api/application/connections.py` into the adapter, exposed through the `CodeHost` port, per Constitution III (partial)
+- [ ] T085 Serve the console over HTTPS on a domain so the session cookie is `Secure`, and record it in `docs/EXPLOITATION.md`, per plan: R-04 session decision (partial)
+  - *Waits for a domain from the author (the previous one expired).*
+- [X] T086 Open the existing project from "Open" on an already imported repository (`projectId` in the repositories payload, `apps/web/src/features/projects/ImportProject.tsx`) per spec edge case "même dépôt importé deux fois" (partial)
+- [X] T087 Let the person ask again for a manifest proposal on a project whose proposal was closed (`POST /projects/{id}/manifest-proposal`, project detail) per spec edge case "proposition refusée ou fermée" (partial)
+- [X] T088 Remove the owner database URL from the `pono-worker` environment on Coolify per plan: R-02 roles decision (partial)

@@ -33,6 +33,7 @@ NOW = datetime.now(UTC)
 
 @dataclass
 class FakeCodeHost:
+    provider: str = "github"
     account_installations: dict[str, str] = field(default_factory=lambda: {"1001": "inst-1"})
     repositories: list[RepositoryInfo] = field(
         default_factory=lambda: [

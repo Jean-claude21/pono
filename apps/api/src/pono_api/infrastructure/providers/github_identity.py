@@ -69,9 +69,36 @@ class GitHubIdentity:
         user_id, login, email = payload.get("id"), payload.get("login"), payload.get("email")
         if not isinstance(user_id, int) or not isinstance(login, str):
             raise IdentityProviderError("code host returned an incomplete user")
-        return CodeHostUser(
-            user_id=str(user_id), login=login, email=email if isinstance(email, str) else None
-        )
+        if not isinstance(email, str) or not email:
+            email = await self._primary_email(user_token)
+        return CodeHostUser(user_id=str(user_id), login=login, email=email)
+
+    async def _primary_email(self, user_token: str) -> str | None:
+        """A private address is only readable with the app's "email addresses" permission;
+        without it GitHub refuses, and the person sets an alert address in the console."""
+
+        async with httpx.AsyncClient(transport=self._transport, timeout=10) as client:
+            response = await client.get(
+                f"{self._api_url}/user/emails",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {user_token}",
+                },
+            )
+        if response.status_code != 200:
+            return None
+        addresses = response.json()
+        if not isinstance(addresses, list):
+            return None
+        for item in addresses:
+            if (
+                isinstance(item, dict)
+                and item.get("primary") is True
+                and item.get("verified") is True
+                and isinstance(item.get("email"), str)
+            ):
+                return cast(str, item["email"])
+        return None
 
 
 __all__ = ["GitHubIdentity"]

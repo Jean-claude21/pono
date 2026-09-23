@@ -104,6 +104,20 @@ async def test_the_saved_language_follows_the_person_at_sign_in(
     assert again.cookies["pono_locale"] == "en"
 
 
+async def test_the_person_sets_where_alerts_go(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
+) -> None:
+    await sign_in_as(client, identity, CodeHostUser("1001", "alice", None))
+    assert (await client.get("/api/v1/me")).json()["email"] is None
+
+    saved = await client.put("/api/v1/me/email", json={"email": "alerts@example.test"})
+    refused = await client.put("/api/v1/me/email", json={"email": "not an address"})
+
+    assert saved.status_code == 204
+    assert refused.json() == {"error": {"code": "request.invalid", "field": "email"}}
+    assert (await client.get("/api/v1/me")).json()["email"] == "alerts@example.test"
+
+
 async def test_revoked_session_cannot_be_reused(
     clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
 ) -> None:

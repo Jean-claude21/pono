@@ -14,5 +14,12 @@ function ConnectionsPage() {
   const result = Route.useLoaderData();
   const { me } = console_.useLoaderData();
   if (!result.ok) return <ServiceNotice code={result.code} />;
-  return <Connections connections={result.data} installUrl={me.codeHostInstallUrl} />;
+  return (
+    <Connections
+      connections={result.data}
+      installUrl={me.codeHostInstallUrl}
+      alertEmail={me.email}
+      alertEmailsEnabled={me.alertEmailsEnabled}
+    />
+  );
 }

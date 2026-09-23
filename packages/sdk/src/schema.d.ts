@@ -144,6 +144,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Choose Alert Address
+         * @description Where quota alerts go when the code host keeps the person's address private (FR-025).
+         */
+        put: operations["choose_alert_address_api_v1_me_email_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/locale": {
         parameters: {
             query?: never;
@@ -196,6 +216,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/manifest-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Manifest Proposal
+         * @description Propose a manifest again after the person closed the previous proposal.
+         */
+        post: operations["request_manifest_proposal_api_v1_projects__project_id__manifest_proposal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/refresh": {
         parameters: {
             query?: never;
@@ -237,6 +277,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AlertAddress */
+        AlertAddress: {
+            /** Email */
+            email: string;
+        };
         /** Connection */
         Connection: {
             /** Externalref */
@@ -365,8 +410,18 @@ export interface components {
         };
         /** Me */
         Me: {
+            /**
+             * Alertemailsenabled
+             * @description False while the service has no mail server.
+             */
+            alertEmailsEnabled: boolean;
             /** Codehostinstallurl */
             codeHostInstallUrl: string | null;
+            /**
+             * Email
+             * @description Where quota alerts are sent; null when unknown.
+             */
+            email: string | null;
             /** Locale */
             locale: ("fr" | "en") | null;
             /** Login */
@@ -507,6 +562,11 @@ export interface components {
             defaultBranch: string;
             /** Fullname */
             fullName: string;
+            /**
+             * Projectid
+             * @description The project it already is, when imported.
+             */
+            projectId: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -824,6 +884,39 @@ export interface operations {
             };
         };
     };
+    choose_alert_address_api_v1_me_email_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertAddress"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     choose_locale_api_v1_me_locale_put: {
         parameters: {
             query?: never;
@@ -926,6 +1019,39 @@ export interface operations {
         };
     };
     read_project_api_v1_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_manifest_proposal_api_v1_projects__project_id__manifest_proposal_post: {
         parameters: {
             query?: never;
             header?: never;

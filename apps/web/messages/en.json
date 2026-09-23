@@ -233,5 +233,14 @@
   "column_usage": "Usage",
   "column_source": "Limit source",
   "error_service_identity_unconfigured": "The service has no identity provider configured.",
-  "error_service_providers_unconfigured": "The service has no providers configured."
+  "error_service_providers_unconfigured": "The service has no providers configured.",
+  "error_project_manifest_not_absent": "This project already has a manifest, present or proposed.",
+  "manifest_propose_again": "Propose a manifest",
+  "manifest_proposing": "Proposing…",
+  "alerts_title": "Alerts",
+  "alerts_body": "Quota alerts go to this address. Your code host keeps it private: set it here.",
+  "alerts_email_label": "Alert address",
+  "alerts_save": "Save",
+  "alerts_saved": "Address saved.",
+  "alerts_mail_off": "Email sending is not configured yet: alerts stay visible in the workshop."
 }

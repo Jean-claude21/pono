@@ -30,7 +30,6 @@ from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
 logger = logging.getLogger("pono.connections")
 
-CODE_HOST_PROVIDER = "github"
 _SELECT = (
     "SELECT id, kind, provider, external_ref, endpoint, secret_ciphertext, status, "
     "status_checked_at FROM connections"
@@ -141,7 +140,7 @@ async def link_code_host(
                 {
                     "id": uuid7(),
                     "organization_id": principal.organization_id,
-                    "provider": CODE_HOST_PROVIDER,
+                    "provider": code_host.provider,
                     "external_ref": installation_id,
                 },
             )
@@ -309,7 +308,6 @@ async def _check(
 
 
 __all__ = [
-    "CODE_HOST_PROVIDER",
     "ConnectionView",
     "active_code_host",
     "link_code_host",

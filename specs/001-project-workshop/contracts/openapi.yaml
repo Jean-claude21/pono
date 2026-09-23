@@ -58,6 +58,22 @@ paths:
         "204": { description: Saved. }
         "422": { $ref: "#/components/responses/Error" }
 
+  /me/email:
+    put:
+      summary: Where quota alerts go when the code host keeps the address private (FR-025).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+      responses:
+        "204": { description: Saved. }
+        "422": { $ref: "#/components/responses/Error" }
+
   /connections:
     get:
       summary: Connections of the current organization with their status.
@@ -152,6 +168,19 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ProjectDetail" }
         "404": { $ref: "#/components/responses/Error" }
+  /projects/{projectId}/manifest-proposal:
+    post:
+      summary: >
+        Propose a manifest again after the person closed the previous proposal. Pono never
+        reopens one on its own.
+      parameters: [{ $ref: "#/components/parameters/ProjectId" }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectDetail" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
   /projects/{projectId}/refresh:
     post:
       summary: Request an immediate reading (FR-022).
@@ -211,6 +240,12 @@ components:
         login: { type: string }
         organizationId: { type: string, format: uuid }
         locale: { oneOf: [{ $ref: "#/components/schemas/Locale" }, { type: "null" }] }
+        email:
+          type: [string, "null"]
+          description: Where quota alerts are sent; null when unknown.
+        alertEmailsEnabled:
+          type: boolean
+          description: False while the service has no mail server; alerts stay in the workshop.
         codeHostInstallUrl:
           type: [string, "null"]
           description: Where the person installs the Pono app on chosen repositories.
@@ -244,6 +279,10 @@ components:
         fullName: { type: string }
         defaultBranch: { type: string }
         alreadyImported: { type: boolean }
+        projectId:
+          type: [string, "null"]
+          format: uuid
+          description: The project it already is, offered instead of a second import.
     Environment:
       type: object
       required: [id, kind, linkStatus, resourceStatus]
