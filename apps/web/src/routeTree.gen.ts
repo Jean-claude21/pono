@@ -11,7 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HealthRouteImport } from './routes/health'
+import { Route as WorkshopRouteImport } from './routes/workshop'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as WorkshopIndexRouteImport } from './routes/workshop/index'
+import { Route as WorkshopConnectionsRouteImport } from './routes/workshop/connections'
+import { Route as WorkshopImportRouteImport } from './routes/workshop/import'
+import { Route as WorkshopProjectsProjectIdRouteImport } from './routes/workshop/projects.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,39 +28,104 @@ const HealthRoute = HealthRouteImport.update({
   path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkshopRoute = WorkshopRouteImport.update({
+  id: '/workshop',
+  path: '/workshop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkshopIndexRoute = WorkshopIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => WorkshopRoute,
+} as any)
+const WorkshopConnectionsRoute = WorkshopConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
+  getParentRoute: () => WorkshopRoute,
+} as any)
+const WorkshopImportRoute = WorkshopImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => WorkshopRoute,
+} as any)
+const WorkshopProjectsProjectIdRoute =
+  WorkshopProjectsProjectIdRouteImport.update({
+    id: '/projects/$projectId',
+    path: '/projects/$projectId',
+    getParentRoute: () => WorkshopRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
+  '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
+  '/workshop/connections': typeof WorkshopConnectionsRoute
+  '/workshop/import': typeof WorkshopImportRoute
+  '/workshop/': typeof WorkshopIndexRoute
+  '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
   '/api/$': typeof ApiSplatRoute
+  '/workshop/connections': typeof WorkshopConnectionsRoute
+  '/workshop/import': typeof WorkshopImportRoute
+  '/workshop': typeof WorkshopIndexRoute
+  '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
+  '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
+  '/workshop/connections': typeof WorkshopConnectionsRoute
+  '/workshop/import': typeof WorkshopImportRoute
+  '/workshop/': typeof WorkshopIndexRoute
+  '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/health' | '/api/$'
+  fullPaths:
+    | '/'
+    | '/health'
+    | '/workshop'
+    | '/api/$'
+    | '/workshop/connections'
+    | '/workshop/import'
+    | '/workshop/'
+    | '/workshop/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/health' | '/api/$'
-  id: '__root__' | '/' | '/health' | '/api/$'
+  to:
+    | '/'
+    | '/health'
+    | '/api/$'
+    | '/workshop/connections'
+    | '/workshop/import'
+    | '/workshop'
+    | '/workshop/projects/$projectId'
+  id:
+    | '__root__'
+    | '/'
+    | '/health'
+    | '/workshop'
+    | '/api/$'
+    | '/workshop/connections'
+    | '/workshop/import'
+    | '/workshop/'
+    | '/workshop/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HealthRoute: typeof HealthRoute
+  WorkshopRoute: typeof WorkshopRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
@@ -75,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workshop': {
+      id: '/workshop'
+      path: '/workshop'
+      fullPath: '/workshop'
+      preLoaderRoute: typeof WorkshopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -82,12 +159,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workshop/': {
+      id: '/workshop/'
+      path: '/'
+      fullPath: '/workshop/'
+      preLoaderRoute: typeof WorkshopIndexRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
+    '/workshop/connections': {
+      id: '/workshop/connections'
+      path: '/connections'
+      fullPath: '/workshop/connections'
+      preLoaderRoute: typeof WorkshopConnectionsRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
+    '/workshop/import': {
+      id: '/workshop/import'
+      path: '/import'
+      fullPath: '/workshop/import'
+      preLoaderRoute: typeof WorkshopImportRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
+    '/workshop/projects/$projectId': {
+      id: '/workshop/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/workshop/projects/$projectId'
+      preLoaderRoute: typeof WorkshopProjectsProjectIdRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
   }
 }
+
+interface WorkshopRouteChildren {
+  WorkshopConnectionsRoute: typeof WorkshopConnectionsRoute
+  WorkshopImportRoute: typeof WorkshopImportRoute
+  WorkshopIndexRoute: typeof WorkshopIndexRoute
+  WorkshopProjectsProjectIdRoute: typeof WorkshopProjectsProjectIdRoute
+}
+
+const WorkshopRouteChildren: WorkshopRouteChildren = {
+  WorkshopConnectionsRoute: WorkshopConnectionsRoute,
+  WorkshopImportRoute: WorkshopImportRoute,
+  WorkshopIndexRoute: WorkshopIndexRoute,
+  WorkshopProjectsProjectIdRoute: WorkshopProjectsProjectIdRoute,
+}
+
+const WorkshopRouteWithChildren = WorkshopRoute._addFileChildren(
+  WorkshopRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HealthRoute: HealthRoute,
+  WorkshopRoute: WorkshopRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport

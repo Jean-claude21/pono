@@ -31,9 +31,14 @@ function Landing() {
         <a className="monogram" href="/">
           <b>P</b>Pono
         </a>
-        <a className="btn btn-ghost btn-sm" href={accessUrl}>
-          {m.access_request_cta()}
-        </a>
+        <div style={{ display: "flex", gap: 10 }}>
+          <a className="btn btn-ghost btn-sm" href="/api/v1/auth/login">
+            {m.sign_in()}
+          </a>
+          <a className="btn btn-ghost btn-sm" href={accessUrl}>
+            {m.access_request_cta()}
+          </a>
+        </div>
       </header>
 
       {error ? (

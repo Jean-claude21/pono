@@ -67,8 +67,8 @@ class CodeHost(Protocol):
     ) -> str | None:
         """File content, or None when the file does not exist."""
 
-    async def last_push_at(self, installation_id: str, repository: str) -> datetime | None:
-        """The last push on any branch."""
+    async def last_commit_at(self, installation_id: str, repository: str) -> datetime | None:
+        """The last commit on any branch, Pono's own proposal branches excepted."""
 
     async def commit_author(
         self, installation_id: str, repository: str, commit_sha: str

@@ -5,6 +5,7 @@ provider cannot answer, what it would have changed is left as it was and the pro
 stale: its previous state stays visible, with the time of the last complete reading.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -23,6 +24,7 @@ from pono_api.application.ports import (
     KeyUseLog,
     LinkChecker,
     ManifestReader,
+    PreviewRecord,
     ProviderAuthorizationError,
     ProviderFactory,
     ProviderUnavailableError,
@@ -88,7 +90,7 @@ class Reading:
     proposal_url: str | None
     environments: list[EnvironmentReading] = field(default_factory=list)
     database_status: ResourceStatus | None = None
-    last_push_at: datetime | None = None
+    last_commit_at: datetime | None = None
     stale: bool = False
     connection_statuses: dict[UUID, ConnectionStatus] = field(default_factory=dict)
     needed: dict[UUID, ConnectionStatus] = field(default_factory=dict)
@@ -173,11 +175,17 @@ async def _read(
     else:
         await _read_repository(project, installation, providers.code_host, reading)
 
-    for index, environment in enumerate(reading.manifest.environments):
-        reading.environments.extend(
-            await _read_environment(index, environment, connections, providers, log, reading)
-        )
-    await _read_database(reading, connections, providers.factory, log)
+    # Environments and the database are read side by side: a slow link must not delay the rest.
+    readings, _ = await asyncio.gather(
+        asyncio.gather(
+            *(
+                _read_environment(index, environment, connections, providers, log, reading)
+                for index, environment in enumerate(reading.manifest.environments)
+            )
+        ),
+        _read_database(reading, connections, providers.factory, log),
+    )
+    reading.environments = [item for group in readings for item in group]
 
     if installation is not None and providers.code_host is not None:
         await _complete_authors(project, installation, providers.code_host, reading)
@@ -188,7 +196,7 @@ async def _read_repository(
     project: StoredProject, installation: str, code_host: CodeHost, reading: Reading
 ) -> None:
     try:
-        reading.last_push_at = await code_host.last_push_at(installation, project.repository)
+        reading.last_commit_at = await code_host.last_commit_at(installation, project.repository)
         if reading.manifest_status is ManifestStatus.PROPOSED and reading.proposal_url:
             # T078: merged makes the manifest the truth; closed unmerged is never proposed again.
             state = await code_host.proposal_state(installation, reading.proposal_url)
@@ -265,25 +273,30 @@ async def _read_environment(
         base.deployments = hosted.deployments
     base.link_status = await _check(providers.links, base.url)
 
-    previews = [base]
-    if hosted is not None:
-        for preview in hosted.previews:
-            if not await _preview_open(preview.review_url, reading, providers):
-                continue
-            previews.append(
-                EnvironmentReading(
-                    kind=EnvironmentKind.PREVIEW,
-                    external_ref=f"{base.external_ref}:{preview.external_ref}",
-                    branch=preview.branch,
-                    hosting_provider=base.hosting_provider,
-                    hosting_connection_id=base.hosting_connection_id,
-                    url=preview.url,
-                    resource_status=ResourceStatus.FOUND,
-                    link_status=await _check(providers.links, preview.url),
-                    opened_at=preview.opened_at,
-                )
-            )
-    return previews
+    if hosted is None:
+        return [base]
+    previews = await asyncio.gather(
+        *(_read_preview(base, preview, reading, providers) for preview in hosted.previews)
+    )
+    return [base, *(preview for preview in previews if preview is not None)]
+
+
+async def _read_preview(
+    base: EnvironmentReading, preview: PreviewRecord, reading: Reading, providers: Providers
+) -> EnvironmentReading | None:
+    if not await _preview_open(preview.review_url, reading, providers):
+        return None
+    return EnvironmentReading(
+        kind=EnvironmentKind.PREVIEW,
+        external_ref=f"{base.external_ref}:{preview.external_ref}",
+        branch=preview.branch,
+        hosting_provider=base.hosting_provider,
+        hosting_connection_id=base.hosting_connection_id,
+        url=preview.url,
+        resource_status=ResourceStatus.FOUND,
+        link_status=await _check(providers.links, preview.url),
+        opened_at=preview.opened_at,
+    )
 
 
 async def _preview_open(review_url: str | None, reading: Reading, providers: Providers) -> bool:
@@ -378,7 +391,7 @@ def facts_for(reading: Reading) -> StateFacts:
         ),
         needed_connections=tuple(reading.needed.values()),
         last_activity_at=latest_activity(
-            [reading.last_push_at, *(d.started_at for d in latest_per_environment)]
+            [reading.last_commit_at, *(d.started_at for d in latest_per_environment)]
         ),
     )
 

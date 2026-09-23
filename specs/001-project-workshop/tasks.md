@@ -109,9 +109,9 @@ deployment and at least one responding link, with no field filled in.
 - [X] T075 [US1] Record every use of a permanent provider key in `connection_events` from `apps/api/src/pono_api/application/connection_events.py`, wrapping the hosting and database adapters (FR-011, D-007)
 - [X] T077 [US1] Refresh each connection's status (active, expired, revoked) in `apps/api/src/pono_api/workers/refresh.py` (FR-013)
 - [X] T078 [US1] Track the manifest proposal in `apps/api/src/pono_api/application/refresh_project.py`: merged → `present`, closed unmerged → `absent`, never proposed again without a request
-- [ ] T047 [US1] Console connection screen in `apps/web/src/features/connections/` and route `apps/web/src/routes/workshop/connections.tsx` (code host installation link, hosting and database connections, status, revoke)
-- [ ] T048 [US1] Console import screen in `apps/web/src/features/projects/ImportProject.tsx` and route `apps/web/src/routes/workshop/import.tsx`
-- [ ] T049 [US1] Console project detail in `apps/web/src/features/projects/ProjectDetail.tsx` and route `apps/web/src/routes/workshop/projects.$projectId.tsx` (all previews, manifest status and proposal link, refresh button)
+- [X] T047 [US1] Console connection screen in `apps/web/src/features/connections/` and route `apps/web/src/routes/workshop/connections.tsx` (code host installation link, hosting and database connections, status, revoke)
+- [X] T048 [US1] Console import screen in `apps/web/src/features/projects/ImportProject.tsx` and route `apps/web/src/routes/workshop/import.tsx`
+- [X] T049 [US1] Console project detail in `apps/web/src/features/projects/ProjectDetail.tsx` and route `apps/web/src/routes/workshop/projects.$projectId.tsx` (all previews, manifest status and proposal link, refresh button)
 
 **Checkpoint**: lectio-reads imports end to end; its manifest pull request is open on GitHub.
 
@@ -125,10 +125,10 @@ what needs a decision first.
 **Independent Test**: with several projects imported, time the path from opening the workshop to
 opening a random project's production link with its last deployment identified.
 
-- [ ] T050 [P] [US2] Contract test for `GET /projects` (counts per state, verdicts, latest preview only) in `apps/api/tests/contract/test_workshop_contract.py`
-- [ ] T051 [US2] Workshop query in `apps/api/src/pono_api/application/workshop.py`: summaries, counts per state, verdict codes of `contracts/error-codes.md`
-- [ ] T052 [US2] Extend `GET /projects` with the `state` filter and the workshop payload in `apps/api/src/pono_api/api/projects.py`
-- [ ] T053 [US2] Workshop screen in `apps/web/src/features/workshop/Workshop.tsx` and route `apps/web/src/routes/workshop/index.tsx`, following `design/admin.html` with `@pono/design` classes (table, state dots, meters, verdict banner, filter tabs with counts)
+- [X] T050 [P] [US2] Contract test for `GET /projects` (counts per state, verdicts, latest preview only) in `apps/api/tests/contract/test_workshop_contract.py`
+- [X] T051 [US2] Workshop query in `apps/api/src/pono_api/application/workshop.py`: summaries, counts per state, verdict codes of `contracts/error-codes.md`
+- [X] T052 [US2] Extend `GET /projects` with the `state` filter and the workshop payload in `apps/api/src/pono_api/api/projects.py`
+- [X] T053 [US2] Workshop screen in `apps/web/src/features/workshop/Workshop.tsx` and route `apps/web/src/routes/workshop/index.tsx`, following `design/admin.html` with `@pono/design` classes (table, state dots, meters, verdict banner, filter tabs with counts)
 - [ ] T054 [US2] Playwright render check at 1440 px of the workshop with empty, healthy and failing data in `apps/web/tests/e2e/workshop.spec.ts`
 
 **Checkpoint**: the MVP — US1 + US2 — is usable by the two first users.
@@ -161,7 +161,7 @@ email, never twice for the same threshold and period.
 date or number remains.
 
 - [ ] T062 [US4] Complete `apps/web/messages/en.json` for every key, including `error_*` keys for all codes of `contracts/error-codes.md`
-- [ ] T063 [P] [US4] Localized formatting helpers (dates, relative times, numbers, percentages) with `Intl` in `apps/web/src/lib/format.ts`
+- [X] T063 [P] [US4] Localized formatting helpers (dates, relative times, numbers, percentages) with `Intl` in `apps/web/src/lib/format.ts`
 - [ ] T080 [P] [US4] Vitest tests for the formatting helpers in `apps/web/src/lib/format.test.ts`
 - [ ] T064 [US4] Language switcher in `apps/web/src/features/i18n/LocaleSwitcher.tsx`, persisting through `PUT /me/locale` and the `pono_locale` cookie
 - [ ] T065 [P] [US4] Check `apps/web/scripts/check-hardcoded-strings.mjs` failing on visible text literals in `.tsx` files, wired into CI

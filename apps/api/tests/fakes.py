@@ -38,7 +38,7 @@ class FakeCodeHost:
         ]
     )
     files: dict[tuple[str, str], str] = field(default_factory=dict)
-    pushed_at: datetime | None = NOW - timedelta(hours=2)
+    last_commit: datetime | None = NOW - timedelta(hours=2)
     proposals: list[tuple[str, str, str, str]] = field(default_factory=list)
     proposal_states: dict[str, ProposalState] = field(default_factory=dict)
     revoked: list[str] = field(default_factory=list)
@@ -72,9 +72,9 @@ class FakeCodeHost:
         self._answer()
         return self.files.get((repository, path))
 
-    async def last_push_at(self, installation_id: str, repository: str) -> datetime | None:
+    async def last_commit_at(self, installation_id: str, repository: str) -> datetime | None:
         self._answer()
-        return self.pushed_at
+        return self.last_commit
 
     async def commit_author(
         self, installation_id: str, repository: str, commit_sha: str

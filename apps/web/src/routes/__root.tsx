@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 import appCss from "@/styles/app.css?url";
@@ -26,8 +32,12 @@ function Root() {
 }
 
 function Document({ children }: Readonly<{ children: ReactNode }>) {
+  // Two moods, one system: the public page is light, the console is dark (D-011).
+  const inConsole = useRouterState({
+    select: (state) => state.location.pathname.startsWith("/workshop"),
+  });
   return (
-    <html lang={getLocale()}>
+    <html lang={getLocale()} data-theme={inConsole ? "console" : undefined}>
       <head>
         <HeadContent />
       </head>

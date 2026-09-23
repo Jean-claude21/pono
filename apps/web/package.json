@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@pono/design": "workspace:*",
+    "@pono/sdk": "workspace:*",
     "@tanstack/react-router": "^1.130.0",
     "@tanstack/react-start": "^1.130.0",
     "react": "^19.0.0",

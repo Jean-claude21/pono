@@ -326,9 +326,11 @@ async def test_neon_finds_a_project_by_exact_name_and_reads_its_branches() -> No
     api = Api(
         {
             "/api/v2/users/me": {"id": "user-1"},
-            "/api/v2/projects?limit=100&search=livio": {
+            "/api/v2/users/me/organizations": {"organizations": [{"id": "org-a"}, {"id": "org-b"}]},
+            "/api/v2/projects?limit=100&org_id=org-a&search=livio": {
                 "projects": [{"id": "flat-cell", "name": "livio"}, {"id": "x", "name": "livio-old"}]
             },
+            "/api/v2/projects?limit=100&org_id=org-b&search=livio": {"projects": []},
             "/api/v2/projects/flat-cell": {"project": {"id": "flat-cell"}},
             "/api/v2/projects/flat-cell/branches": {
                 "branches": [{"name": "main"}, {"name": "dev"}]
@@ -347,6 +349,8 @@ async def test_neon_finds_a_project_by_exact_name_and_reads_its_branches() -> No
     assert (await adapter.read_project("gone")).status is ResourceStatus.MISSING
     assert actions == [
         "verify_user",
+        "list_organizations",
+        "list_projects",
         "list_projects",
         "read_project",
         "read_branches",
@@ -357,7 +361,8 @@ async def test_neon_finds_a_project_by_exact_name_and_reads_its_branches() -> No
 async def test_neon_does_not_guess_between_homonyms_and_reports_outages() -> None:
     api = Api(
         {
-            "/api/v2/projects?limit=100&search=app": {
+            "/api/v2/users/me/organizations": {"organizations": [{"id": "org-a"}]},
+            "/api/v2/projects?limit=100&org_id=org-a&search=app": {
                 "projects": [{"id": "a", "name": "app"}, {"id": "b", "name": "App"}]
             },
             "/api/v2/users/me": 500,

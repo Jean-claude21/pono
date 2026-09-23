@@ -30,16 +30,32 @@ class NeonDatabase:
         return reference
 
     async def find_project(self, name: str) -> str | None:
-        payload = as_object(
-            await self._client.get(f"/projects?limit=100&search={quote(name)}", "list_projects")
-        )
-        matches = [
-            text(project, "id")
-            for project in map(as_object, as_list(payload.get("projects")))
-            if (text(project, "name") or "").lower() == name.lower()
+        """The one project with exactly this name, across every organization the key reaches."""
+
+        found: set[str] = set()
+        for organization in await self._organizations():
+            payload = as_object(
+                await self._client.get(
+                    f"/projects?limit=100&org_id={quote(organization)}&search={quote(name)}",
+                    "list_projects",
+                )
+            )
+            found.update(
+                reference
+                for project in map(as_object, as_list(payload.get("projects")))
+                if (text(project, "name") or "").lower() == name.lower()
+                and (reference := text(project, "id")) is not None
+            )
+        return found.pop() if len(found) == 1 else None
+
+    async def _organizations(self) -> list[str]:
+        # Listing projects needs an organization: a key reaches its user's organizations.
+        payload = as_object(await self._client.get("/users/me/organizations", "list_organizations"))
+        return [
+            reference
+            for organization in map(as_object, as_list(payload.get("organizations")))
+            if (reference := text(organization, "id")) is not None
         ]
-        found = [match for match in matches if match]
-        return found[0] if len(found) == 1 else None
 
     async def read_project(self, ref: str) -> DatabaseSnapshot:
         project = await self._client.get(

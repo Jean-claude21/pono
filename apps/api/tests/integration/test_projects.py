@@ -38,7 +38,7 @@ async def test_lectio_imports_with_its_real_environments_and_a_proposed_manifest
     assert project["name"] == "lectio-reads"
     assert project["manifestStatus"] == "proposed"
     assert project["manifestProposalUrl"] == f"https://code.test/{LECTIO}/pull/1"
-    assert project["state"] == "active"  # pushed two hours ago
+    assert project["state"] == "active"  # last commit two hours ago
     assert project["stateReason"] == "recent_activity"
     assert project["stale"] is False
     assert project["refreshedAt"] is not None

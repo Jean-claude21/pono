@@ -25,6 +25,12 @@ from pono_api.domain.projects import is_proposal_branch
 
 JsonObject = dict[str, object]
 TOKEN_LIFETIME_SECONDS = 50 * 60
+# A query, never a mutation: the only write path is `_write`.
+BRANCH_HEADS_QUERY = (
+    "query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { "
+    'refs(refPrefix: "refs/heads/", first: 100) { nodes { name target { '
+    "... on Commit { committedDate } } } } } }"
+)
 
 
 def _object(value: object) -> JsonObject:
@@ -148,11 +154,26 @@ class GitHubCodeHost:
             return None
         return response.text
 
-    async def last_push_at(self, installation_id: str, repository: str) -> datetime | None:
-        payload = _object(
-            (await self._request(installation_id, "GET", f"/repos/{repository}")).json()
+    async def last_commit_at(self, installation_id: str, repository: str) -> datetime | None:
+        """One read-only GraphQL query over every branch head; `pono/*` branches do not count,
+        so a proposal Pono opens never passes for the person's own activity."""
+
+        owner, name = repository.split("/", 1)
+        response = await self._request(
+            installation_id,
+            "POST",
+            "/graphql",
+            json={"query": BRANCH_HEADS_QUERY, "variables": {"owner": owner, "name": name}},
         )
-        return _timestamp(payload.get("pushed_at"))
+        repository_node = _object(_object(_object(response.json()).get("data")).get("repository"))
+        refs = _object(repository_node.get("refs")).get("nodes")
+        moments = [
+            _timestamp(_object(_object(ref).get("target")).get("committedDate"))
+            for ref in (refs if isinstance(refs, list) else [])
+            if not is_proposal_branch(str(_object(ref).get("name", "")))
+        ]
+        known = [moment for moment in moments if moment is not None]
+        return max(known) if known else None
 
     async def commit_author(
         self, installation_id: str, repository: str, commit_sha: str

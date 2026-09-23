@@ -13,6 +13,9 @@ importers:
       '@pono/design':
         specifier: workspace:*
         version: link:../../packages/design
+      '@pono/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@tanstack/react-router':
         specifier: ^1.130.0
         version: 1.170.38(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

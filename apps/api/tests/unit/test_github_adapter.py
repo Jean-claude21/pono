@@ -1,5 +1,6 @@
 """The GitHub App adapter's reads: installations, repositories, files, activity, proposals."""
 
+import json
 from datetime import UTC, datetime
 
 import httpx
@@ -96,12 +97,27 @@ async def test_files_are_read_raw_and_a_missing_file_is_none() -> None:
     assert raw.headers["accept"] == "application/vnd.github.raw+json"
 
 
-async def test_last_push_covers_every_branch() -> None:
+async def test_last_commit_covers_every_branch_but_the_proposals() -> None:
     stub = GitHubStub()
-    stub.on("GET", REPO, body={"pushed_at": "2026-09-14T20:17:22Z"})
-    assert await stub.adapter().last_push_at("inst-1", "alice/lectio-reads") == datetime(
-        2026, 9, 14, 20, 17, 22, tzinfo=UTC
-    )
+    heads = [
+        {"name": "main", "target": {"committedDate": "2026-09-01T10:00:00Z"}},
+        {"name": "feature", "target": {"committedDate": "2026-09-14T20:17:22Z"}},
+        {"name": "pono/manifest", "target": {"committedDate": "2026-09-23T02:15:46Z"}},
+        {"name": "tag-like", "target": {}},
+    ]
+    stub.on("POST", "/graphql", body={"data": {"repository": {"refs": {"nodes": heads}}}})
+
+    moment = await stub.adapter().last_commit_at("inst-1", "alice/lectio-reads")
+
+    assert moment == datetime(2026, 9, 14, 20, 17, 22, tzinfo=UTC)
+    query = next(r for r in stub.requests if r.url.path == "/graphql")
+    assert json.loads(query.content)["query"].lstrip().startswith("query")
+
+
+async def test_a_repository_without_branches_has_no_activity() -> None:
+    stub = GitHubStub()
+    stub.on("POST", "/graphql", body={"data": {"repository": {"refs": {"nodes": []}}}})
+    assert await stub.adapter().last_commit_at("inst-1", "alice/empty") is None
 
 
 async def test_commit_author_prefers_the_account_then_the_git_name() -> None:
@@ -136,13 +152,13 @@ async def test_proposal_state(payload: dict[str, object], state: str) -> None:
 
 async def test_malformed_proposal_url_and_failures_are_unavailability() -> None:
     stub = GitHubStub()
-    stub.on("GET", REPO, 500, {})
+    stub.on("POST", "/graphql", 500, {})
     adapter = stub.adapter()
 
     with pytest.raises(ProviderUnavailableError):
         await adapter.proposal_state("inst-1", "https://github.com/alice")
     with pytest.raises(ProviderUnavailableError):
-        await adapter.last_push_at("inst-1", "alice/lectio-reads")
+        await adapter.last_commit_at("inst-1", "alice/lectio-reads")
     with pytest.raises(ProviderUnavailableError):
         await adapter.list_repositories("unknown-installation")
 
