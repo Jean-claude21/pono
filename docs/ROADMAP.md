@@ -251,6 +251,11 @@ console.
 
 ## Phase 4 — Le runtime de développement · *ouverte le 2026-09-26 (D-018)*
 
+> **Où on en est (2026-09-26).** Spec Kit : specify fait (`specs/004-dev-runtime`, branche
+> `004-dev-runtime`). Trois questions attendent l'auteur : le chemin d'écriture dans la console
+> (principe VIII), qui écrit dans le dépôt (amendement de D-016), les limites des runtimes.
+> Ensuite : clarify → plan → tasks → analyze → implement.
+
 ### Objective
 Écrire depuis son agent et voir l'écran changer en quelques secondes, sans poste local.
 
