@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Agents */
+        get: operations["read_agents_api_v1_agents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/{grant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Cut Agent */
+        delete: operations["cut_agent_api_v1_agents__grant_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/callback": {
         parameters: {
             query?: never;
@@ -235,6 +269,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/oauth/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Consent */
+        get: operations["read_consent_api_v1_oauth_consent_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/consent/{decision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide
+         * @description Only a signed-in person reaches this: the consent is a human gesture (003 FR-002).
+         */
+        post: operations["decide_api_v1_oauth_consent__decision__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects": {
         parameters: {
             query?: never;
@@ -415,6 +486,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/rollback-requests/{request_id}/{decision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Rollback
+         * @description A person confirms (the rollback runs) or dismisses an agent's rollback request.
+         */
+        post: operations["decide_rollback_api_v1_projects__project_id__rollback_requests__request_id___decision__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/repositories": {
         parameters: {
             query?: never;
@@ -436,6 +527,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentGrant */
+        AgentGrant: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "read" | "act";
+            /** Clientname */
+            clientName: string;
+            /**
+             * Grantedat
+             * Format: date-time
+             */
+            grantedAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lastusedat */
+            lastUsedAt: string | null;
+        };
         /** AlertAddress */
         AlertAddress: {
             /** Email */
@@ -509,6 +622,35 @@ export interface components {
             kind: "hosting" | "database";
             /** Provider */
             provider: string;
+        };
+        /** ConsentDecision */
+        ConsentDecision: {
+            /**
+             * Access
+             * @description Required to approve.
+             */
+            access?: ("read" | "act") | null;
+            /** Request */
+            request: string;
+        };
+        /** ConsentRedirect */
+        ConsentRedirect: {
+            /** Redirecturl */
+            redirectUrl: string;
+        };
+        /** ConsentRequest */
+        ConsentRequest: {
+            /** Clientname */
+            clientName: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /** Organizationname */
+            organizationName: string;
+            /** Scopes */
+            scopes: ("pono:read" | "pono:act")[];
         };
         /** Deployment */
         Deployment: {
@@ -742,6 +884,8 @@ export interface components {
             refreshedAt: string | null;
             /** Repository */
             repository: string;
+            /** @description An agent's rollback request waiting for a person (003 FR-011). */
+            rollbackRequest?: components["schemas"]["RollbackRequest"] | null;
             /**
              * Stale
              * @description The last reading was incomplete; values date from refreshedAt.
@@ -913,6 +1057,21 @@ export interface components {
             /** Tocommit */
             toCommit: string | null;
         };
+        /** RollbackRequest */
+        RollbackRequest: {
+            /** Clientname */
+            clientName: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Requestedat
+             * Format: date-time
+             */
+            requestedAt: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -965,6 +1124,68 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    read_agents_api_v1_agents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentGrant"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cut_agent_api_v1_agents__grant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grant_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     callback_api_v1_auth_callback_get: {
         parameters: {
             query: {
@@ -975,6 +1196,7 @@ export interface operations {
             path?: never;
             cookie?: {
                 pono_oauth_state?: string | null;
+                pono_return_to?: string | null;
             };
         };
         requestBody?: never;
@@ -1001,7 +1223,9 @@ export interface operations {
     };
     login_api_v1_auth_login_get: {
         parameters: {
-            query?: never;
+            query?: {
+                next?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: {
@@ -1395,6 +1619,76 @@ export interface operations {
             };
         };
     };
+    read_consent_api_v1_oauth_consent_get: {
+        parameters: {
+            query: {
+                request: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_v1_oauth_consent__decision__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision: "approve" | "deny";
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRedirect"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_workshop_api_v1_projects_get: {
         parameters: {
             query?: {
@@ -1755,6 +2049,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Rollback"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_rollback_api_v1_projects__project_id__rollback_requests__request_id___decision__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                request_id: string;
+                decision: "confirm" | "dismiss";
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDetail"];
                 };
             };
             /** @description Validation Error */

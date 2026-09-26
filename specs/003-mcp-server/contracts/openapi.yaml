@@ -23,6 +23,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ConsentRequest" }
         "404": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
   /oauth/consent/{decision}:
     parameters:
       - { name: decision, in: path, required: true, schema: { type: string, enum: [approve, deny] } }
@@ -49,6 +50,7 @@ paths:
                   redirectUrl: { type: string }
         "404": { $ref: "#/components/responses/Error" }
         "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
 
   /agents:
     get:

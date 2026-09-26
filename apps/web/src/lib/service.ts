@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import type {
+  AgentGrant,
+  ConsentRequest,
   Connection,
   JournalEntry,
   Me,
@@ -77,3 +79,13 @@ export const fetchConnections = createServerFn({ method: "GET" }).handler(() =>
 export const fetchRepositories = createServerFn({ method: "GET" }).handler(() =>
   read<Repository[]>("/repositories"),
 );
+
+export const fetchAgents = createServerFn({ method: "GET" }).handler(() =>
+  read<AgentGrant[]>("/agents"),
+);
+
+export const fetchConsent = createServerFn({ method: "GET" })
+  .validator((handle: string) => handle)
+  .handler(({ data: handle }) =>
+    read<ConsentRequest>(`/oauth/consent?request=${encodeURIComponent(handle)}`),
+  );

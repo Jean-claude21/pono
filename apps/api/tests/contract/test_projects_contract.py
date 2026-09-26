@@ -145,3 +145,16 @@ async def test_workshop_surface_matches_the_contract(
     conforms(
         await client.delete(f"/api/v1/connections/{connection_id}"), "/connections/{connectionId}"
     )
+
+
+@requires_database
+async def test_without_its_key_the_service_says_agents_are_closed(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
+) -> None:
+    await connect_everything(client, identity)
+
+    closed = await client.get("/api/v1/oauth/consent", params={"request": "x" * 32})
+
+    conforms(closed, "/oauth/consent")
+    assert closed.json() == {"error": {"code": "service.agents_unconfigured"}}
+    assert (await client.post("/mcp", json={})).status_code == 404

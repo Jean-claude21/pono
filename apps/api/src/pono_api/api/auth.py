@@ -15,6 +15,9 @@ from pono_api.application.sign_in import saved_locale, sign_in
 from pono_api.errors import ApiError
 
 STATE_COOKIE = "pono_oauth_state"
+# Where to come back after sign-in, for a page that sent the person here (003: agent consent).
+RETURN_COOKIE = "pono_return_to"
+RETURN_PREFIXES = ("/workshop", "/oauth/consent")
 STATE_TTL_SECONDS = 600
 # Read by the console's language negotiation (Paraglide, `cookie` strategy).
 LOCALE_COOKIE = "pono_locale"
@@ -30,18 +33,33 @@ def _console_redirect(public_url: str, path: str, error: str | None = None) -> R
     return RedirectResponse(target, status_code=302)
 
 
+def _return_path(candidate: str | None) -> str:
+    """A console path only: never another origin, whatever the query says."""
+
+    if (
+        candidate
+        and candidate.startswith(RETURN_PREFIXES)
+        and "//" not in candidate
+        and "\\" not in candidate
+    ):
+        return candidate
+    return "/workshop"
+
+
 @router.get("/login")
 async def login(
     settings: SettingsDep,
     sessions: SessionsDep,
     identity: IdentityDep,
     token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    next_path: Annotated[str | None, Query(alias="next", max_length=512)] = None,
 ) -> RedirectResponse:
+    back = _return_path(next_path)
     # A session that still holds opens the workshop at once: no round trip to the code host
     # when someone comes back to their projects (SC-002).
     principal = await resolve_session(sessions, token)
     if principal is not None and principal.organization_ids:
-        return _console_redirect(settings.public_url, "/workshop")
+        return _console_redirect(settings.public_url, back)
     state = secrets.token_urlsafe(24)
     response = RedirectResponse(
         identity.authorization_url(state, settings.auth_callback_url), status_code=302
@@ -49,6 +67,15 @@ async def login(
     response.set_cookie(
         STATE_COOKIE,
         state,
+        max_age=STATE_TTL_SECONDS,
+        httponly=True,
+        secure=settings.secure_cookies,
+        samesite="lax",
+        path="/api/v1/auth",
+    )
+    response.set_cookie(
+        RETURN_COOKIE,
+        back,
         max_age=STATE_TTL_SECONDS,
         httponly=True,
         secure=settings.secure_cookies,
@@ -66,6 +93,7 @@ async def callback(
     code: Annotated[str, Query()],
     state: Annotated[str, Query()],
     expected_state: Annotated[str | None, Cookie(alias=STATE_COOKIE)] = None,
+    return_to: Annotated[str | None, Cookie(alias=RETURN_COOKIE)] = None,
 ) -> RedirectResponse:
     if not expected_state or not secrets.compare_digest(state, expected_state):
         return _console_redirect(settings.public_url, "/", "auth.state_mismatch")
@@ -83,8 +111,9 @@ async def callback(
     except ApiError as error:
         return _console_redirect(settings.public_url, "/", error.code)
 
-    response = _console_redirect(settings.public_url, "/workshop")
+    response = _console_redirect(settings.public_url, _return_path(return_to))
     response.delete_cookie(STATE_COOKIE, path="/api/v1/auth")
+    response.delete_cookie(RETURN_COOKIE, path="/api/v1/auth")
     # The language chosen earlier follows the person to any browser (FR-003, research R-05).
     locale = await saved_locale(sessions, principal)
     if locale:

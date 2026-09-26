@@ -51,7 +51,11 @@ export function Journal({ projectId, entries, pageSize }: Props) {
                     </small>
                   ) : null}
                 </td>
-                <td className="mute">{entry.actor ?? m.actor_pono()}</td>
+                <td className="mute">
+                  {entry.actorKind === "agent"
+                    ? m.actor_agent({ name: entry.actor ?? "" })
+                    : (entry.actor ?? m.actor_pono())}
+                </td>
                 <td className="figures num" style={{ fontSize: 13 }}>
                   {shortSha(entry.headSha)}
                 </td>

@@ -84,4 +84,7 @@ async def test_a_plan_without_protection_is_never_shown_as_protected(
     assert {"projectId": project_id, "code": "project.protection_unavailable"} in workshop[
         "verdicts"
     ]
-    assert await journal(client, project_id) == ["protection.unavailable"]
+    assert await journal(client, project_id) == [
+        "project.imported",
+        "protection.unavailable",
+    ]

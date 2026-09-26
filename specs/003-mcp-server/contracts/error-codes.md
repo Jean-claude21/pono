@@ -14,6 +14,7 @@ Même règle que les phases 1 et 2 : des codes stables, traduits par la console 
 | `rollback.request_pending` | 409 | une demande de retour arrière attend déjà une personne sur ce projet |
 | `rollback.request_not_found` | 404 | demande inconnue **ou** d'une autre organisation |
 | `rollback.request_closed` | 409 | demande déjà confirmée, écartée ou expirée |
+| `service.agents_unconfigured` | 503 | le service n’a pas de clé de chiffrement ou pas d’adresse publique en HTTPS : l’accès des agents est fermé |
 
 ## Codes de verdict (bandeau de l'atelier)
 

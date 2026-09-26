@@ -73,6 +73,27 @@ export function ProjectDetail({ project, releases }: { project: Detail; releases
     await router.invalidate();
   }
 
+  // An agent may only ask for a rollback; the person confirms or dismisses it (003 FR-011).
+  const request = project.rollbackRequest;
+  const [deciding, setDeciding] = useState(false);
+
+  async function decideRequest(decision: "confirm" | "dismiss") {
+    if (!request) return;
+    setDeciding(true);
+    setFailure(null);
+    const { error } = await createPonoClient().POST(
+      "/api/v1/projects/{project_id}/rollback-requests/{request_id}/{decision}",
+      { params: { path: { project_id: project.id, request_id: request.id, decision } } },
+    );
+    setDeciding(false);
+    if (error) {
+      setFailure(errorCode(error));
+      return;
+    }
+    if (decision === "confirm") setRollbackQueued(true);
+    await router.invalidate();
+  }
+
   async function proposeAgain() {
     setProposing(true);
     setFailure(null);
@@ -144,6 +165,35 @@ export function ProjectDetail({ project, releases }: { project: Detail; releases
           </button>
         </div>
       </div>
+
+      {request ? (
+        <div className="verdict healthy" role="alertdialog" style={{ marginTop: 20 }}>
+          <div>
+            <h3>{m.rollback_request_title({ client: request.clientName })}</h3>
+            <p title={dateTime(request.requestedAt)}>
+              {m.rollback_request_body({ when: relativeTime(request.requestedAt) })}
+            </p>
+          </div>
+          <div className="topline-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => decideRequest("confirm")}
+              disabled={deciding}
+            >
+              {m.rollback_request_confirm()}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => decideRequest("dismiss")}
+              disabled={deciding}
+            >
+              {m.rollback_request_dismiss()}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {confirmingRollback ? (
         <div className="verdict" role="alertdialog" style={{ marginTop: 20 }}>

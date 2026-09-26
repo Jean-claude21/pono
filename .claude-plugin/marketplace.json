@@ -1,0 +1,14 @@
+{
+  "name": "pono",
+  "owner": {
+    "name": "Jean-claude21",
+    "url": "https://github.com/Jean-claude21"
+  },
+  "plugins": [
+    {
+      "name": "pono",
+      "source": "./plugins/pono",
+      "description": "Pono's control room from your agent: projects, guarded releases, evidence journal."
+    }
+  ]
+}

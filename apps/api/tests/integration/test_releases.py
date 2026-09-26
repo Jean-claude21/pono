@@ -62,6 +62,7 @@ async def test_a_destructive_migration_is_refused_and_the_merge_stays_blocked(
     assert (guards["secrets"]["status"], guards["preview"]["status"]) == ("passed", "passed")
     assert world.code_host.check_of(HEAD) == "failure"
     assert await journal(client, project_id) == [
+        "project.imported",
         "protection.missing",
         "release.opened",
         "release.evaluated",
@@ -118,6 +119,7 @@ async def test_a_clean_change_waits_for_a_person_then_only_that_version_ships(
     )
     assert world.code_host.check_of(NEXT_HEAD) == "pending"
     assert await journal(client, project_id) == [
+        "project.imported",
         "protection.missing",
         "release.opened",
         "release.evaluated",

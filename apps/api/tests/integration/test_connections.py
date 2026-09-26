@@ -127,6 +127,12 @@ async def test_revocation_erases_the_key_and_removes_the_installation(
     await connect_everything(client, identity)
     connections = (await client.get("/api/v1/connections")).json()
     assert "authorization" not in str(connections)
+    # Keys are kept encrypted: no stored byte sequence holds a key in the clear.
+    stored = await owner_fetch("SELECT secret_ciphertext FROM connections")
+    ciphertexts = [bytes(row["secret_ciphertext"]) for row in stored if row["secret_ciphertext"]]
+    assert len(ciphertexts) == 3
+    for key in (b"netlify-key", b"coolify-key", b"neon-key"):
+        assert all(key not in ciphertext for ciphertext in ciphertexts)
 
     for connection in connections:
         response = await client.delete(f"/api/v1/connections/{connection['id']}")

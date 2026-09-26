@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pono": {
+      "type": "http",
+      "url": "https://pono-staging.13.140.178.49.sslip.io/mcp"
+    }
+  }
+}

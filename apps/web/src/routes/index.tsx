@@ -77,7 +77,12 @@ function Landing() {
             <b style={{ width: 22, height: 22, fontSize: 12 }}>P</b>
             {m.footer_signature()}
           </span>
-          <span className="mono-label">Pono · 2026</span>
+          <span style={{ display: "flex", gap: 20, alignItems: "baseline" }}>
+            <a className="mute" href="/privacy">
+              {m.privacy_link()}
+            </a>
+            <span className="mono-label">Pono · 2026</span>
+          </span>
         </div>
       </footer>
     </>
