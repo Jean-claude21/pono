@@ -12,7 +12,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import AnyHttpUrl
 from sqlalchemy import text
 
-from pono_api.api import agents, auth, connections, me, projects, releases
+from pono_api.api import agents, auth, connections, me, projects, releases, runtimes
 from pono_api.api.errors import install_error_handlers
 from pono_api.application.identity import CodeHostIdentity
 from pono_api.application.refresh_project import Providers
@@ -111,6 +111,7 @@ def create_app(
         projects.router,
         releases.router,
         agents.router,
+        runtimes.router,
     ):
         app.include_router(router, prefix=API_PREFIX)
 

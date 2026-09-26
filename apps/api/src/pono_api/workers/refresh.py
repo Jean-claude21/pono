@@ -17,6 +17,8 @@ from pono_api.application.refresh_project import Providers, refresh_project
 from pono_api.application.releases import sync_all_releases
 from pono_api.application.rollback import settle_rollbacks
 from pono_api.application.rollback_requests import expire_rollback_requests
+from pono_api.application.runtime_writes import save_due
+from pono_api.application.runtimes import follow_runtimes
 from pono_api.domain.projects import REFRESH_INTERVAL
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
@@ -98,6 +100,21 @@ async def read_all_releases(
             logger.exception("release reading of organization %s failed", organization_id)
 
 
+async def follow_all_runtimes(
+    sessions: async_sessionmaker[AsyncSession], providers: Providers
+) -> None:
+    """Every runtime of every organization: proposal, host, gate, database; then the writes a
+    quiet minute old are saved to the development branch (004)."""
+
+    for organization_id in await organizations(sessions):
+        try:
+            principal = Principal.for_organization(organization_id)
+            await follow_runtimes(sessions, principal, providers)
+            await save_due(sessions, principal, providers)
+        except Exception:
+            logger.exception("runtime reading of organization %s failed", organization_id)
+
+
 async def refresh_connections(
     sessions: async_sessionmaker[AsyncSession], providers: Providers
 ) -> None:
@@ -115,6 +132,7 @@ async def refresh_connections(
 
 __all__ = [
     "due_projects",
+    "follow_all_runtimes",
     "organizations",
     "read_all_quotas",
     "read_all_releases",
