@@ -211,13 +211,13 @@ Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniqueme
 ## Phase 3 — Le serveur MCP et le plugin · *en cours sur `003-mcp-server`*
 
 > **Où on en est (2026-09-26).** Spec Kit : specify → clarify → plan → tasks → analyze →
-> implement. 26 tâches sur 28 faites (`specs/003-mcp-server/tasks.md`) : serveur d'autorisation
-> OAuth 2.1 et serveur d'outils MCP dans le service, consentement dans la console, section Agents,
-> demande de retour arrière, relais des chemins des agents, plugin `plugins/pono`, politique de
-> confidentialité `/privacy`. Tests : service (intégration, contrats, sécurité) et 24 parcours de
-> bout en bout, au vert. **Restent** : T027 — déployer depuis `dev`, relier Claude Code,
-> l'application Claude et Codex, chronométrer la connexion d'un agent (SC-003) ; la soumission au
-> répertoire de connecteurs, geste de l'auteur.
+> implement. Fusionnée dans `main` et en ligne : serveur d'autorisation OAuth 2.1 et serveur
+> d'outils MCP, consentement dans la console, section Agents, demande de retour arrière, plugin
+> `plugins/pono`, politique de confidentialité `/privacy`. **Prouvé en production** : Claude Code
+> relié par le consentement, lecture de l'atelier réel (registre de vérité). **Restent pour fermer**
+> (T027) : une action faite depuis l'agent et retrouvée au journal sous son nom ; l'application
+> Claude et Codex ; le temps de connexion d'un nouvel agent (SC-003) ; la soumission au répertoire
+> de connecteurs, geste de l'auteur.
 >
 > **Ouverte le 2026-09-23 avant la fermeture des phases 1 et 2 (D-017).** Dettes de preuve
 > restantes, à solder avant d'affirmer quoi que ce soit : chronométrage de la reprise (T071 de la
