@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,8 +31,7 @@
 
 ## Notes
 
-- Three markers are open (US2 scenario 6 / FR-012, FR-009, US6 / FR-018); they go to the author
-  before `/speckit-clarify` or `/speckit-plan`.
+- Three markers were settled by the author on 2026-09-26 (Clarifications section of the spec).
 - The proven stack is named only in Assumptions and in the Input, as the boundary of the single
   technical path (D-009); requirements stay stack-agnostic.
-- The US2 marker touches a constitution principle (VIII): it must be settled, not deferred.
+- The US2 answer keeps constitution principle VIII: the console gets the same write path.

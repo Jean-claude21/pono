@@ -8,6 +8,23 @@
 
 **Input**: User description: "Phase 4 de la roadmap de Pono (docs/ROADMAP.md) : « Le runtime de développement ». Ouverte par D-018. Livrable unique : écrire depuis son agent et voir l'écran de son application changer en quelques secondes, sans poste local. Base éprouvée : Fluxio (projects_labs/Fluxio, skills/fluxio-mcp/references/runtime-dev.md) — conteneur de développement persistant sur Coolify, Vite déjà lancé, synchronisation par git pull toutes les 5 s, HMR sans reconstruire l'image ; mesures réelles : Vite prêt en ~1,3 s, fichier écrit → HMR appliqué ~4-5 s en synchronisation directe, cycle commit → push → pull → HMR ~25 s dominé par le trajet GitHub, reconstruction complète ~2 min évitée. Périmètre : (1) un runtime de développement par projet importé, issu du conteneur Fluxio, sur le serveur Coolify de la personne (un seul chemin, D-009) ; (2) écriture directe des fichiers par le serveur de Pono depuis l'agent (outils MCP d'écriture, même droits que la console, D-005), avec sauvegarde Git par lots sur la branche de développement, jamais sur la branche de production ; (3) URL de dev protégée par authentification (elle est sondée par des robots en quelques minutes), veille après inactivité et réveil à la première requête ; (4) remontée des erreurs de compilation et du navigateur vers l'agent et dans la console ; (5) le runtime ne pointe jamais la base de production — seulement la branche de développement de la base ; (6) quotas et plafond de dépense arrêtés avant toute ouverture à un tiers (point bloquant de la roadmap, D-008 : seul le runtime hébergé est payé à l'usage). Preuve de fin : temps entre l'écriture et l'écran mesuré sur un projet réel et publié tel quel ; le runtime ne pointe jamais la base de production. Premiers utilisateurs : l'auteur et une personne proche. Tout le code en anglais (D-013), aucun nom de fournisseur dans le domaine (D-002), RLS dans la migration créatrice. Hors périmètre : rôles et invités (phase 5), second hébergeur de runtime, éditeur de code dans la console, canevas métier."
 
+## Clarifications
+
+### Session 2026-09-26
+
+- Q: Par quel chemin la console offre-t-elle l'écriture de fichiers, sans éditeur de code (principe
+  VIII) ? → A: Un formulaire minimal sur le projet : un chemin et un contenu (saisi ou déposé), et la
+  suppression d'un fichier. Ce n'est pas un éditeur ; c'est l'équivalent exact des outils
+  d'écriture de l'agent.
+- Q: Qui écrit dans le dépôt ? → A: L'app Pono, qui a déjà le droit d'écrire le contenu pour ses
+  branches de proposition ; elle écrit aussi, désormais, sur la branche de développement d'un projet
+  qui a un runtime, et nulle part ailleurs (amende D-016 : D-019). Aucune clé en écriture dans le
+  conteneur.
+- Q: Quelles limites, et Pono héberge-t-il des runtimes ? → A: Les runtimes tournent sur le serveur
+  de la personne, pas chez Pono : aucun paiement à l'usage dans cette phase ; le plafond de dépense
+  se tranchera le jour où Pono hébergera des runtimes. Limites : veille après 15 minutes sans
+  activité, 1 Gio de mémoire par runtime, 3 runtimes démarrés à la fois par organisation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Démarrer le runtime de développement d'un projet (Priority: P1)
@@ -74,7 +91,8 @@ branche de développement.
 5. **Given** une modification poussée dans la branche de développement par un autre moyen (poste
    local, autre outil), **When** elle arrive, **Then** le runtime la suit, comme dans Fluxio.
 6. **Given** la console, **When** la personne veut faire la même écriture sans agent, **Then** elle
-   le peut [NEEDS CLARIFICATION: par quel chemin la console offre-t-elle l'écriture de fichiers, alors que l'éditeur de code dans la console est hors périmètre et que le principe VIII interdit une capacité réservée à l'agent ?]
+   le peut depuis le projet : un chemin et un contenu (saisi ou déposé), ou la suppression d'un
+   fichier, avec les mêmes refus et la même sauvegarde que pour l'agent.
 
 ---
 
@@ -169,7 +187,10 @@ veille, avec un message clair.
 1. **Given** le nombre maximal de runtimes éveillés atteint, **When** la personne en réveille un de
    plus, **Then** Pono le dit et propose de mettre en veille le moins récemment utilisé.
 2. **Given** les limites en vigueur, **When** la personne ouvre la console, **Then** elle les voit
-   avec leur consommation. [NEEDS CLARIFICATION: quelles limites arrête-t-on pour cette phase (runtimes éveillés en même temps, mémoire par runtime, délai de veille), et un runtime hébergé par Pono — donc payé à l'usage — entre-t-il déjà dans cette phase ?]
+   avec leur consommation : runtimes démarrés sur 3, mémoire de 1 Gio par runtime, veille après
+   15 minutes.
+3. **Given** un runtime qui dépasse sa mémoire, **When** le serveur le constate, **Then** le runtime
+   est arrêté par le serveur et son état passe à « en échec » avec la raison.
 
 ---
 
@@ -203,8 +224,8 @@ veille, avec un message clair.
 - **FR-001**: Le système MUST permettre de demander, arrêter et consulter le runtime de
   développement d'un projet importé, depuis la console et depuis l'agent, avec le même résultat.
 - **FR-002**: Le runtime MUST tourner sur le serveur d'hébergement que la personne a relié à Pono, un
-  seul chemin (D-009) ; Pono ne l'héberge pas lui-même dans cette phase, sauf décision contraire à
-  la clarification de l'US6.
+  seul chemin (D-009) ; Pono ne l'héberge pas lui-même dans cette phase, et rien n'est payé à
+  l'usage.
 - **FR-003**: Les fichiers nécessaires au runtime MUST arriver dans le dépôt de la personne par une
   proposition sur la branche de développement, jamais sur la branche de production ; le projet
   reste reprenable sans Pono (principe V).
@@ -225,14 +246,17 @@ veille, avec un message clair.
   reflète la modification à chaud.
 - **FR-009**: Les écritures MUST être sauvegardées dans le dépôt, par lots, sur la branche de
   développement uniquement : après un court silence d'écriture, avant toute mise en veille ou arrêt,
-  et sur demande. [NEEDS CLARIFICATION: qui écrit dans le dépôt — l'app Pono, qui gagnerait le droit d'écrire le contenu du dépôt (amendement de D-016), ou le runtime lui-même, avec une clé propre au dépôt ?]
+  et sur demande. C'est l'app Pono qui écrit, avec ses droits actuels, sur la seule branche de
+  développement d'un projet qui a un runtime (D-019) ; le conteneur ne détient qu'une clé en lecture
+  seule, propre au dépôt.
 - **FR-010**: Le système MUST refuser, avec un code stable, toute écriture visant la branche de
   production, un chemin hors du projet, l'historique du dépôt, un fichier de secrets, ou dépassant
   la taille fixée.
 - **FR-011**: La sauvegarde MUST ne jamais réécrire l'historique de la branche ; un conflit avec une
   modification arrivée d'ailleurs est signalé, jamais écrasé.
 - **FR-012**: La console MUST offrir un chemin complet équivalent à l'écriture depuis l'agent
-  (principe VIII), dans la forme tranchée par la clarification de l'US2.
+  (principe VIII) : sur le projet, écrire un fichier (chemin et contenu, saisi ou déposé) et supprimer
+  un fichier, avec les mêmes refus, le même journal et la même sauvegarde. Ce n'est pas un éditeur.
 
 **Accès à l'adresse**
 
@@ -258,8 +282,10 @@ veille, avec un message clair.
 
 **Limites**
 
-- **FR-018**: Le système MUST appliquer les limites arrêtées à la clarification de l'US6 et les
-  montrer à la personne avec leur consommation.
+- **FR-018**: Le système MUST appliquer ces limites et les montrer avec leur consommation :
+  au plus 3 runtimes démarrés à la fois par organisation (au-delà, le démarrage est refusé avec un
+  code stable qui propose d'arrêter le moins récemment utilisé), 1 Gio de mémoire par runtime,
+  veille après 15 minutes sans requête ni écriture.
 
 **Transverses**
 

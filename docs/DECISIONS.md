@@ -289,6 +289,35 @@ suite de la phase 4.
 
 ---
 
+## D-019 — Le runtime de développement : une écriture bornée de plus, sur le serveur de la personne
+
+**Validé le 2026-09-26** par l'auteur (clarifications de `specs/004-dev-runtime`).
+
+**Tranché ainsi.**
+1. Pono écrit dans le dépôt d'un projet **sur sa seule branche de développement**, et seulement
+   quand ce projet a un runtime : les lots d'écritures de l'agent ou de la console y deviennent des
+   commits, jamais forcés. La branche de production reste hors d'atteinte, par le garde de
+   l'adaptateur comme par sa protection. Amende D-016 (« seule écriture hors de ses branches de
+   proposition ») ; aucune permission de plus pour l'app.
+2. Pour que le serveur de la personne récupère le code, Pono pose sur le dépôt une clé de
+   déploiement **en lecture seule** propre au runtime, et la retire avec lui.
+3. L'adaptateur d'hébergement gagne la gestion du runtime : créer, démarrer, arrêter et supprimer
+   **l'application du runtime**, et elle seule. Amende D-016 point 3.
+4. Les runtimes tournent sur le serveur de la personne. Pono n'héberge aucun runtime dans cette
+   phase ; rien n'est payé à l'usage. Limites appliquées : 3 runtimes démarrés par organisation,
+   1 Gio de mémoire chacun, veille après 15 minutes sans activité.
+5. La console écrit un fichier comme l'agent, par un formulaire minimal (principe VIII) ; ce n'est pas
+   un éditeur.
+
+**Pourquoi.** L'écriture directe dans le runtime est ce qui ramène le cycle à quelques secondes ; la
+sauvegarde dans le dépôt garde la vérité chez la personne (principe V). Garder l'écriture chez Pono
+évite une clé en écriture dans un conteneur exposé.
+
+**Ce que ça coûte.** Une écriture de plus, bornée à une branche ; une clé de déploiement par projet
+qui a un runtime ; le plafond de dépense reste à trancher avant que Pono héberge un runtime.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.
