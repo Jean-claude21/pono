@@ -11,7 +11,7 @@ Le portier (`.pono/runtime/gate.mjs`) écoute le port 3000 du conteneur. Tout ce
 | `PONO_RUNTIME_TOKEN` | secret partagé : `Bearer` du service, clé HMAC des tickets et du cookie |
 | `PONO_CONSOLE_URL` | où envoyer un visiteur sans cookie |
 | `PONO_PROJECT_ID` | projet, pour le lien d'ouverture |
-| `PONO_REPOSITORY`, `PONO_BRANCH` | dépôt et branche suivie |
+| `PONO_CLONE_URL`, `PONO_BRANCH` | adresse SSH du dépôt (donnée par le fournisseur de code) et branche suivie |
 | `PONO_DEPLOY_KEY_B64` | clé de déploiement **en lecture seule**, base64 sur une ligne |
 | `PONO_SLEEP_AFTER_SECONDS` | 900 |
 | `DATABASE_URL` | base de **développement** |

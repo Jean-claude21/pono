@@ -71,3 +71,16 @@ def test_stopped_and_failed_runtimes_do_not_count_against_the_limit() -> None:
     assert RuntimeState.STOPPED not in STARTED_STATES
     assert RuntimeState.FAILED not in STARTED_STATES
     assert RuntimeState.SLEEPING in STARTED_STATES
+
+
+# Also checked by the gate (apps/api/tests/gate/gate.test.mjs): both sides sign the same bytes.
+PYTHON_VECTOR = (
+    "eyJyIjoiMDE5OTAwMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDBhMDAxIiwiZSI6NDEwMjQ0NDgwMCwibiI6Im4xIn0"
+    ".5d3tNEL6EPLxWc-2pHBeUWXDll2XEMd_Ap3sd6a_GiY"
+)
+
+
+def test_the_ticket_format_is_the_one_the_gate_checks() -> None:
+    ticket = RuntimeTicket(RUNTIME, datetime.fromtimestamp(4102444800, UTC), "n1")
+
+    assert ticket.sign("vector-token") == PYTHON_VECTOR
