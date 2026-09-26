@@ -24,7 +24,10 @@ from pono_api.api.schemas import (
     Protection,
     Release,
     Repository,
+    Runtime,
+    RuntimeErrors,
     Workshop,
+    WriteResult,
 )
 from pono_api.application import journal
 from pono_api.application.actor import record_action, resolve_actor
@@ -36,6 +39,10 @@ from pono_api.application.refresh_project import Providers, refresh_project
 from pono_api.application.releases import evaluate_project, request_evaluation
 from pono_api.application.releases import list_releases as releases_of
 from pono_api.application.rollback_requests import ask_for_rollback
+from pono_api.application.runtime_writes import save_now
+from pono_api.application.runtime_writes import write_file as put_file
+from pono_api.application.runtimes import read_errors, read_runtime, request_runtime
+from pono_api.application.runtimes import stop_runtime as halt_runtime
 from pono_api.application.workshop import load_project, load_workshop, project_exists
 from pono_api.domain.agents import ACT_SCOPE, ALL_SCOPES, READ_SCOPE, Actor
 from pono_api.domain.projects import ProjectState
@@ -244,6 +251,90 @@ def create_tools_server(
             lambda: ask_for_rollback(sessions, token.principal, project_id, token.grant_id, author)
         )
         return {**request, "consoleUrl": f"{console}/workshop/projects/{project_id}"}
+
+    # --- development runtime (004) ------------------------------------------------------------
+
+    @server.tool(annotations=READ, structured_output=True)
+    async def get_runtime(project_id: UUID) -> Document:
+        """The project's development runtime: state, address, development branch, unsaved writes,
+        last save, conflicts, error count and limits. Opening the address is a member's browser
+        gesture (`openUrl`); the runtime never uses the production database."""
+
+        token = _caller()
+        runtime = await _run(lambda: read_runtime(sessions, token.principal, project_id))
+        return {
+            **_document(Runtime, runtime),
+            "openUrl": f"{console}/runtime/open?project={project_id}",
+        }
+
+    @server.tool(annotations=READ, structured_output=True)
+    async def read_runtime_errors(project_id: UUID) -> Document:
+        """Compilation and browser errors of the runtime, newest first, with file and line when
+        known, secrets masked. `live` is false when the runtime did not answer."""
+
+        token = _caller()
+        errors = await _run(lambda: read_errors(sessions, token.principal, providers, project_id))
+        return _document(RuntimeErrors, errors)
+
+    @server.tool(annotations=ACT, structured_output=True)
+    async def start_runtime(project_id: UUID) -> Document:
+        """Ask for the project's development runtime, or start it again. The first time, Pono
+        proposes the runtime's files on the development branch: a person merges that proposal."""
+
+        token = _caller(act=True)
+        author = await actor(token)
+        runtime = await _run(
+            lambda: request_runtime(sessions, token.principal, providers, project_id, author)
+        )
+        return _document(Runtime, runtime)
+
+    @server.tool(annotations=ACT, structured_output=True)
+    async def stop_runtime(project_id: UUID) -> Document:
+        """Stop the runtime; unsaved writes are saved to the development branch first."""
+
+        token = _caller(act=True)
+        author = await actor(token)
+        runtime = await _run(
+            lambda: halt_runtime(sessions, token.principal, providers, project_id, author)
+        )
+        return _document(Runtime, runtime)
+
+    @server.tool(annotations=ACT, structured_output=True)
+    async def write_file(project_id: UUID, path: str, content: str) -> Document:
+        """Write one file (UTF-8 text) into the running runtime: the screen updates in seconds.
+        It is saved to the development branch after a quiet minute, never to production."""
+
+        token = _caller(act=True)
+        author = await actor(token)
+        written = await _run(
+            lambda: put_file(
+                sessions, token.principal, providers, project_id, path, content.encode(), author
+            )
+        )
+        return _document(WriteResult, written)
+
+    @server.tool(annotations=ACT, structured_output=True)
+    async def delete_file(project_id: UUID, path: str) -> Document:
+        """Delete one file from the runtime; saved with the next batch like any write."""
+
+        token = _caller(act=True)
+        author = await actor(token)
+        written = await _run(
+            lambda: put_file(sessions, token.principal, providers, project_id, path, None, author)
+        )
+        return _document(WriteResult, written)
+
+    @server.tool(annotations=ACT, structured_output=True)
+    async def save_changes(project_id: UUID) -> Document:
+        """Save the runtime's pending writes to the development branch now."""
+
+        token = _caller(act=True)
+
+        async def run() -> object:
+            await save_now(sessions, token.principal, providers, project_id)
+            return await read_runtime(sessions, token.principal, project_id)
+
+        return _document(Runtime, await _run(run))
 
     return server
 
