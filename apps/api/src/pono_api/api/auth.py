@@ -17,7 +17,7 @@ from pono_api.errors import ApiError
 STATE_COOKIE = "pono_oauth_state"
 # Where to come back after sign-in, for a page that sent the person here (003: agent consent).
 RETURN_COOKIE = "pono_return_to"
-RETURN_PREFIXES = ("/workshop", "/oauth/consent")
+RETURN_PREFIXES = ("/workshop", "/oauth/consent", "/runtime/open")
 STATE_TTL_SECONDS = 600
 # Read by the console's language negotiation (Paraglide, `cookie` strategy).
 LOCALE_COOKIE = "pono_locale"

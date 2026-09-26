@@ -1,10 +1,13 @@
 """Coolify adapter for the hosting port (ported from KYA-Platform's Coolify adapter).
 
 It reads applications linked to a repository, their deployments, their previews, their status and
-their public address. Its one write brings production back to an earlier image (002 R-08, D-016);
-Pono never deploys new code through it.
+their public address. It writes twice: bringing production back to an earlier image (002 R-08,
+D-016), and the development runtime's own application — create, start, stop, delete — in its own
+"Pono runtimes" project (004, D-019). It never deploys a project's production through it.
 """
 
+import re
+import secrets
 from urllib.parse import quote, urlsplit
 
 import httpx
@@ -13,9 +16,14 @@ from pono_api.application.ports import (
     DeploymentRecord,
     DetectedEnvironment,
     HostedEnvironment,
+    HostRuntimeStatus,
     KeyUse,
     PreviewState,
+    ProviderUnavailableError,
     RollbackUnsupportedError,
+    RuntimeHandle,
+    RuntimeHostError,
+    RuntimeSpec,
 )
 from pono_api.domain.projects import DeploymentStatus, EnvironmentKind, ResourceStatus
 from pono_api.domain.quotas import QuotaReading
@@ -207,5 +215,153 @@ class CoolifyHosting:
         )
         return text(as_object(queued), "deployment_uuid") or target.commit_sha
 
+    # --- the runtime's application, and nothing else (004 research R-02, D-019) -----------------
 
-__all__ = ["CoolifyHosting", "deployment_status", "public_url"]
+    async def create_runtime(self, spec: RuntimeSpec) -> RuntimeHandle:
+        server = await self._runtime_server(spec.near_ref)
+        project = await self._runtime_project()
+        key = as_object(
+            await self._client.post(
+                "/security/keys",
+                "create_runtime_key",
+                {
+                    "name": f"pono-runtime-{spec.name}",
+                    "description": "Read-only deploy key of a Pono development runtime",
+                    "private_key": spec.private_key,
+                },
+            )
+        )
+        key_ref = text(key, "uuid")
+        if key_ref is None:
+            raise ProviderUnavailableError("coolify returned no key")
+        url = runtime_url(spec.name, server)
+        created = as_object(
+            await self._client.post(
+                "/applications/private-deploy-key",
+                "create_runtime",
+                {
+                    "project_uuid": project,
+                    "server_uuid": text(server, "uuid"),
+                    "environment_name": RUNTIME_ENVIRONMENT,
+                    "private_key_uuid": key_ref,
+                    "git_repository": spec.clone_url,
+                    "git_branch": spec.branch,
+                    "build_pack": "dockerfile",
+                    "dockerfile_location": RUNTIME_DOCKERFILE,
+                    "ports_exposes": "3000",
+                    "domains": url,
+                    "name": f"pono-runtime-{spec.name}",
+                    "description": "Pono development runtime",
+                    "limits_memory": spec.memory,
+                    "is_auto_deploy_enabled": False,
+                    "instant_deploy": False,
+                },
+            )
+        )
+        reference = text(created, "uuid")
+        if reference is None:
+            raise ProviderUnavailableError("coolify returned no application")
+        for key_name, value in sorted(spec.variables.items()):
+            await self._client.post(
+                f"/applications/{quote(reference)}/envs",
+                "set_runtime_variable",
+                {"key": key_name, "value": value, "is_preview": False, "is_literal": True},
+            )
+        return RuntimeHandle(ref=reference, url=url, key_ref=key_ref)
+
+    async def start_runtime(self, ref: str) -> None:
+        await self._client.post(f"/applications/{quote(ref)}/start", "start_runtime")
+
+    async def stop_runtime(self, ref: str) -> None:
+        await self._client.post(f"/applications/{quote(ref)}/stop", "stop_runtime")
+
+    async def delete_runtime(self, ref: str, key_ref: str | None) -> None:
+        await self._client.delete(
+            f"/applications/{quote(ref)}?delete_configurations=true&delete_volumes=true"
+            "&docker_cleanup=true",
+            "delete_runtime",
+        )
+        if key_ref:
+            await self._client.delete(f"/security/keys/{quote(key_ref)}", "delete_runtime_key")
+
+    async def runtime_status(self, ref: str) -> HostRuntimeStatus:
+        application = await self._client.get(
+            f"/applications/{quote(ref)}", "read_runtime", allow_missing=True
+        )
+        if application is None:
+            return "missing"
+        status = (text(as_object(application), "status") or "").lower()
+        if status.startswith("running"):
+            return "running"
+        history = as_object(
+            await self._client.get(
+                f"/deployments/applications/{quote(ref)}?skip=0&take=1", "read_runtime_deployments"
+            )
+        )
+        latest = next(iter(as_list(history.get("deployments"))), None)
+        deployment = deployment_status(text(as_object(latest), "status")) if latest else None
+        if deployment is DeploymentStatus.BUILDING or status.startswith(("starting", "restarting")):
+            return "starting"
+        if deployment is DeploymentStatus.FAILED:
+            return "failed"
+        return "stopped"
+
+    async def _runtime_server(self, near_ref: str | None) -> JsonObject:
+        servers = [
+            server
+            for server in map(
+                as_object, as_list(await self._client.get("/servers", "list_servers"))
+            )
+            if as_object(server.get("settings")).get("is_usable", True) is not False
+        ]
+        if near_ref is not None:
+            application = as_object(
+                await self._client.get(
+                    f"/applications/{quote(near_ref)}", "read_application", allow_missing=True
+                )
+            )
+            near = text(as_object(as_object(application.get("destination")).get("server")), "uuid")
+            chosen = [server for server in servers if text(server, "uuid") == near]
+            if chosen:
+                return chosen[0]
+        if len(servers) != 1:
+            raise RuntimeHostError("runtime.server_ambiguous")
+        return servers[0]
+
+    async def _runtime_project(self) -> str:
+        for project in map(
+            as_object, as_list(await self._client.get("/projects", "list_projects"))
+        ):
+            if text(project, "name") == RUNTIME_PROJECT and (uuid := text(project, "uuid")):
+                return uuid
+        created = as_object(
+            await self._client.post(
+                "/projects",
+                "create_runtime_project",
+                {"name": RUNTIME_PROJECT, "description": "Development runtimes run by Pono"},
+            )
+        )
+        uuid = text(created, "uuid")
+        if uuid is None:
+            raise ProviderUnavailableError("coolify returned no project")
+        return uuid
+
+
+RUNTIME_PROJECT = "Pono runtimes"
+RUNTIME_ENVIRONMENT = "production"
+RUNTIME_DOCKERFILE = "/.pono/runtime/Dockerfile"
+
+
+def runtime_url(name: str, server: JsonObject) -> str:
+    """`https://<name>-dev-<suffix>.<wildcard domain>`, or `<ip>.sslip.io` without one."""
+
+    wildcard = text(as_object(server.get("settings")), "wildcard_domain")
+    if wildcard:
+        domain = urlsplit(wildcard if "//" in wildcard else f"//{wildcard}").hostname or ""
+    else:
+        domain = f"{text(server, 'ip') or '127.0.0.1'}.sslip.io"
+    slug = re.sub(r"[^a-z0-9-]+", "-", name.lower()).strip("-")[:40] or "project"
+    return f"https://{slug}-dev-{secrets.token_hex(3)}.{domain}"
+
+
+__all__ = ["CoolifyHosting", "deployment_status", "public_url", "runtime_url"]

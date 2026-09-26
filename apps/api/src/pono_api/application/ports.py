@@ -164,9 +164,72 @@ class CodeHost(Protocol):
     ) -> ProtectionStatus: ...
 
     async def apply_protection(self, installation_id: str, repository: str, branch: str) -> None:
-        """Pono's only write outside its proposal branches (002 FR-015). Raises
-        `ProtectionRefusedError` when the code host refuses."""
+        """Protect a production branch (002 FR-015). Raises `ProtectionRefusedError` when the
+        code host refuses."""
         ...
+
+    # --- development runtime (004) ------------------------------------------------------------
+
+    async def propose_files(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        base: str,
+        branch: str,
+        files: dict[str, str],
+        title: str,
+        body: str,
+    ) -> str:
+        """Commit several files on a proposal branch and open one pull request towards `base`."""
+        ...
+
+    async def branch_head(self, installation_id: str, repository: str, branch: str) -> str: ...
+
+    def clone_url(self, repository: str) -> str:
+        """The address a deploy key clones the repository from."""
+        ...
+
+    async def commit_to_development(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        branch: str,
+        expected_head: str | None,
+        changes: list[FileChange],
+        message: str,
+    ) -> DevelopmentCommit:
+        """The third bounded write (D-019): one commit on the named development branch, never the
+        default branch, never forced. Paths the branch changed since `expected_head` are returned
+        as conflicts and left out of the commit."""
+        ...
+
+    async def add_deploy_key(
+        self, installation_id: str, repository: str, *, title: str, public_key: str
+    ) -> str:
+        """A read-only deploy key for the runtime; returns its reference."""
+        ...
+
+    async def remove_deploy_key(
+        self, installation_id: str, repository: str, key_ref: str
+    ) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class FileChange:
+    path: str
+    content: bytes | None
+    """None deletes the file."""
+
+
+@dataclass(frozen=True, slots=True)
+class DevelopmentCommit:
+    commit_sha: str | None
+    """None when every change was left out as a conflict."""
+    head: str
+    """The branch head after the write."""
+    conflicts: tuple[str, ...] = ()
 
 
 # --- Hosting and database ---------------------------------------------------------------------
@@ -259,6 +322,24 @@ class DatabaseSnapshot:
     branches: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True, slots=True)
+class DevelopmentDatabase:
+    """Where a runtime connects (004 research R-03). The address carries a password: it goes to
+    the runtime's host and is never stored by Pono."""
+
+    url: str
+    host: str
+    production_host: str | None
+
+
+class DevelopmentDatabaseError(RuntimeError):
+    """The development branch is missing, or is the production branch; `code` is stable."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
 class DatabaseProvider(Protocol):
     async def verify(self) -> str: ...
 
@@ -268,6 +349,112 @@ class DatabaseProvider(Protocol):
 
     async def read_quotas(self, ref: str) -> list[QuotaReading]:
         """Consumption of one database project in its current billing period."""
+
+    async def development_target(
+        self, ref: str, development_branch: str, production_branch: str | None
+    ) -> DevelopmentDatabase:
+        """The development branch's address; `DevelopmentDatabaseError` when it is missing or is
+        the production branch."""
+        ...
+
+
+# --- Development runtime (004) ----------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeSpec:
+    """What the host needs to create a project's runtime."""
+
+    name: str
+    clone_url: str
+    """The repository's SSH address, as the code host gives it."""
+    branch: str
+    private_key: str
+    """The read-only deploy key's private half; handed to the host, never stored by Pono."""
+    variables: dict[str, str]
+    memory: str
+    near_ref: str | None = None
+    """An application of the project the host already runs: its server is preferred."""
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeHandle:
+    ref: str
+    url: str
+    key_ref: str
+
+
+HostRuntimeStatus = Literal["starting", "running", "stopped", "failed", "missing"]
+
+
+class RuntimeHostError(RuntimeError):
+    """The host cannot create the runtime as asked; `code` is stable (e.g. server_ambiguous)."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
+class RuntimeHost(Protocol):
+    """The runtime's application at the person's host, and nothing else (D-019)."""
+
+    async def create_runtime(self, spec: RuntimeSpec) -> RuntimeHandle: ...
+
+    async def start_runtime(self, ref: str) -> None: ...
+
+    async def stop_runtime(self, ref: str) -> None: ...
+
+    async def delete_runtime(self, ref: str, key_ref: str | None) -> None: ...
+
+    async def runtime_status(self, ref: str) -> HostRuntimeStatus: ...
+
+
+@dataclass(frozen=True, slots=True)
+class GateStatus:
+    """What the runtime's gate says about itself."""
+
+    awake: bool
+    last_activity_at: datetime | None
+    head: str | None
+    conflicts: tuple[str, ...]
+    errors: tuple[dict[str, object], ...]
+    database_host: str | None
+
+
+class RuntimeUnreachableError(RuntimeError):
+    """The gate did not answer in a trustworthy way."""
+
+
+class GateRefusedError(RuntimeError):
+    """The gate refused a write; `code` is stable."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeCredentials:
+    token: str
+    """Shared with the gate through the host's variables; stored by Pono only sealed."""
+    sealed_token: bytes
+    private_key: str
+    public_key: str
+
+
+class RuntimeGate(Protocol):
+    """Talks to a runtime's gate. The token is unsealed inside, never handed to the application
+    once stored."""
+
+    def new_credentials(self) -> RuntimeCredentials: ...
+
+    def ticket(self, sealed_token: bytes, runtime_id: UUID) -> str: ...
+
+    async def status(self, url: str, sealed_token: bytes) -> GateStatus: ...
+
+    async def write(
+        self, url: str, sealed_token: bytes, path: str, content: bytes | None
+    ) -> None: ...
 
 
 # --- Manifests --------------------------------------------------------------------------------
@@ -423,6 +610,10 @@ class ProviderFactory(Protocol):
 
     def database(self, connection: StoredConnection, on_use: KeyUse) -> DatabaseProvider: ...
 
+    def runtime_host(self, connection: StoredConnection, on_use: KeyUse) -> RuntimeHost | None:
+        """The connection's runtime host, or None when its provider cannot run one (004)."""
+        ...
+
     def probe_hosting(
         self, provider: str, authorization: str, endpoint: str | None
     ) -> HostingProvider: ...
@@ -447,7 +638,14 @@ __all__ = [
     "DeploymentRecord",
     "DetectedEnvironment",
     "Detection",
+    "DevelopmentCommit",
+    "DevelopmentDatabase",
+    "DevelopmentDatabaseError",
+    "FileChange",
     "ForbiddenWriteError",
+    "GateRefusedError",
+    "GateStatus",
+    "HostRuntimeStatus",
     "HostedEnvironment",
     "HostingProvider",
     "KeyUse",
@@ -468,5 +666,12 @@ __all__ = [
     "Recipient",
     "RepositoryInfo",
     "RollbackUnsupportedError",
+    "RuntimeCredentials",
+    "RuntimeGate",
+    "RuntimeHandle",
+    "RuntimeHost",
+    "RuntimeHostError",
+    "RuntimeSpec",
+    "RuntimeUnreachableError",
     "StoredConnection",
 ]

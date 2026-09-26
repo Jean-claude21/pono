@@ -155,6 +155,14 @@ async def test_no_tool_approves_a_release_or_runs_a_rollback(
         "evaluate_release",
         "protect_production",
         "request_rollback",
+        # 004: the development runtime.
+        "get_runtime",
+        "read_runtime_errors",
+        "start_runtime",
+        "stop_runtime",
+        "write_file",
+        "delete_file",
+        "save_changes",
     }
     for name, tool in tools.items():
         annotations = tool["annotations"]
@@ -164,6 +172,11 @@ async def test_no_tool_approves_a_release_or_runs_a_rollback(
             "evaluate_release",
             "protect_production",
             "request_rollback",
+            "start_runtime",
+            "stop_runtime",
+            "write_file",
+            "delete_file",
+            "save_changes",
         }
         assert annotations["readOnlyHint"] is (not acts), name  # type: ignore[index]
         assert annotations["destructiveHint"] is acts, name  # type: ignore[index]

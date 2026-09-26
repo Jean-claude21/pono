@@ -47,9 +47,14 @@ class KeyedClient:
         *,
         allow_missing: bool = False,
     ) -> object | None:
-        """POST, for the one write a hosting adapter makes: bringing production back (002 R-08)."""
+        """POST: bringing production back (002 R-08), and the runtime's application (004)."""
 
         return await self._call("POST", path, action, payload, allow_missing=allow_missing)
+
+    async def delete(self, path: str, action: str) -> object | None:
+        """DELETE, for the runtime's own application and key only (004, D-019)."""
+
+        return await self._call("DELETE", path, action, allow_missing=True)
 
     async def _call(
         self,
@@ -82,6 +87,8 @@ class KeyedClient:
             raise ProviderUnavailableError(
                 f"{self._provider} {action} answered {response.status_code}"
             )
+        if not response.content:
+            return None
         try:
             return cast(object, response.json())
         except ValueError as error:

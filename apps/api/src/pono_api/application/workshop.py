@@ -50,6 +50,9 @@ _RELEASE_VERDICTS = (
     "project.unprotected",
     "project.protection_unavailable",
     "release.awaiting_approval",
+    # Development runtime (004): what the person must look at.
+    "runtime.failed",
+    "runtime.save_conflict",
 )
 _NEVER = datetime.min.replace(tzinfo=UTC)
 _KIND_ORDER = {EnvironmentKind.PRODUCTION: 0, EnvironmentKind.DEVELOPMENT: 1}
@@ -121,6 +124,17 @@ async def _load(session: AsyncSession, project_id: UUID | None) -> list[Payload]
     requests = await pending_requests(session, ids)
     for project_id in requests:
         release["codes"][project_id].add("rollback.requested")
+    for row in await session.execute(
+        text(
+            "SELECT project_id, state, cardinality(conflicts) AS conflicts FROM runtimes "
+            "WHERE project_id = ANY(:ids)"
+        ),
+        {"ids": ids},
+    ):
+        if row.state == "failed":
+            release["codes"][row.project_id].add("runtime.failed")
+        if row.conflicts:
+            release["codes"][row.project_id].add("runtime.save_conflict")
     return [
         {
             **_project(

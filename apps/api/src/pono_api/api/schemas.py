@@ -156,6 +156,88 @@ class AgentGrant(ApiModel):
     last_used_at: datetime | None
 
 
+# --- development runtime (004) -------------------------------------------------------------------
+
+RuntimeStateName = Literal[
+    "awaiting_files",
+    "preparing",
+    "starting",
+    "ready",
+    "sleeping",
+    "stopped",
+    "failed",
+    "unreachable",
+]
+
+
+class RuntimeSave(ApiModel):
+    commit_sha: str
+    saved_at: datetime
+    actor: str
+    files: int
+
+
+class RuntimeLimits(ApiModel):
+    started: int
+    max_started: int
+    memory: str
+    sleep_after_minutes: int
+
+
+class Runtime(ApiModel):
+    id: UUID
+    state: RuntimeStateName
+    reason: str | None
+    url: str | None
+    proposal_url: str | None
+    development_branch: str
+    awake: bool
+    last_activity_at: datetime | None
+    pending_writes: int
+    conflicts: list[str]
+    error_count: int
+    last_save: RuntimeSave | None
+    limits: RuntimeLimits
+
+
+class RuntimeReport(ApiModel):
+    source: Literal["compile", "browser"]
+    message: str
+    file: str | None = None
+    line: int | None = None
+    stack: str | None = None
+    count: int
+    first_at: datetime | None = None
+    last_at: datetime | None = None
+    resolved: bool
+
+
+class RuntimeErrors(ApiModel):
+    errors: list[RuntimeReport]
+    live: bool = Field(description="False when the runtime did not answer: the last known errors.")
+
+
+class FileWrite(ApiModel):
+    path: str = Field(min_length=1, max_length=512)
+    content: str | None = Field(None, description="UTF-8 text.")
+    content_base64: str | None = Field(None, description="Any bytes, for a dropped file.")
+
+
+class WriteResult(ApiModel):
+    path: str
+    pending_writes: int
+
+
+class TicketRequest(ApiModel):
+    return_: str | None = Field(
+        None, alias="return", description="A local path of the application."
+    )
+
+
+class TicketUrl(ApiModel):
+    url: str
+
+
 # --- guarded release (002) ------------------------------------------------------------------------
 
 
@@ -257,6 +339,7 @@ __all__ = [
     "ConsentRequest",
     "Deployment",
     "Environment",
+    "FileWrite",
     "Finding",
     "GuardResult",
     "ImportRequest",
@@ -270,6 +353,14 @@ __all__ = [
     "Repository",
     "Rollback",
     "RollbackRequest",
+    "Runtime",
+    "RuntimeErrors",
+    "RuntimeLimits",
+    "RuntimeReport",
+    "RuntimeSave",
+    "TicketRequest",
+    "TicketUrl",
     "Verdict",
     "Workshop",
+    "WriteResult",
 ]

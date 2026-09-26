@@ -451,6 +451,45 @@
         "title": "Environment",
         "type": "object"
       },
+      "FileWrite": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "UTF-8 text.",
+            "title": "Content"
+          },
+          "contentBase64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Any bytes, for a dropped file.",
+            "title": "Contentbase64"
+          },
+          "path": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileWrite",
+        "type": "object"
+      },
       "Finding": {
         "properties": {
           "code": {
@@ -1418,6 +1457,326 @@
         "title": "RollbackRequest",
         "type": "object"
       },
+      "Runtime": {
+        "properties": {
+          "awake": {
+            "title": "Awake",
+            "type": "boolean"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "developmentBranch": {
+            "title": "Developmentbranch",
+            "type": "string"
+          },
+          "errorCount": {
+            "title": "Errorcount",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lastActivityAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastactivityat"
+          },
+          "lastSave": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuntimeSave"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RuntimeLimits"
+          },
+          "pendingWrites": {
+            "title": "Pendingwrites",
+            "type": "integer"
+          },
+          "proposalUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposalurl"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "enum": [
+              "awaiting_files",
+              "preparing",
+              "starting",
+              "ready",
+              "sleeping",
+              "stopped",
+              "failed",
+              "unreachable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "reason",
+          "url",
+          "proposalUrl",
+          "developmentBranch",
+          "awake",
+          "lastActivityAt",
+          "pendingWrites",
+          "conflicts",
+          "errorCount",
+          "lastSave",
+          "limits"
+        ],
+        "title": "Runtime",
+        "type": "object"
+      },
+      "RuntimeErrors": {
+        "properties": {
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RuntimeReport"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "live": {
+            "description": "False when the runtime did not answer: the last known errors.",
+            "title": "Live",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "errors",
+          "live"
+        ],
+        "title": "RuntimeErrors",
+        "type": "object"
+      },
+      "RuntimeLimits": {
+        "properties": {
+          "maxStarted": {
+            "title": "Maxstarted",
+            "type": "integer"
+          },
+          "memory": {
+            "title": "Memory",
+            "type": "string"
+          },
+          "sleepAfterMinutes": {
+            "title": "Sleepafterminutes",
+            "type": "integer"
+          },
+          "started": {
+            "title": "Started",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "started",
+          "maxStarted",
+          "memory",
+          "sleepAfterMinutes"
+        ],
+        "title": "RuntimeLimits",
+        "type": "object"
+      },
+      "RuntimeReport": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "firstAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firstat"
+          },
+          "lastAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastat"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          },
+          "source": {
+            "enum": [
+              "compile",
+              "browser"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "stack": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stack"
+          }
+        },
+        "required": [
+          "source",
+          "message",
+          "count",
+          "resolved"
+        ],
+        "title": "RuntimeReport",
+        "type": "object"
+      },
+      "RuntimeSave": {
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "commitSha": {
+            "title": "Commitsha",
+            "type": "string"
+          },
+          "files": {
+            "title": "Files",
+            "type": "integer"
+          },
+          "savedAt": {
+            "format": "date-time",
+            "title": "Savedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commitSha",
+          "savedAt",
+          "actor",
+          "files"
+        ],
+        "title": "RuntimeSave",
+        "type": "object"
+      },
+      "TicketRequest": {
+        "properties": {
+          "return": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A local path of the application.",
+            "title": "Return"
+          }
+        },
+        "title": "TicketRequest",
+        "type": "object"
+      },
+      "TicketUrl": {
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "TicketUrl",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1521,6 +1880,24 @@
           "verdicts"
         ],
         "title": "Workshop",
+        "type": "object"
+      },
+      "WriteResult": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "pendingWrites": {
+            "title": "Pendingwrites",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "pendingWrites"
+        ],
+        "title": "WriteResult",
         "type": "object"
       }
     }
@@ -3274,6 +3651,511 @@
         "summary": "Decide Rollback",
         "tags": [
           "agents"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/runtime": {
+      "delete": {
+        "operationId": "stop_api_v1_projects__project_id__runtime_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Runtime"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop",
+        "tags": [
+          "runtime"
+        ]
+      },
+      "get": {
+        "operationId": "get_runtime_api_v1_projects__project_id__runtime_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Runtime"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Runtime",
+        "tags": [
+          "runtime"
+        ]
+      },
+      "post": {
+        "operationId": "start_runtime_api_v1_projects__project_id__runtime_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Runtime"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Runtime",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/runtime/errors": {
+      "get": {
+        "operationId": "errors_api_v1_projects__project_id__runtime_errors_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeErrors"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Errors",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/runtime/files": {
+      "delete": {
+        "operationId": "delete_file_api_v1_projects__project_id__runtime_files_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "maxLength": 512,
+              "minLength": 1,
+              "title": "Path",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete File",
+        "tags": [
+          "runtime"
+        ]
+      },
+      "put": {
+        "operationId": "put_file_api_v1_projects__project_id__runtime_files_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put File",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/runtime/save": {
+      "post": {
+        "operationId": "save_api_v1_projects__project_id__runtime_save_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Runtime"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save",
+        "tags": [
+          "runtime"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/runtime/ticket": {
+      "post": {
+        "description": "A one-time pass for a signed-in member's browser (research R-04).",
+        "operationId": "ticket_api_v1_projects__project_id__runtime_ticket_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/TicketRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketUrl"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ticket",
+        "tags": [
+          "runtime"
         ]
       }
     },

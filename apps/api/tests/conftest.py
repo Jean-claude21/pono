@@ -24,6 +24,9 @@ from tests.fakes import World, make_world
 
 API_ROOT = Path(__file__).resolve().parents[1]
 TABLES_TO_CLEAN = (
+    "runtime_writes",
+    "runtime_saves",
+    "runtimes",
     "rollback_requests",
     "agent_tokens",
     "agent_grants",

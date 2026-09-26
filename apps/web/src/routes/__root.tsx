@@ -37,7 +37,8 @@ function Document({ children }: Readonly<{ children: ReactNode }>) {
   const inConsole = useRouterState({
     select: (state) =>
       state.location.pathname.startsWith("/workshop") ||
-      state.location.pathname.startsWith("/oauth"),
+      state.location.pathname.startsWith("/oauth") ||
+      state.location.pathname.startsWith("/runtime"),
   });
   return (
     <html lang={getLocale()} data-theme={inConsole ? "console" : undefined}>

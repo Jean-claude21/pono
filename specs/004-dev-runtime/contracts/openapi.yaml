@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: Pono API — phase 4 additions
+  version: 0.4.0
+  description: >
+    Console routes added by 004-dev-runtime. Merged over the phase 1 to 3 contracts by the contract
+    check. The protocol between the service and the runtime's gate is described in runtime-gate.md.
+servers:
+  - url: /api/v1
+security:
+  - session: []
+
+paths:
+  /projects/{projectId}/runtime:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: The project's development runtime, its limits and its unsaved work.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Runtime" }
+        "404": { $ref: "#/components/responses/Error" }
+    post:
+      summary: Ask for the runtime, or start it again once stopped.
+      responses:
+        "202":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Runtime" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Stop the runtime; unsaved writes are saved first.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Runtime" }
+        "404": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/runtime/files:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      summary: Write one file into the runtime; it is saved to the development branch with the next batch.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path]
+              properties:
+                path: { type: string }
+                content: { type: string, description: UTF-8 text. }
+                contentBase64: { type: string, description: Any bytes, for a dropped file. }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteResult" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Delete one file from the runtime.
+      parameters:
+        - { name: path, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteResult" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/runtime/save:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Save the pending writes now, to the development branch.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Runtime" }
+        "404": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/runtime/errors:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Compilation and browser errors, as the runtime reports them now (or last known).
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [errors, live]
+                properties:
+                  errors:
+                    type: array
+                    items: { $ref: "#/components/schemas/RuntimeError" }
+                  live: { type: boolean, description: False when the runtime did not answer. }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/runtime/ticket:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: A one-time ticket to open the runtime in the browser of a signed-in member.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                return: { type: string, description: A local path of the application. }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url: { type: string }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+
+components:
+  schemas:
+    Runtime:
+      type: object
+      required: [id, state, developmentBranch, awake, pendingWrites, conflicts, limits]
+      properties:
+        id: { type: string, format: uuid }
+        state:
+          type: string
+          enum: [awaiting_files, preparing, starting, ready, sleeping, stopped, failed, unreachable]
+        reason: { type: [string, "null"] }
+        url: { type: [string, "null"] }
+        proposalUrl: { type: [string, "null"] }
+        developmentBranch: { type: string }
+        awake: { type: boolean }
+        lastActivityAt: { type: [string, "null"], format: date-time }
+        pendingWrites: { type: integer }
+        conflicts:
+          type: array
+          items: { type: string }
+        errorCount: { type: integer }
+        lastSave:
+          oneOf:
+            - $ref: "#/components/schemas/RuntimeSave"
+            - type: "null"
+        limits: { $ref: "#/components/schemas/RuntimeLimits" }
+    RuntimeSave:
+      type: object
+      required: [commitSha, savedAt, actor, files]
+      properties:
+        commitSha: { type: string }
+        savedAt: { type: string, format: date-time }
+        actor: { type: string }
+        files: { type: integer }
+    RuntimeLimits:
+      type: object
+      required: [started, maxStarted, memory, sleepAfterMinutes]
+      properties:
+        started: { type: integer }
+        maxStarted: { type: integer }
+        memory: { type: string }
+        sleepAfterMinutes: { type: integer }
+    RuntimeError:
+      type: object
+      required: [source, message, count, resolved]
+      properties:
+        source: { type: string, enum: [compile, browser] }
+        message: { type: string }
+        file: { type: [string, "null"] }
+        line: { type: [integer, "null"] }
+        stack: { type: [string, "null"] }
+        count: { type: integer }
+        firstAt: { type: [string, "null"], format: date-time }
+        lastAt: { type: [string, "null"], format: date-time }
+        resolved: { type: boolean }
+    WriteResult:
+      type: object
+      required: [path, pendingWrites]
+      properties:
+        path: { type: string }
+        pendingWrites: { type: integer }

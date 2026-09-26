@@ -52,6 +52,11 @@ jobs:
       - run: uv run ruff format --check apps/api
       - run: uv run mypy
       - run: uv run pytest
+      # The development runtime's gate runs in the person's container: Node built-ins only (004).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test apps/api/tests/gate/gate.test.mjs
       # The SDK must match the service: a changed contract without a regenerated SDK fails here.
       - run: uv run python apps/api/scripts/export_openapi.py /tmp/openapi.json
       - run: diff /tmp/openapi.json packages/sdk/openapi.json

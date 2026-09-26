@@ -86,6 +86,11 @@ const VERDICTS: Record<string, [(input: { name: string }) => string, () => strin
   ],
   "rollback.failed": [m.verdict_rollback_failed, m.verdict_rollback_failed_body],
   "rollback.requested": [m.verdict_rollback_requested, m.verdict_rollback_requested_body],
+  "runtime.failed": [m.verdict_runtime_failed, m.verdict_runtime_failed_body],
+  "runtime.save_conflict": [
+    m.verdict_runtime_save_conflict,
+    m.verdict_runtime_save_conflict_body,
+  ],
 };
 
 // Decisions waiting for the person wash green; everything else is a failure to look at.

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from pono_api.application.ports import (
     ChangedFile,
@@ -12,7 +13,15 @@ from pono_api.application.ports import (
     DatabaseSnapshot,
     DeploymentRecord,
     DetectedEnvironment,
+    DevelopmentCommit,
+    DevelopmentDatabase,
+    DevelopmentDatabaseError,
+    FileChange,
+    ForbiddenWriteError,
+    GateRefusedError,
+    GateStatus,
     HostedEnvironment,
+    HostRuntimeStatus,
     KeyUse,
     PreviewState,
     ProposalState,
@@ -23,6 +32,11 @@ from pono_api.application.ports import (
     Recipient,
     RepositoryInfo,
     RollbackUnsupportedError,
+    RuntimeCredentials,
+    RuntimeHandle,
+    RuntimeHostError,
+    RuntimeSpec,
+    RuntimeUnreachableError,
     StoredConnection,
 )
 from pono_api.application.refresh_project import Providers
@@ -67,6 +81,14 @@ class FakeCodeHost:
     protection_refusal: str | None = None
     protected: list[tuple[str, str]] = field(default_factory=list)
     checks_unavailable: bool = False
+    # Development runtime (004): proposals of several files, heads, commits, deploy keys.
+    file_proposals: list[tuple[str, str, str, dict[str, str]]] = field(default_factory=list)
+    heads: dict[tuple[str, str], str] = field(default_factory=dict)
+    moved_paths: set[str] = field(default_factory=set)
+    development_commits: list[tuple[str, str, str | None, list[FileChange], str]] = field(
+        default_factory=list
+    )
+    deploy_keys: dict[str, tuple[str, str]] = field(default_factory=dict)
 
     def _answer(self) -> None:
         if self.unavailable:
@@ -170,6 +192,67 @@ class FakeCodeHost:
         self.protected.append((repository, branch))
         self.protection[repository] = ProtectionStatus.PROTECTED
 
+    async def propose_files(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        base: str,
+        branch: str,
+        files: dict[str, str],
+        title: str,
+        body: str,
+    ) -> str:
+        self._answer()
+        self.file_proposals.append((repository, base, branch, dict(files)))
+        return f"https://code.test/{repository}/pull/{100 + len(self.file_proposals)}"
+
+    async def branch_head(self, installation_id: str, repository: str, branch: str) -> str:
+        self._answer()
+        return self.heads.get((repository, branch), "head-0")
+
+    def clone_url(self, repository: str) -> str:
+        return f"git@code.test:{repository}.git"
+
+    async def commit_to_development(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        branch: str,
+        expected_head: str | None,
+        changes: list[FileChange],
+        message: str,
+    ) -> DevelopmentCommit:
+        self._answer()
+        default = next(
+            (r.default_branch for r in self.repositories if r.full_name == repository), ""
+        )
+        if branch == default or branch.startswith("pono/"):
+            raise ForbiddenWriteError(branch)
+        head = self.heads.get((repository, branch), "head-0")
+        moved = self.moved_paths if expected_head != head else set()
+        conflicts = tuple(sorted({c.path for c in changes} & moved))
+        kept = [c for c in changes if c.path not in conflicts]
+        if not kept:
+            return DevelopmentCommit(None, head, conflicts)
+        self.development_commits.append((repository, branch, expected_head, kept, message))
+        commit = f"commit-{len(self.development_commits)}"
+        self.heads[(repository, branch)] = commit
+        return DevelopmentCommit(commit, commit, conflicts)
+
+    async def add_deploy_key(
+        self, installation_id: str, repository: str, *, title: str, public_key: str
+    ) -> str:
+        self._answer()
+        reference = str(len(self.deploy_keys) + 1)
+        self.deploy_keys[reference] = (repository, public_key)
+        return reference
+
+    async def remove_deploy_key(self, installation_id: str, repository: str, key_ref: str) -> None:
+        self._answer()
+        self.deploy_keys.pop(key_ref, None)
+
     def check_of(self, head_sha: str) -> CheckState | None:
         """The last state Pono published for a commit, as the code host would show it."""
         states = [state for _, sha, state in self.checks if sha == head_sha]
@@ -232,6 +315,9 @@ class FakeDatabase:
     projects: dict[str, str] = field(default_factory=dict)
     refuse: bool = False
     quotas: dict[str, list[QuotaReading]] = field(default_factory=dict)
+    branch_hosts: dict[str, str] = field(
+        default_factory=lambda: {"main": "ep-main.db.test", "dev": "ep-dev.db.test"}
+    )
 
     async def read_quotas(self, ref: str) -> list[QuotaReading]:
         return list(self.quotas.get(ref, []))
@@ -248,6 +334,116 @@ class FakeDatabase:
         if ref in self.projects.values():
             return DatabaseSnapshot(status=ResourceStatus.FOUND, branches=("main", "dev"))
         return DatabaseSnapshot(status=ResourceStatus.MISSING)
+
+    async def development_target(
+        self, ref: str, development_branch: str, production_branch: str | None
+    ) -> DevelopmentDatabase:
+        if development_branch == production_branch:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        host = self.branch_hosts.get(development_branch)
+        if host is None:
+            raise DevelopmentDatabaseError("runtime.database_missing")
+        production = self.branch_hosts.get(production_branch or "")
+        if host == production:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        return DevelopmentDatabase(
+            url=f"postgresql://owner:pw@{host}/app", host=host, production_host=production
+        )
+
+
+@dataclass
+class FakeRuntimeHost:
+    """The person's server: the runtime's application and nothing else."""
+
+    created: list[RuntimeSpec] = field(default_factory=list)
+    status: dict[str, HostRuntimeStatus] = field(default_factory=dict)
+    started: list[str] = field(default_factory=list)
+    stopped: list[str] = field(default_factory=list)
+    deleted: list[str] = field(default_factory=list)
+    refusal: str | None = None
+    unavailable: bool = False
+
+    def _answer(self) -> None:
+        if self.unavailable:
+            raise ProviderUnavailableError("host down")
+
+    async def create_runtime(self, spec: RuntimeSpec) -> RuntimeHandle:
+        self._answer()
+        if self.refusal:
+            raise RuntimeHostError(self.refusal)
+        self.created.append(spec)
+        reference = f"app-{len(self.created)}"
+        self.status[reference] = "starting"
+        return RuntimeHandle(reference, f"https://runtime-{len(self.created)}.test", "key-1")
+
+    async def start_runtime(self, ref: str) -> None:
+        self._answer()
+        self.started.append(ref)
+
+    async def stop_runtime(self, ref: str) -> None:
+        self._answer()
+        self.stopped.append(ref)
+        self.status[ref] = "stopped"
+
+    async def delete_runtime(self, ref: str, key_ref: str | None) -> None:
+        self._answer()
+        self.deleted.append(ref)
+
+    async def runtime_status(self, ref: str) -> HostRuntimeStatus:
+        self._answer()
+        return self.status.get(ref, "missing")
+
+
+@dataclass
+class FakeGate:
+    """The runtimes' gates: what they answer, what they were sent."""
+
+    statuses: dict[str, GateStatus] = field(default_factory=dict)
+    unreachable: set[str] = field(default_factory=set)
+    refused: dict[str, str] = field(default_factory=dict)
+    writes: list[tuple[str, str, bytes | None]] = field(default_factory=list)
+    issued: int = 0
+
+    def new_credentials(self) -> RuntimeCredentials:
+        self.issued += 1
+        return RuntimeCredentials(
+            token=f"token-{self.issued}",
+            sealed_token=f"sealed-{self.issued}".encode(),
+            private_key="-----BEGIN OPENSSH PRIVATE KEY-----",
+            public_key="ssh-ed25519 AAAA",
+        )
+
+    def ticket(self, sealed_token: bytes, runtime_id: UUID) -> str:
+        return f"ticket-{runtime_id}"
+
+    async def status(self, url: str, sealed_token: bytes) -> GateStatus:
+        if url in self.unreachable:
+            raise RuntimeUnreachableError(url)
+        return self.statuses.get(url, awake_gate())
+
+    async def write(self, url: str, sealed_token: bytes, path: str, content: bytes | None) -> None:
+        if url in self.unreachable:
+            raise RuntimeUnreachableError(url)
+        if path in self.refused:
+            raise GateRefusedError(self.refused[path])
+        self.writes.append((url, path, content))
+
+
+def awake_gate(
+    *,
+    database_host: str = "ep-dev.db.test",
+    awake: bool = True,
+    errors: tuple[dict[str, object], ...] = (),
+    conflicts: tuple[str, ...] = (),
+) -> GateStatus:
+    return GateStatus(
+        awake=awake,
+        last_activity_at=NOW,
+        head="head-0",
+        conflicts=conflicts,
+        errors=errors,
+        database_host=database_host,
+    )
 
 
 class _Traced:
@@ -273,6 +469,9 @@ class _Traced:
 class FakeFactory:
     hosting_adapters: dict[str, FakeHosting] = field(default_factory=dict)
     database_adapters: dict[str, FakeDatabase] = field(default_factory=dict)
+    runtime_hosts: dict[str, FakeRuntimeHost] = field(
+        default_factory=lambda: {"coolify": FakeRuntimeHost()}
+    )
 
     def supports(self, kind: ConnectionKind, provider: str) -> bool:
         if kind is ConnectionKind.HOSTING:
@@ -293,6 +492,10 @@ class FakeFactory:
 
     def database(self, connection: StoredConnection, on_use: KeyUse) -> _Traced:
         return self.probe_database(connection.provider, self._key(connection), None, on_use)
+
+    def runtime_host(self, connection: StoredConnection, on_use: KeyUse) -> _Traced | None:
+        adapter = self.runtime_hosts.get(connection.provider)
+        return _Traced(adapter, on_use) if adapter is not None else None
 
     def probe_hosting(
         self, provider: str, authorization: str, endpoint: str | None, on_use: KeyUse | None = None
@@ -395,6 +598,7 @@ class World:
     links: FakeLinks
     mailer: FakeMailer = field(default_factory=FakeMailer)
     messenger: FakeMessenger = field(default_factory=FakeMessenger)
+    gate: FakeGate = field(default_factory=FakeGate)
 
     @property
     def providers(self) -> Providers:
@@ -405,6 +609,8 @@ class World:
             links=self.links,
             mailer=self.mailer,
             messenger=self.messenger,
+            console_url="http://console.test",
+            gate=self.gate,
         )
 
 
@@ -424,9 +630,12 @@ __all__ = [
     "FakeCodeHost",
     "FakeDatabase",
     "FakeFactory",
+    "FakeGate",
     "FakeHosting",
     "FakeLinks",
+    "FakeRuntimeHost",
     "World",
+    "awake_gate",
     "deployment",
     "make_world",
 ]

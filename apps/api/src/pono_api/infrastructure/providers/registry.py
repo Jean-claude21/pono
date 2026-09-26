@@ -8,6 +8,7 @@ from pono_api.application.ports import (
     HostingProvider,
     KeyUse,
     ProviderAuthorizationError,
+    RuntimeHost,
     StoredConnection,
 )
 from pono_api.domain.projects import ConnectionKind
@@ -49,6 +50,15 @@ class ProviderRegistry:
     def database(self, connection: StoredConnection, on_use: KeyUse) -> DatabaseProvider:
         return self.probe_database(
             connection.provider, self._open(connection), connection.endpoint, on_use
+        )
+
+    def runtime_host(self, connection: StoredConnection, on_use: KeyUse) -> RuntimeHost | None:
+        """Only a server of one's own runs a development runtime (004, D-009)."""
+
+        if connection.provider != "coolify" or not connection.endpoint:
+            return None
+        return CoolifyHosting(
+            connection.endpoint, self._open(connection), on_use, transport=self._transport
         )
 
     def probe_hosting(

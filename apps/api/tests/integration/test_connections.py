@@ -194,5 +194,6 @@ def test_the_worker_registers_its_jobs(settings: Settings) -> None:
         ("connections", 3600),
         ("quotas", 3600),
         ("releases", 60),
+        ("runtimes", 15),
     ]
     assert build_jobs(Settings(environment="test", database_app_url=None)) == []

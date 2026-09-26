@@ -20,6 +20,7 @@ from pono_api.infrastructure.database.session import create_engine, create_sessi
 from pono_api.infrastructure.logging import configure_logging
 from pono_api.infrastructure.providers.defaults import default_providers
 from pono_api.workers.refresh import (
+    follow_all_runtimes,
     read_all_quotas,
     read_all_releases,
     refresh_connections,
@@ -71,6 +72,7 @@ async def run_jobs(jobs: Sequence[Job], stop: asyncio.Event, heartbeat: Path | N
 PROJECTS_TICK = timedelta(minutes=5)
 CONNECTIONS_TICK = timedelta(hours=1)
 QUOTAS_TICK = timedelta(hours=1)
+RUNTIMES_TICK = timedelta(seconds=15)
 
 
 def build_jobs(settings: Settings) -> list[Job]:
@@ -96,11 +98,15 @@ def build_jobs(settings: Settings) -> list[Job]:
     async def releases() -> None:
         await read_all_releases(sessions, providers)
 
+    async def runtimes() -> None:
+        await follow_all_runtimes(sessions, providers)
+
     return [
         Job("projects", PROJECTS_TICK, projects),
         Job("connections", CONNECTIONS_TICK, connections),
         Job("quotas", QUOTAS_TICK, quotas),
         Job("releases", RELEASES_INTERVAL, releases),
+        Job("runtimes", RUNTIMES_TICK, runtimes),
     ]
 
 
