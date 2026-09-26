@@ -9,17 +9,18 @@ from pono_api.infrastructure.mailer import SmtpMailer
 from pono_api.infrastructure.manifests import RepositoryManifests
 from pono_api.infrastructure.providers.github import GitHubCodeHost
 from pono_api.infrastructure.providers.registry import ProviderRegistry
+from pono_api.infrastructure.runtime.gate import HttpRuntimeGate
 
 
 def default_providers(settings: Settings) -> Providers:
     private_key = settings.github_private_key_pem
+    cipher = CredentialCipher(settings.encryption_key) if settings.encryption_key else None
     return Providers(
         code_host=GitHubCodeHost(app_id=settings.github_app_id, private_key=private_key)
         if settings.github_app_id and private_key
         else None,
-        factory=ProviderRegistry(
-            CredentialCipher(settings.encryption_key) if settings.encryption_key else None
-        ),
+        factory=ProviderRegistry(cipher),
+        gate=HttpRuntimeGate(cipher) if cipher else None,
         manifests=RepositoryManifests(),
         links=HttpLinkChecker(),
         mailer=SmtpMailer(

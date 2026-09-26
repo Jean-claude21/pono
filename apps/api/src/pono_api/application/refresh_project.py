@@ -30,6 +30,7 @@ from pono_api.application.ports import (
     ProviderAuthorizationError,
     ProviderFactory,
     ProviderUnavailableError,
+    RuntimeGate,
     StoredConnection,
 )
 from pono_api.application.protection_state import store_protection
@@ -72,6 +73,8 @@ class Providers:
     messenger: ChatMessenger | None = None
     console_url: str | None = None
     """Where a code host check links back to (002)."""
+    gate: RuntimeGate | None = None
+    """Talks to development runtimes (004); None without the service's encryption key."""
 
 
 @dataclass(slots=True)

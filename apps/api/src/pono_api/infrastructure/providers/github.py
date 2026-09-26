@@ -3,8 +3,9 @@
 It authenticates as an installation with short-lived tokens (research R-03). Every write on a
 branch goes through `_write`, which refuses any branch outside `pono/*` before a request leaves
 (FR-029). Phase 2 adds exactly two bounded writes, each with its own guard: the `pono/release` check
-run, and the protection rule of a production branch (002 research R-01, R-07). There is no merge
-operation: merging stays a human gesture on GitHub.
+run, and the protection rule of a production branch (002 research R-01, R-07). Phase 4 adds a third:
+commits on a project's development branch, never its default branch, never forced, and read-only
+deploy keys for its runtime (D-019). There is no merge operation: merging stays a human gesture.
 """
 
 import base64
@@ -23,6 +24,8 @@ from pono_api.application.ports import (
     ChangedFile,
     ChangeRequest,
     CheckState,
+    DevelopmentCommit,
+    FileChange,
     ForbiddenWriteError,
     ProposalState,
     ProtectionRefusedError,
@@ -513,6 +516,22 @@ class GitHubCodeHost:
             f"/repos/{repository}/contents/{quote(path)}",
             file_payload,
         )
+        return await self._open_proposal(
+            installation_id, repository, base=base, branch=branch, title=title, body=body
+        )
+
+    async def _open_proposal(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        base: str,
+        branch: str,
+        title: str,
+        body: str,
+    ) -> str:
+        """Open the pull request of a proposal branch, or find the one already open."""
+
         opened = await self._write(
             installation_id,
             branch,
@@ -534,6 +553,242 @@ class GitHubCodeHost:
         if not isinstance(listed, list) or not listed:
             raise ProviderUnavailableError("code host refused the pull request")
         return _string(_object(listed[0]), "html_url")
+
+    # --- development runtime (004) -------------------------------------------------------------
+
+    async def propose_files(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        base: str,
+        branch: str,
+        files: dict[str, str],
+        title: str,
+        body: str,
+    ) -> str:
+        """Several files in one commit on a proposal branch, then one pull request."""
+
+        self._guard(branch)
+        base_sha = await self.branch_head(installation_id, repository, base)
+        entries: list[object] = [
+            {"path": path, "mode": "100644", "type": "blob", "content": content}
+            for path, content in sorted(files.items())
+        ]
+        tree = _object(
+            (
+                await self._write(
+                    installation_id,
+                    branch,
+                    "POST",
+                    f"/repos/{repository}/git/trees",
+                    {"base_tree": base_sha, "tree": entries},
+                )
+            ).json()
+        )
+        commit = _object(
+            (
+                await self._write(
+                    installation_id,
+                    branch,
+                    "POST",
+                    f"/repos/{repository}/git/commits",
+                    {"message": title, "tree": _string(tree, "sha"), "parents": [base_sha]},
+                )
+            ).json()
+        )
+        commit_sha = _string(commit, "sha")
+        created = await self._write(
+            installation_id,
+            branch,
+            "POST",
+            f"/repos/{repository}/git/refs",
+            {"ref": f"refs/heads/{branch}", "sha": commit_sha},
+            allow={422},
+        )
+        if created.status_code == 422:
+            # Pono's own proposal branch survives from an earlier proposal: point it here.
+            await self._write(
+                installation_id,
+                branch,
+                "PATCH",
+                f"/repos/{repository}/git/refs/heads/{quote(branch)}",
+                {"sha": commit_sha, "force": True},
+            )
+        return await self._open_proposal(
+            installation_id, repository, base=base, branch=branch, title=title, body=body
+        )
+
+    def clone_url(self, repository: str) -> str:
+        if not _REPOSITORY.match(repository):
+            raise ForbiddenWriteError("unexpected repository name")
+        return f"git@github.com:{repository}.git"
+
+    async def branch_head(self, installation_id: str, repository: str, branch: str) -> str:
+        reference = _object(
+            (
+                await self._request(
+                    installation_id, "GET", f"/repos/{repository}/git/ref/heads/{quote(branch)}"
+                )
+            ).json()
+        )
+        return _string(_object(reference.get("object")), "sha")
+
+    async def commit_to_development(
+        self,
+        installation_id: str,
+        repository: str,
+        *,
+        branch: str,
+        expected_head: str | None,
+        changes: list[FileChange],
+        message: str,
+    ) -> DevelopmentCommit:
+        """The third bounded write (D-019): the named development branch only, never forced."""
+
+        await self._development_guard(installation_id, repository, branch)
+        for _ in range(3):
+            head = await self.branch_head(installation_id, repository, branch)
+            conflicts = await self._changed_since(
+                installation_id, repository, expected_head, head, {c.path for c in changes}
+            )
+            kept = [change for change in changes if change.path not in conflicts]
+            entries = await self._tree_entries(installation_id, repository, head, kept)
+            if not entries:
+                return DevelopmentCommit(None, head, tuple(sorted(conflicts)))
+            tree = _object(
+                (
+                    await self._request(
+                        installation_id,
+                        "POST",
+                        f"/repos/{repository}/git/trees",
+                        json={"base_tree": head, "tree": entries},
+                    )
+                ).json()
+            )
+            commit_sha = _string(
+                _object(
+                    (
+                        await self._request(
+                            installation_id,
+                            "POST",
+                            f"/repos/{repository}/git/commits",
+                            json={
+                                "message": message,
+                                "tree": _string(tree, "sha"),
+                                "parents": [head],
+                            },
+                        )
+                    ).json()
+                ),
+                "sha",
+            )
+            moved = await self._request(
+                installation_id,
+                "PATCH",
+                f"/repos/{repository}/git/refs/heads/{quote(branch)}",
+                json={"sha": commit_sha, "force": False},
+                allow={422},
+            )
+            if moved.status_code != 422:
+                return DevelopmentCommit(commit_sha, commit_sha, tuple(sorted(conflicts)))
+            # The branch moved between our read and our write: read it again, never force.
+        raise ProviderUnavailableError("the development branch keeps moving")
+
+    async def _development_guard(self, installation_id: str, repository: str, branch: str) -> None:
+        if not _REPOSITORY.match(repository) or not branch or is_proposal_branch(branch):
+            raise ForbiddenWriteError("only a development branch can receive a runtime's writes")
+        detail = _object(
+            (await self._request(installation_id, "GET", f"/repos/{repository}")).json()
+        )
+        if branch == detail.get("default_branch"):
+            raise ForbiddenWriteError("the default branch never receives a runtime's writes")
+
+    async def _changed_since(
+        self,
+        installation_id: str,
+        repository: str,
+        expected_head: str | None,
+        head: str,
+        paths: set[str],
+    ) -> set[str]:
+        if expected_head is None or expected_head == head:
+            return set()
+        compared = _object(
+            (
+                await self._request(
+                    installation_id,
+                    "GET",
+                    f"/repos/{repository}/compare/{quote(expected_head)}...{quote(head)}",
+                )
+            ).json()
+        )
+        changed: set[str] = set()
+        files = compared.get("files")
+        for item in files if isinstance(files, list) else []:
+            entry = _object(item)
+            for key in ("filename", "previous_filename"):
+                if isinstance(entry.get(key), str):
+                    changed.add(str(entry[key]))
+        return paths & changed
+
+    async def _tree_entries(
+        self, installation_id: str, repository: str, head: str, changes: list[FileChange]
+    ) -> list[object]:
+        entries: list[object] = []
+        for change in changes:
+            if change.content is None:
+                present = await self._request(
+                    installation_id,
+                    "GET",
+                    f"/repos/{repository}/contents/{quote(change.path)}?ref={quote(head)}",
+                    allow={404},
+                )
+                if present.status_code == 404:
+                    continue  # nothing to delete: the branch never had it
+                entries.append({"path": change.path, "mode": "100644", "type": "blob", "sha": None})
+                continue
+            blob = _object(
+                (
+                    await self._request(
+                        installation_id,
+                        "POST",
+                        f"/repos/{repository}/git/blobs",
+                        json={
+                            "content": base64.b64encode(change.content).decode(),
+                            "encoding": "base64",
+                        },
+                    )
+                ).json()
+            )
+            entries.append(
+                {"path": change.path, "mode": "100644", "type": "blob", "sha": _string(blob, "sha")}
+            )
+        return entries
+
+    async def add_deploy_key(
+        self, installation_id: str, repository: str, *, title: str, public_key: str
+    ) -> str:
+        if not _REPOSITORY.match(repository):
+            raise ForbiddenWriteError("unexpected repository name")
+        created = _object(
+            (
+                await self._request(
+                    installation_id,
+                    "POST",
+                    f"/repos/{repository}/keys",
+                    json={"title": title, "key": public_key, "read_only": True},
+                )
+            ).json()
+        )
+        return str(created.get("id") or "")
+
+    async def remove_deploy_key(self, installation_id: str, repository: str, key_ref: str) -> None:
+        if not _REPOSITORY.match(repository) or not key_ref.isdigit():
+            raise ForbiddenWriteError("unexpected deploy key")
+        await self._request(
+            installation_id, "DELETE", f"/repos/{repository}/keys/{key_ref}", allow={404}
+        )
 
     @staticmethod
     def _guard(branch: str) -> None:

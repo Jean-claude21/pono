@@ -4,7 +4,13 @@ from urllib.parse import quote
 
 import httpx
 
-from pono_api.application.ports import DatabaseSnapshot, KeyUse, ProviderUnavailableError
+from pono_api.application.ports import (
+    DatabaseSnapshot,
+    DevelopmentDatabase,
+    DevelopmentDatabaseError,
+    KeyUse,
+    ProviderUnavailableError,
+)
 from pono_api.domain.projects import ResourceStatus
 from pono_api.domain.quotas import LimitSource, Metric, QuotaReading
 from pono_api.infrastructure.providers.http import (
@@ -145,6 +151,67 @@ class NeonDatabase:
             for organization in map(as_object, as_list(as_object(payload).get("organizations")))
             if (reference := text(organization, "id")) is not None
         ]
+
+    async def development_target(
+        self, ref: str, development_branch: str, production_branch: str | None
+    ) -> DevelopmentDatabase:
+        """The development branch's address, never the production's (004 research R-03)."""
+
+        if production_branch and development_branch == production_branch:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        project = quote(ref)
+        branch = await self._client.get(
+            f"/projects/{project}/branches/{quote(development_branch)}",
+            "read_branch",
+            allow_missing=True,
+        )
+        if branch is None:
+            raise DevelopmentDatabaseError("runtime.database_missing")
+        detail = as_object(as_object(branch).get("branch"))
+        if detail.get("default") is True or detail.get("primary") is True:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        endpoints = as_object(
+            await self._client.get(f"/projects/{project}/endpoints", "read_endpoints")
+        )
+        hosts = {
+            text(endpoint, "branch_id"): text(endpoint, "host")
+            for endpoint in map(as_object, as_list(endpoints.get("endpoints")))
+            if text(endpoint, "type") == "read_write"
+        }
+        host = hosts.get(development_branch)
+        production_host = hosts.get(production_branch) if production_branch else None
+        if host is None:
+            raise DevelopmentDatabaseError("runtime.database_missing")
+        if production_host is not None and host == production_host:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        databases = [
+            as_object(item)
+            for item in as_list(
+                as_object(
+                    await self._client.get(
+                        f"/projects/{project}/branches/{quote(development_branch)}/databases",
+                        "read_databases",
+                    )
+                ).get("databases")
+            )
+        ]
+        if not databases:
+            raise DevelopmentDatabaseError("runtime.database_missing")
+        database = databases[0]
+        name, role = text(database, "name"), text(database, "owner_name")
+        if name is None or role is None:
+            raise DevelopmentDatabaseError("runtime.database_missing")
+        address = as_object(
+            await self._client.get(
+                f"/projects/{project}/connection_uri?branch_id={quote(development_branch)}"
+                f"&database_name={quote(name)}&role_name={quote(role)}",
+                "read_connection_uri",
+            )
+        )
+        url = text(address, "uri")
+        if url is None:
+            raise ProviderUnavailableError("neon returned no connection address")
+        return DevelopmentDatabase(url=url, host=host, production_host=production_host)
 
     async def read_project(self, ref: str) -> DatabaseSnapshot:
         project = await self._client.get(
