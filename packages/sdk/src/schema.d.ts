@@ -506,6 +506,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/runtime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Runtime */
+        get: operations["get_runtime_api_v1_projects__project_id__runtime_get"];
+        put?: never;
+        /** Start Runtime */
+        post: operations["start_runtime_api_v1_projects__project_id__runtime_post"];
+        /** Stop */
+        delete: operations["stop_api_v1_projects__project_id__runtime_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/runtime/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Errors */
+        get: operations["errors_api_v1_projects__project_id__runtime_errors_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/runtime/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put File */
+        put: operations["put_file_api_v1_projects__project_id__runtime_files_put"];
+        post?: never;
+        /** Delete File */
+        delete: operations["delete_file_api_v1_projects__project_id__runtime_files_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/runtime/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save */
+        post: operations["save_api_v1_projects__project_id__runtime_save_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/runtime/ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ticket
+         * @description A one-time pass for a signed-in member's browser (research R-04).
+         */
+        post: operations["ticket_api_v1_projects__project_id__runtime_ticket_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/repositories": {
         parameters: {
             query?: never;
@@ -708,6 +799,21 @@ export interface components {
             resourceStatus: "found" | "missing" | "unknown";
             /** Url */
             url: string | null;
+        };
+        /** FileWrite */
+        FileWrite: {
+            /**
+             * Content
+             * @description UTF-8 text.
+             */
+            content?: string | null;
+            /**
+             * Contentbase64
+             * @description Any bytes, for a dropped file.
+             */
+            contentBase64?: string | null;
+            /** Path */
+            path: string;
         };
         /** Finding */
         Finding: {
@@ -1072,6 +1178,111 @@ export interface components {
              */
             requestedAt: string;
         };
+        /** Runtime */
+        Runtime: {
+            /** Awake */
+            awake: boolean;
+            /** Conflicts */
+            conflicts: string[];
+            /** Developmentbranch */
+            developmentBranch: string;
+            /** Errorcount */
+            errorCount: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lastactivityat */
+            lastActivityAt: string | null;
+            lastSave: components["schemas"]["RuntimeSave"] | null;
+            limits: components["schemas"]["RuntimeLimits"];
+            /** Pendingwrites */
+            pendingWrites: number;
+            /** Proposalurl */
+            proposalUrl: string | null;
+            /** Reason */
+            reason: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "awaiting_files" | "preparing" | "starting" | "ready" | "sleeping" | "stopped" | "failed" | "unreachable";
+            /** Url */
+            url: string | null;
+        };
+        /** RuntimeErrors */
+        RuntimeErrors: {
+            /** Errors */
+            errors: components["schemas"]["RuntimeReport"][];
+            /**
+             * Live
+             * @description False when the runtime did not answer: the last known errors.
+             */
+            live: boolean;
+        };
+        /** RuntimeLimits */
+        RuntimeLimits: {
+            /** Maxstarted */
+            maxStarted: number;
+            /** Memory */
+            memory: string;
+            /** Sleepafterminutes */
+            sleepAfterMinutes: number;
+            /** Started */
+            started: number;
+        };
+        /** RuntimeReport */
+        RuntimeReport: {
+            /** Count */
+            count: number;
+            /** File */
+            file?: string | null;
+            /** Firstat */
+            firstAt?: string | null;
+            /** Lastat */
+            lastAt?: string | null;
+            /** Line */
+            line?: number | null;
+            /** Message */
+            message: string;
+            /** Resolved */
+            resolved: boolean;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "compile" | "browser";
+            /** Stack */
+            stack?: string | null;
+        };
+        /** RuntimeSave */
+        RuntimeSave: {
+            /** Actor */
+            actor: string;
+            /** Commitsha */
+            commitSha: string;
+            /** Files */
+            files: number;
+            /**
+             * Savedat
+             * Format: date-time
+             */
+            savedAt: string;
+        };
+        /** TicketRequest */
+        TicketRequest: {
+            /**
+             * Return
+             * @description A local path of the application.
+             */
+            return?: string | null;
+        };
+        /** TicketUrl */
+        TicketUrl: {
+            /** Url */
+            url: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1114,6 +1325,13 @@ export interface components {
              * @description What needs a decision, shown before the list.
              */
             verdicts: components["schemas"]["Verdict"][];
+        };
+        /** WriteResult */
+        WriteResult: {
+            /** Path */
+            path: string;
+            /** Pendingwrites */
+            pendingWrites: number;
         };
     };
     responses: never;
@@ -2084,6 +2302,280 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_runtime_api_v1_projects__project_id__runtime_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Runtime"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_runtime_api_v1_projects__project_id__runtime_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Runtime"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_api_v1_projects__project_id__runtime_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Runtime"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    errors_api_v1_projects__project_id__runtime_errors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeErrors"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_file_api_v1_projects__project_id__runtime_files_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FileWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_file_api_v1_projects__project_id__runtime_files_delete: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_api_v1_projects__project_id__runtime_save_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Runtime"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ticket_api_v1_projects__project_id__runtime_ticket_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                pono_session?: string | null;
+            };
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TicketRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketUrl"];
                 };
             };
             /** @description Validation Error */

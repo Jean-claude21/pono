@@ -193,6 +193,31 @@ let rollbackRequest = {
 };
 const VESTIO = HEALTHY[1].id;
 
+const runtimeState = { pending: 1, written: [] };
+
+function runtime() {
+  return {
+    id: "01990000-0000-7000-8000-00000000c001",
+    state: "ready",
+    reason: null,
+    url: "https://lectio-dev-a1b2c3.13.140.178.49.sslip.io",
+    proposalUrl: null,
+    developmentBranch: "dev",
+    awake: true,
+    lastActivityAt: hoursAgo(0.05),
+    pendingWrites: runtimeState.pending,
+    conflicts: ["src/styles.css"],
+    errorCount: 1,
+    lastSave: {
+      commitSha: "c0ffee1234567890c0ffee1234567890c0ffee12",
+      savedAt: hoursAgo(0.3),
+      actor: "Claude",
+      files: 3,
+    },
+    limits: { started: 1, maxStarted: 3, memory: "1g", sleepAfterMinutes: 15 },
+  };
+}
+
 async function bodyOf(request) {
   let raw = "";
   for await (const chunk of request) raw += chunk;
@@ -329,6 +354,52 @@ createServer(async (request, response) => {
         requestedAt: hoursAgo(0),
       });
     }
+  }
+  // Development runtime (004): lectio has one, ready; the others have none yet.
+  const runtimeRoute = /^\/api\/v1\/projects\/([\w-]+)\/runtime(?:\/(files|save|errors|ticket))?$/.exec(
+    url.pathname,
+  );
+  if (runtimeRoute) {
+    const [, projectId, part] = runtimeRoute;
+    const isLectio = projectId === HEALTHY[0].id;
+    if (!part && request.method === "GET") {
+      return isLectio
+        ? send(response, 200, runtime())
+        : send(response, 404, { error: { code: "runtime.not_found" } });
+    }
+    if (!part && request.method === "POST") {
+      return send(response, 409, { error: { code: "runtime.limit_reached" } });
+    }
+    if (part === "files" && request.method === "PUT") {
+      const { path } = await bodyOf(request);
+      if (path === ".env") return send(response, 422, { error: { code: "runtime.path_refused" } });
+      runtimeState.pending += 1;
+      runtimeState.written.push(path);
+      return send(response, 200, { path, pendingWrites: runtimeState.pending });
+    }
+    if (part === "save") {
+      runtimeState.pending = 0;
+      return send(response, 200, runtime());
+    }
+    if (part === "errors") {
+      return send(response, 200, {
+        live: true,
+        errors: [
+          {
+            source: "compile",
+            message: "Unexpected token (3:14)",
+            file: "src/routes/index.tsx",
+            line: 3,
+            stack: null,
+            count: 2,
+            firstAt: hoursAgo(0.1),
+            lastAt: hoursAgo(0),
+            resolved: false,
+          },
+        ],
+      });
+    }
+    if (part === "ticket") return send(response, 200, { url: "/privacy?runtime=opened" });
   }
   if (url.pathname === "/api/v1/connections") return send(response, 200, []);
   if (url.pathname === "/api/v1/repositories") {

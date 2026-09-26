@@ -9,6 +9,8 @@ import type {
   ProjectDetail,
   Release,
   Repository,
+  Runtime,
+  RuntimeErrors,
   Workshop,
 } from "@pono/sdk";
 
@@ -24,11 +26,17 @@ function serviceUrl(): string {
   return (process.env.PONO_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 }
 
-async function read<T>(path: string): Promise<ServiceResult<T>> {
+async function read<T>(path: string, init?: { method: string; body: unknown }): Promise<ServiceResult<T>> {
   const cookie = getRequestHeader("cookie");
   try {
     const response = await fetch(`${serviceUrl()}/api/v1${path}`, {
-      headers: { accept: "application/json", ...(cookie ? { cookie } : {}) },
+      method: init?.method ?? "GET",
+      headers: {
+        accept: "application/json",
+        ...(init ? { "content-type": "application/json" } : {}),
+        ...(cookie ? { cookie } : {}),
+      },
+      body: init ? JSON.stringify(init.body) : undefined,
     });
     const body: unknown = await response.json().catch(() => null);
     if (response.ok) return { ok: true, data: body as T };
@@ -88,4 +96,26 @@ export const fetchConsent = createServerFn({ method: "GET" })
   .validator((handle: string) => handle)
   .handler(({ data: handle }) =>
     read<ConsentRequest>(`/oauth/consent?request=${encodeURIComponent(handle)}`),
+  );
+
+export const fetchRuntime = createServerFn({ method: "GET" })
+  .validator((projectId: string) => projectId)
+  .handler(({ data: projectId }) =>
+    read<Runtime>(`/projects/${encodeURIComponent(projectId)}/runtime`),
+  );
+
+export const fetchRuntimeErrors = createServerFn({ method: "GET" })
+  .validator((projectId: string) => projectId)
+  .handler(({ data: projectId }) =>
+    read<RuntimeErrors>(`/projects/${encodeURIComponent(projectId)}/runtime/errors`),
+  );
+
+/** A one-time pass to the runtime, asked on the console's server with the member's session. */
+export const fetchRuntimeTicket = createServerFn({ method: "POST" })
+  .validator((input: { projectId: string; returnPath: string }) => input)
+  .handler(({ data: { projectId, returnPath } }) =>
+    read<{ url: string }>(`/projects/${encodeURIComponent(projectId)}/runtime/ticket`, {
+      method: "POST",
+      body: { return: returnPath },
+    }),
   );

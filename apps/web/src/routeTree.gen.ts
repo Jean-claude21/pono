@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as WorkshopRouteImport } from './routes/workshop'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
+import { Route as RuntimeOpenRouteImport } from './routes/runtime.open'
 import { Route as WorkshopIndexRouteImport } from './routes/workshop/index'
 import { Route as WorkshopConnectionsRouteImport } from './routes/workshop/connections'
 import { Route as WorkshopImportRouteImport } from './routes/workshop/import'
@@ -49,6 +50,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 const OauthConsentRoute = OauthConsentRouteImport.update({
   id: '/oauth/consent',
   path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RuntimeOpenRoute = RuntimeOpenRouteImport.update({
+  id: '/runtime/open',
+  path: '/runtime/open',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkshopIndexRoute = WorkshopIndexRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/runtime/open': typeof RuntimeOpenRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/api/$': typeof ApiSplatRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/runtime/open': typeof RuntimeOpenRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop': typeof WorkshopIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/runtime/open': typeof RuntimeOpenRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/workshop'
     | '/api/$'
     | '/oauth/consent'
+    | '/runtime/open'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/api/$'
     | '/oauth/consent'
+    | '/runtime/open'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/workshop'
     | '/api/$'
     | '/oauth/consent'
+    | '/runtime/open'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop/'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   WorkshopRoute: typeof WorkshopRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
   OauthConsentRoute: typeof OauthConsentRoute
+  RuntimeOpenRoute: typeof RuntimeOpenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,6 +223,13 @@ declare module '@tanstack/react-router' {
       path: '/oauth/consent'
       fullPath: '/oauth/consent'
       preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runtime/open': {
+      id: '/runtime/open'
+      path: '/runtime/open'
+      fullPath: '/runtime/open'
+      preLoaderRoute: typeof RuntimeOpenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workshop/': {
@@ -277,6 +297,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkshopRoute: WorkshopRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
   OauthConsentRoute: OauthConsentRoute,
+  RuntimeOpenRoute: RuntimeOpenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
