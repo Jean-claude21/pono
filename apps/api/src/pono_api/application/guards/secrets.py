@@ -106,4 +106,13 @@ def inspect_secrets(files: Iterable[ChangedFile], example_files: Iterable[str] =
     return GuardResult.failed(Guard.SECRETS, findings[0].code, *findings)
 
 
-__all__ = ["PATTERNS", "inspect_secrets", "is_binary"]
+def mask_secrets(text: str) -> str:
+    """The same shapes, masked: for text Pono keeps or shows, such as a runtime's errors (004)."""
+
+    masked = text
+    for _, pattern in PATTERNS:
+        masked = pattern.sub("***", masked)
+    return _ASSIGNED.sub(lambda match: match.group(0).replace(match.group(1), "***"), masked)
+
+
+__all__ = ["PATTERNS", "inspect_secrets", "is_binary", "mask_secrets"]
