@@ -308,6 +308,7 @@ async def test_merged_proposal_makes_the_manifest_the_truth_and_closed_is_never_
     merged = (await client.get(f"/api/v1/projects/{lectio['id']}")).json()
     closed = (await client.get(f"/api/v1/projects/{nettio['id']}")).json()
     assert (merged["manifestStatus"], merged["name"]) == ("present", "lectio")
+    assert (merged["manifestProposalUrl"], closed["manifestProposalUrl"]) == (None, None)
     assert [e["kind"] for e in merged["environments"]] == ["production", "preview"]
     assert closed["manifestStatus"] == "absent"
     assert len(world.code_host.proposals) == 2

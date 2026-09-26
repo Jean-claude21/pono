@@ -269,6 +269,26 @@ phase 3.
 
 ---
 
+## D-018 — La phase 4 s'ouvre avant la fermeture formelle de la phase 3
+
+**Validé le 2026-09-26** par l'auteur (« Si OK, passe à la phase suivante »), après la preuve en
+production d'une action faite depuis l'application Claude et retrouvée au journal sous le nom de
+l'agent.
+
+**Tranché ainsi.** La phase 4 (runtime de développement) commence sans attendre les preuves encore
+ouvertes de la phase 3 : la même action depuis Codex, le temps de connexion d'un nouvel agent
+(SC-003), la décision de soumettre Pono au répertoire de connecteurs. Amende la dépendance
+« Phase 3 fermée » de la ROADMAP pour cette phase seulement. Les dettes de D-017 restent dues.
+
+**Ce qui ne change pas.** Ces preuves restent des dettes visibles dans la ROADMAP. La décision
+bloquante de la phase 4 — quotas et plafond de dépense avant toute ouverture à un tiers — est
+tranchée avant le premier conteneur, pas après.
+
+**Ce que ça coûte.** Si une preuve de la phase 3 échoue plus tard, sa correction passe avant la
+suite de la phase 4.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

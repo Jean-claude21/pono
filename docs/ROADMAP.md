@@ -213,11 +213,12 @@ Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniqueme
 > **Où on en est (2026-09-26).** Spec Kit : specify → clarify → plan → tasks → analyze →
 > implement. Fusionnée dans `main` et en ligne : serveur d'autorisation OAuth 2.1 et serveur
 > d'outils MCP, consentement dans la console, section Agents, demande de retour arrière, plugin
-> `plugins/pono`, politique de confidentialité `/privacy`. **Prouvé en production** : Claude Code
-> relié par le consentement, lecture de l'atelier réel (registre de vérité). **Restent pour fermer**
-> (T027) : une action faite depuis l'agent et retrouvée au journal sous son nom ; l'application
-> Claude et Codex ; le temps de connexion d'un nouvel agent (SC-003) ; la soumission au répertoire
-> de connecteurs, geste de l'auteur.
+> `plugins/pono`, politique de confidentialité `/privacy`. **Prouvé en production** (registre de
+> vérité) : Claude Code et l'application Claude reliés par le consentement ; lecture de l'atelier
+> réel ; refus d'agir avec un accès en lecture seule ; outils d'action rangés à part par
+> l'application Claude ; une action faite depuis l'agent, inscrite au journal sous son nom.
+> **Dettes pour fermer** (D-018) : Codex ; le temps de connexion d'un nouvel agent (SC-003) ; la
+> soumission au répertoire de connecteurs, geste de l'auteur.
 >
 > **Ouverte le 2026-09-23 avant la fermeture des phases 1 et 2 (D-017).** Dettes de preuve
 > restantes, à solder avant d'affirmer quoi que ce soit : chronométrage de la reprise (T071 de la
@@ -248,7 +249,7 @@ console.
 
 ---
 
-## Phase 4 — Le runtime de développement
+## Phase 4 — Le runtime de développement · *ouverte le 2026-09-26 (D-018)*
 
 ### Objective
 Écrire depuis son agent et voir l'écran changer en quelques secondes, sans poste local.
