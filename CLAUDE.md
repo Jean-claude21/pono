@@ -25,9 +25,14 @@ garde-fous mécaniques avant la production, et rien qui appartienne à Pono.
 console en ligne sur Coolify (`docs/EXPLOITATION.md`). Reste à la fermer : le chronométrage de la
 reprise par les deux premiers utilisateurs (SC-002).
 
-**Phase 2 en cours** (`specs/002-guarded-release`, branche `002-guarded-release`) : la mise en
-ligne sous garde-fou (D-016). Implémentée et testée ; restent les permissions de l'app à accepter
-par l'auteur, la preuve sur un projet réel et la démonstration enregistrée.
+**Phase 2 fusionnée** (`specs/002-guarded-release`) : la mise en ligne sous garde-fou (D-016),
+prouvée sur lectio-reads. Restent la validation et le retour arrière réels, et la démonstration
+enregistrée.
+
+**Phase 3 en cours** (`specs/003-mcp-server`, branche `003-mcp-server`, ouverte tôt : D-017) : le
+serveur d'outils pour agents, son serveur d'autorisation, le consentement dans la console, le
+plugin et la politique de confidentialité. Implémentée et testée ; reste la preuve avec Claude
+Code, l'application Claude et Codex sur la console en ligne (T027).
 
 **Tests locaux** : `PONO_TEST_OWNER_URL` / `PONO_TEST_APP_URL` vers un Postgres portant les deux
 rôles de `apps/api/tests/bootstrap_roles.sql` ; la branche Neon `test` marche aussi, en plus lent.

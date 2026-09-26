@@ -16,6 +16,8 @@ from uuid import UUID, uuid7
 from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from pono_api.application.actor import event as action_event
+from pono_api.application.actor import resolve_actor
 from pono_api.application.connection_events import record_key_uses
 from pono_api.application.connections import load_connections
 from pono_api.application.guards.migrations import inspect_migrations, migration_files
@@ -33,6 +35,7 @@ from pono_api.application.ports import (
     StoredConnection,
 )
 from pono_api.application.refresh_project import Providers
+from pono_api.domain.agents import Actor
 from pono_api.domain.manifest import ProjectManifest
 from pono_api.domain.projects import ConnectionKind, EnvironmentKind
 from pono_api.domain.releases import (
@@ -623,11 +626,24 @@ async def request_evaluation(
     principal: Principal,
     project_id: UUID,
     release_id: UUID,
+    actor: Actor | None = None,
 ) -> None:
     """Evaluate again now, for instance once a preview answers. An approval is never undone."""
 
     async with unit_of_work(sessions, principal) as session:
-        await _find(session, project_id, release_id)
+        release = _stored(await _find(session, project_id, release_id))
+        author = await resolve_actor(session, principal, actor)
+        await record(
+            session,
+            principal.organization_id,
+            action_event(
+                project_id,
+                "release.evaluation_requested",
+                author,
+                release_id=release.id,
+                head_sha=release.head_sha,
+            ),
+        )
         await session.execute(
             text(
                 "UPDATE releases SET verdict = 'evaluating' WHERE id = :id AND state = 'open' "

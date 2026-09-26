@@ -40,6 +40,12 @@ export function dateTime(value: string | Date, locale: string = getLocale()): st
   );
 }
 
+/** A calendar day, without the time. */
+export function calendarDay(value: string | Date, locale: string = getLocale()): string {
+  const moment = typeof value === "string" ? new Date(value) : value;
+  return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(moment);
+}
+
 export function integer(value: number, locale: string = getLocale()): string {
   return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
 }

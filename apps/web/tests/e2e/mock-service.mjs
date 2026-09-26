@@ -168,6 +168,37 @@ const JOURNAL = [
   detail: {},
 }));
 
+// Agents (003): one consent request, the linked agents, and vestio's pending rollback request.
+const CONSENT = "consent-handle-0123456789";
+let agents = [
+  {
+    id: "01990000-0000-7000-8000-00000000g001",
+    clientName: "Claude",
+    access: "act",
+    grantedAt: hoursAgo(48),
+    lastUsedAt: hoursAgo(0.3),
+  },
+  {
+    id: "01990000-0000-7000-8000-00000000g002",
+    clientName: "Codex",
+    access: "read",
+    grantedAt: hoursAgo(2),
+    lastUsedAt: null,
+  },
+];
+let rollbackRequest = {
+  id: "01990000-0000-7000-8000-00000000q001",
+  clientName: "Claude",
+  requestedAt: hoursAgo(0.2),
+};
+const VESTIO = HEALTHY[1].id;
+
+async function bodyOf(request) {
+  let raw = "";
+  for await (const chunk of request) raw += chunk;
+  return raw ? JSON.parse(raw) : {};
+}
+
 function scenarioOf(request) {
   const match = /pono_session=(\w+)/.exec(request.headers.cookie ?? "");
   return match && match[1] in SCENARIOS ? match[1] : null;
@@ -178,9 +209,13 @@ function send(response, status, body) {
   response.end(body === undefined ? "" : JSON.stringify(body));
 }
 
-createServer((request, response) => {
+createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${PORT}`);
   if (url.pathname === "/api/v1/health") return send(response, 200, { status: "ok" });
+  // Agents' protocol paths (003): the console must pass them through untouched.
+  if (url.pathname === "/.well-known/oauth-authorization-server" || url.pathname === "/mcp") {
+    return send(response, 200, { relayed: url.pathname, method: request.method });
+  }
   const scenario = scenarioOf(request);
   if (!scenario) return send(response, 401, { error: { code: "auth.session_required" } });
   if (url.pathname === "/api/v1/me/locale" && request.method === "PUT") {
@@ -216,10 +251,39 @@ createServer((request, response) => {
       chatAlertsEnabled: true,
     });
   }
+  if (url.pathname === "/api/v1/oauth/consent") {
+    if (url.searchParams.get("request") !== CONSENT) {
+      return send(response, 404, { error: { code: "oauth.request_not_found" } });
+    }
+    return send(response, 200, {
+      clientName: "Claude",
+      scopes: ["pono:read", "pono:act"],
+      organizationName: "alice",
+      expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    });
+  }
+  const decided = /^\/api\/v1\/oauth\/consent\/(approve|deny)$/.exec(url.pathname);
+  if (decided && request.method === "POST") {
+    const { access } = await bodyOf(request);
+    // Back to "the agent": here, a console page the test can recognize.
+    return send(response, 200, { redirectUrl: `/privacy?decision=${decided[1]}&access=${access}` });
+  }
+  if (url.pathname === "/api/v1/agents") return send(response, 200, agents);
+  const cut = /^\/api\/v1\/agents\/([\w-]+)$/.exec(url.pathname);
+  if (cut && request.method === "DELETE") {
+    agents = agents.filter((agent) => agent.id !== cut[1]);
+    response.writeHead(204);
+    return response.end();
+  }
+  const asked = /^\/api\/v1\/projects\/([\w-]+)\/rollback-requests\/([\w-]+)\/(confirm|dismiss)$/.exec(
+    url.pathname,
+  );
+  // Confirmed or dismissed, the request is gone; the answer is the project detail.
+  if (asked && request.method === "POST") rollbackRequest = null;
   if (url.pathname === "/api/v1/projects") {
     return send(response, 200, workshop(scenario, url.searchParams.get("state")));
   }
-  const detail = /^\/api\/v1\/projects\/([\w-]+)$/.exec(url.pathname);
+  const detail = asked ?? /^\/api\/v1\/projects\/([\w-]+)$/.exec(url.pathname);
   if (detail) {
     const found = SCENARIOS[scenario].find((item) => item.id === detail[1]);
     if (!found) return send(response, 404, { error: { code: "project.not_found" } });
@@ -234,6 +298,7 @@ createServer((request, response) => {
         checkedAt: hoursAgo(0.1),
       },
       canRollback: true,
+      rollbackRequest: found.id === VESTIO ? rollbackRequest : null,
     });
   }
   const guarded = /^\/api\/v1\/projects\/([\w-]+)\/(releases|journal|protection|rollback)(?:\/([\w-]+)\/(approval|evaluation))?$/.exec(

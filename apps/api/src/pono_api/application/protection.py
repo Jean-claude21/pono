@@ -7,13 +7,14 @@ is written to the journal, so a protection removed at the code host never goes u
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from pono_api.application.actor import resolve_actor
 from pono_api.application.ports import ProtectionRefusedError, ProviderUnavailableError
 from pono_api.application.protection_state import store_protection
 from pono_api.application.refresh_project import Providers
 from pono_api.application.releases import load_release_projects
+from pono_api.domain.agents import Actor
 from pono_api.errors import ApiError, not_found
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
@@ -23,6 +24,7 @@ async def apply_protection(
     principal: Principal,
     providers: Providers,
     project_id: UUID,
+    actor: Actor | None = None,
 ) -> dict[str, object]:
     projects = await load_release_projects(sessions, principal, project_id)
     if not projects:
@@ -44,13 +46,9 @@ async def apply_protection(
         raise ApiError("provider.unavailable", 503) from error
     now = datetime.now(UTC)
     async with unit_of_work(sessions, principal) as session:
-        login = (
-            await session.execute(
-                text("SELECT login FROM people WHERE id = :id"), {"id": principal.person_id}
-            )
-        ).scalar_one()
+        author = await resolve_actor(session, principal, actor)
         await store_protection(
-            session, principal.organization_id, project_id, status, now, applied_by=login
+            session, principal.organization_id, project_id, status, now, applied_by=author
         )
     return {"status": status.value, "branch": project.branch, "checkedAt": now.isoformat()}
 

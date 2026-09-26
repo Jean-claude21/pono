@@ -21,6 +21,9 @@ export type Finding = Schemas["Finding"];
 export type Protection = Schemas["Protection"];
 export type Rollback = Schemas["Rollback"];
 export type JournalEntry = Schemas["JournalEntry"];
+export type ConsentRequest = Schemas["ConsentRequest"];
+export type AgentGrant = Schemas["AgentGrant"];
+export type RollbackRequest = Schemas["RollbackRequest"];
 
 /** The body of every service error: a stable code, never prose (contracts/error-codes.md). */
 export type ServiceError = { error: { code: string; field?: string } };

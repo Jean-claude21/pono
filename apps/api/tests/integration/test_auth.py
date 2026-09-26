@@ -3,6 +3,8 @@
 Covers FR-006, FR-008 and FR-009.
 """
 
+from urllib.parse import parse_qs, urlsplit
+
 import httpx
 import pytest
 
@@ -50,6 +52,24 @@ async def test_login_outside_the_allow_list_is_refused_and_creates_nothing(
     assert response.status_code == 302
     assert response.headers["location"] == "http://console.test/?error=auth.not_allowed"
     assert await owner_fetch("SELECT id FROM people") == []
+
+
+async def test_sign_in_comes_back_to_the_consent_page_and_nowhere_else(
+    clean_database: None, client: httpx.AsyncClient, identity: FakeIdentity
+) -> None:
+    identity.next_user = ALICE
+    consent = "/oauth/consent?request=abcdefghijklmnop"
+    login = await client.get("/api/v1/auth/login", params={"next": consent})
+    state = parse_qs(urlsplit(login.headers["location"]).query)["state"][0]
+    back = await client.get("/api/v1/auth/callback", params={"code": "ok", "state": state})
+
+    assert back.headers["location"] == f"http://console.test{consent}"
+    # Signed in already: straight back, and never to another origin.
+    again = await client.get("/api/v1/auth/login", params={"next": consent})
+    assert again.headers["location"] == f"http://console.test{consent}"
+    for elsewhere in ("https://evil.test/x", "//evil.test/x", "/workshop//evil.test", "/api/v1/me"):
+        sent = await client.get("/api/v1/auth/login", params={"next": elsewhere})
+        assert sent.headers["location"] == "http://console.test/workshop", elsewhere
 
 
 async def test_state_mismatch_is_refused(clean_database: None, client: httpx.AsyncClient) -> None:

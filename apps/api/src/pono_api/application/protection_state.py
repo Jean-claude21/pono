@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from pono_api.application.journal import Event, record
+from pono_api.domain.agents import Actor
 from pono_api.domain.releases import ActorKind, ProtectionStatus
 
 _EVENTS: dict[ProtectionStatus, str] = {
@@ -23,7 +24,7 @@ async def store_protection(
     status: ProtectionStatus,
     now: datetime,
     *,
-    applied_by: str | None = None,
+    applied_by: Actor | None = None,
 ) -> None:
     """Keep the status; journal a change. `unknown` never overwrites a status actually read."""
 
@@ -48,9 +49,9 @@ async def store_protection(
             Event(
                 project_id,
                 "protection.applied",
-                ActorKind.PERSON,
-                applied_by,
-                detail={"status": status.value},
+                applied_by.kind,
+                applied_by.name,
+                detail={**applied_by.detail(), "status": status.value},
             ),
         )
         return

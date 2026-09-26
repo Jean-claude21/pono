@@ -86,6 +86,16 @@ class Settings(BaseSettings):
         return self.public_url.startswith("https://")
 
     @property
+    def mcp_resource_url(self) -> str:
+        """The tools server agents connect to, on the console's public address (003 R-07)."""
+
+        return f"{self.public_url.rstrip('/')}/mcp"
+
+    @property
+    def oauth_consent_url(self) -> str:
+        return f"{self.public_url.rstrip('/')}/oauth/consent"
+
+    @property
     def auth_callback_url(self) -> str:
         return f"{self.public_url.rstrip('/')}/api/v1/auth/callback"
 

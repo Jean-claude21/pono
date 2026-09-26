@@ -110,6 +110,12 @@ class Protection(ApiModel):
     checked_at: datetime | None = None
 
 
+class RollbackRequest(ApiModel):
+    id: UUID
+    client_name: str
+    requested_at: datetime
+
+
 class ProjectDetail(ProjectSummary):
     manifest_proposal_url: str | None
     previews: list[Environment]
@@ -118,6 +124,36 @@ class ProjectDetail(ProjectSummary):
     can_rollback: bool = Field(
         description="False when production has no earlier successful deployment."
     )
+    rollback_request: RollbackRequest | None = Field(
+        None, description="An agent's rollback request waiting for a person (003 FR-011)."
+    )
+
+
+# --- agents (003) --------------------------------------------------------------------------------
+
+
+class ConsentRequest(ApiModel):
+    client_name: str
+    scopes: list[Literal["pono:read", "pono:act"]]
+    organization_name: str
+    expires_at: datetime
+
+
+class ConsentDecision(ApiModel):
+    request: str = Field(min_length=16)
+    access: Literal["read", "act"] | None = Field(None, description="Required to approve.")
+
+
+class ConsentRedirect(ApiModel):
+    redirect_url: str
+
+
+class AgentGrant(ApiModel):
+    id: UUID
+    client_name: str
+    access: Literal["read", "act"]
+    granted_at: datetime
+    last_used_at: datetime | None
 
 
 # --- guarded release (002) ------------------------------------------------------------------------
@@ -211,10 +247,14 @@ class ChatLink(ApiModel):
 
 
 __all__ = [
+    "AgentGrant",
     "ApprovalRequest",
     "ChatLink",
     "Connection",
     "ConnectionRequest",
+    "ConsentDecision",
+    "ConsentRedirect",
+    "ConsentRequest",
     "Deployment",
     "Environment",
     "Finding",
@@ -229,6 +269,7 @@ __all__ = [
     "Release",
     "Repository",
     "Rollback",
+    "RollbackRequest",
     "Verdict",
     "Workshop",
 ]

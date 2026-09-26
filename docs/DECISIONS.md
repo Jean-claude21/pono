@@ -251,6 +251,24 @@ production.
 
 ---
 
+## D-017 — La phase 3 s'ouvre avant la fermeture formelle des phases 1 et 2
+
+**Validé le 2026-09-23** par l'auteur (« Supposons que ça marche. Passons au suivant »).
+
+**Tranché ainsi.** La phase 3 (serveur MCP et plugin) commence sans attendre les preuves encore
+ouvertes : le chronométrage de la reprise (phase 1, T071), la validation, l'invalidation et le
+retour arrière sur un projet réel, et la démonstration enregistrée (phase 2, T038 étapes 3 à 5,
+T039). Amende la dépendance « Phases 1 et 2 fermées » de la ROADMAP pour cette phase seulement.
+
+**Ce qui ne change pas.** Ces preuves restent des dettes visibles dans la ROADMAP et dans les
+tâches. Rien n'est écrit dans `docs/VERITE_ET_PREUVES.md` tant qu'elles ne sont pas mesurées :
+« supposons que ça marche » n'est pas une preuve.
+
+**Ce que ça coûte.** Si une preuve échoue plus tard, la correction passe avant la suite de la
+phase 3.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

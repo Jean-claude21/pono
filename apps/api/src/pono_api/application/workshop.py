@@ -13,6 +13,8 @@ from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from pono_api.application.quota_views import project_quotas
+from pono_api.application.rollback_requests import payload as request_payload
+from pono_api.application.rollback_requests import pending_requests
 from pono_api.domain.manifest import ProjectManifest
 from pono_api.domain.projects import (
     QUOTA_CRITICAL_RATIO,
@@ -41,6 +43,7 @@ _VERDICTS: tuple[tuple[str, StateReason | None], ...] = (
 )
 # Guarded release (002): after failures and quotas, what blocks or waits for the person.
 _RELEASE_VERDICTS = (
+    "rollback.requested",
     "release.merged_without_approval",
     "rollback.failed",
     "release.refused",
@@ -115,6 +118,9 @@ async def _load(session: AsyncSession, project_id: UUID | None) -> list[Payload]
     ):
         deployments[row.project_id].append(row)
     release = await _release_facts(session, ids)
+    requests = await pending_requests(session, ids)
+    for project_id in requests:
+        release["codes"][project_id].add("rollback.requested")
     return [
         {
             **_project(
@@ -129,6 +135,7 @@ async def _load(session: AsyncSession, project_id: UUID | None) -> list[Payload]
                 "checkedAt": _moment(row.protection_checked_at),
             },
             "canRollback": release["rollback_ready"].get(row.id, 0) >= 2,
+            "rollbackRequest": request_payload(requests[row.id]) if row.id in requests else None,
             "_verdicts": release["codes"].get(row.id, set()),
         }
         for row in projects
@@ -228,7 +235,14 @@ def _project(
     }
 
 
-_SUMMARY_ONLY = ("manifestProposalUrl", "previews", "quotas", "protection", "canRollback")
+_SUMMARY_ONLY = (
+    "manifestProposalUrl",
+    "previews",
+    "quotas",
+    "protection",
+    "canRollback",
+    "rollbackRequest",
+)
 
 
 def _summary(project: Payload) -> Payload:

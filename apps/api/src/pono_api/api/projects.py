@@ -14,6 +14,7 @@ from pono_api.api.schemas import (
     Repository,
     Workshop,
 )
+from pono_api.application.actor import record_action
 from pono_api.application.import_project import (
     import_project,
     list_repositories,
@@ -98,6 +99,7 @@ async def request_refresh(
     async with unit_of_work(sessions, principal) as session:
         if not await project_exists(session, project_id):
             raise not_found("project")
+    await record_action(sessions, principal, project_id, "project.refresh_requested")
     background.add_task(_refresh_in_background, sessions, principal, project_id, providers)
     return Response(status_code=202)
 

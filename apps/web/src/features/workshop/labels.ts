@@ -85,10 +85,15 @@ const VERDICTS: Record<string, [(input: { name: string }) => string, () => strin
     m.verdict_release_merged_without_approval_body,
   ],
   "rollback.failed": [m.verdict_rollback_failed, m.verdict_rollback_failed_body],
+  "rollback.requested": [m.verdict_rollback_requested, m.verdict_rollback_requested_body],
 };
 
 // Decisions waiting for the person wash green; everything else is a failure to look at.
-const DECISIONS = new Set(["project.manifest_proposed", "release.awaiting_approval"]);
+const DECISIONS = new Set([
+  "project.manifest_proposed",
+  "release.awaiting_approval",
+  "rollback.requested",
+]);
 
 export function verdictText(code: string, name: string): { title: string; body: string } {
   const [title, body] = VERDICTS[code] ?? VERDICTS["project.production_down"];
