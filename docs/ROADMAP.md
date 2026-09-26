@@ -252,10 +252,14 @@ console.
 ## Phase 4 — Le runtime de développement · *ouverte le 2026-09-26 (D-018)*
 
 > **Où on en est (2026-09-26).** Spec Kit : specify → clarify (3 réponses de l'auteur, D-019) →
-> plan → tasks (34) → analyze faits (`specs/004-dev-runtime`, branche `004-dev-runtime`).
-> Implémentation en cours. Le runtime tourne sur le serveur Coolify de la personne, derrière un
-> portier versionné dans son dépôt (`.pono/runtime/`) ; Pono écrit seulement sur la branche de
-> développement. Hors périmètre noté : retirer un projet de Pono (et son runtime), au backlog.
+> plan → tasks (34) → analyze → implement (`specs/004-dev-runtime`, branche `004-dev-runtime`).
+> 33 tâches sur 34 : le portier (Node, sans dépendance), la création chez Coolify avec une clé de
+> déploiement en lecture seule, la base de développement vérifiée à chaque relevé, les écritures
+> sauvegardées par lot sur la branche de développement, la veille, les erreurs, les limites, 7 outils
+> pour agents et le panneau de la console. Tests : service (intégration, contrats, sécurité), portier
+> (`node --test`), 33 parcours de bout en bout. **Reste** (T033) : la preuve sur fluxio-runtime-test
+> avec l'auteur — les vingt mesures écriture → écran publiées telles quelles. Hors périmètre noté :
+> retirer un projet de Pono (et son runtime), au backlog.
 
 ### Objective
 Écrire depuis son agent et voir l'écran changer en quelques secondes, sans poste local.
