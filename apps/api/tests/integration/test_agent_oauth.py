@@ -30,6 +30,8 @@ async def test_the_server_says_how_to_authorize_without_any_key(
 
     assert resource["resource"] == f"{PUBLIC}/mcp"
     assert resource["authorization_servers"] == [f"{PUBLIC}/"]
+    # An agent reads here what it may ask for: acting too, the person deciding at consent.
+    assert resource["scopes_supported"] == ["pono:read", "pono:act"]
     assert server["registration_endpoint"] == f"{PUBLIC}/register"
     assert "S256" in server["code_challenge_methods_supported"]
     assert anonymous.status_code == 401

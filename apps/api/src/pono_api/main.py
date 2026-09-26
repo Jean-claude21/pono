@@ -6,8 +6,10 @@ from urllib.parse import urlsplit
 
 import uvicorn
 from fastapi import APIRouter, FastAPI, Request
+from mcp.server.auth.routes import create_protected_resource_routes
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from pydantic import AnyHttpUrl
 from sqlalchemy import text
 
 from pono_api.api import agents, auth, connections, me, projects, releases
@@ -15,6 +17,7 @@ from pono_api.api.errors import install_error_handlers
 from pono_api.application.identity import CodeHostIdentity
 from pono_api.application.refresh_project import Providers
 from pono_api.config import Settings, get_settings
+from pono_api.domain.agents import ALL_SCOPES
 from pono_api.infrastructure.database.session import create_engine, create_session_factory
 from pono_api.infrastructure.logging import configure_logging
 from pono_api.infrastructure.oauth.broker import AgentBroker
@@ -129,6 +132,16 @@ def create_app(
         )
         app.state.agent_broker = broker
         app.state.tools = tools
+        # The SDK advertises only the scopes every call requires (read). Agents pick what to ask
+        # for from this document: it must offer acting too, the person choosing at consent
+        # (003 FR-003). Served ahead of the SDK's own copy.
+        app.router.routes.extend(
+            create_protected_resource_routes(
+                resource_url=AnyHttpUrl(settings.mcp_resource_url),
+                authorization_servers=[AnyHttpUrl(settings.public_url)],
+                scopes_supported=list(ALL_SCOPES),
+            )
+        )
         app.mount(
             "/",
             tools.streamable_http_app(
