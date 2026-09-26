@@ -18,7 +18,12 @@ from tests.integration.workshop_setup import LECTIO
 pytestmark = [pytest.mark.integration, requires_database]
 
 URL = "https://runtime-1.test"
-LATER = datetime.now(UTC) + timedelta(minutes=2)
+
+
+def later() -> datetime:
+    """A quiet minute after now: every write made so far is due."""
+
+    return datetime.now(UTC) + timedelta(minutes=2)
 
 
 async def _write(
@@ -61,7 +66,7 @@ async def test_a_write_reaches_the_runtime_then_is_saved_once_with_its_latest_co
     assert await save_as_worker(settings, world, datetime.now(UTC)) == 0
     assert world.code_host.development_commits == []
 
-    assert await save_as_worker(settings, world, LATER) == 1
+    assert await save_as_worker(settings, world, later()) == 1
 
     ((repository, branch, expected, changes, message),) = world.code_host.development_commits
     assert (repository, branch, expected) == (LECTIO, "dev", "head-0")
@@ -79,7 +84,7 @@ async def test_a_write_reaches_the_runtime_then_is_saved_once_with_its_latest_co
     assert runtime["lastSave"]["commitSha"] == "commit-1"
     assert runtime["lastSave"]["files"] == 3
     assert (await journal(client, project_id))[-1] == "runtime.changes_saved"
-    assert await save_as_worker(settings, world, LATER) == 0
+    assert await save_as_worker(settings, world, later()) == 0
 
 
 @pytest.mark.parametrize(
