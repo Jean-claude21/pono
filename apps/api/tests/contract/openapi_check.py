@@ -18,6 +18,7 @@ CONTRACTS = (
     SPECS / "001-project-workshop" / "contracts" / "openapi.yaml",
     SPECS / "002-guarded-release" / "contracts" / "openapi.yaml",
     SPECS / "003-mcp-server" / "contracts" / "openapi.yaml",
+    SPECS / "004-dev-runtime" / "contracts" / "openapi.yaml",
 )
 HTTP_METHODS = frozenset({"get", "put", "post", "delete", "patch"})
 Schema = dict[str, Any]

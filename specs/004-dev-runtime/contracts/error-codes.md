@@ -9,6 +9,7 @@ Même règle que les phases précédentes : des codes stables, traduits par la c
 |---|---|---|
 | `runtime.not_found` | 404 | le projet n'a pas de runtime |
 | `runtime.stack_unsupported` | 422 | la pile du projet n'est pas celle du chemin éprouvé (serveur de développement à chaud, pnpm) |
+| `runtime.development_branch_missing` | 422 | le manifeste ne nomme pas de branche de développement distincte de la production |
 | `runtime.database_missing` | 422 | le manifeste ne nomme pas de base de développement |
 | `runtime.production_database` | 422 | la base de développement est celle de la production : refusé |
 | `runtime.hosting_missing` | 422 | aucune connexion d'hébergement capable de porter un runtime |
@@ -20,6 +21,7 @@ Même règle que les phases précédentes : des codes stables, traduits par la c
 | `runtime.path_refused` | 422 | chemin hors du projet ou protégé |
 | `runtime.file_too_large` | 422 | fichier au-delà de 1 Mio |
 | `runtime.files_refused` | 409 | la proposition des fichiers du runtime a été fermée sans fusion |
+| `service.runtime_unconfigured` | 503 | le service n’a pas sa clé de chiffrement : aucun runtime ne peut être créé |
 | `runtime.stopped_by_host` | 409 | l'hébergeur a arrêté le runtime (mémoire dépassée, échec au lancement) |
 
 ## Codes de verdict (bandeau de l'atelier)

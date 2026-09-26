@@ -1,4 +1,4 @@
-"""Shared steps for runtime tests: lectio-reads on the proven stack, its runtime asked for and ready."""
+"""Shared steps for runtime tests: lectio-reads on the proven stack, its runtime ready."""
 
 import json
 from datetime import datetime

@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const fr = JSON.parse(read("../../messages/fr.json")) as Record<string, string>;
 const en = JSON.parse(read("../../messages/en.json")) as Record<string, string>;
-const codes = ["001-project-workshop", "002-guarded-release", "003-mcp-server"].flatMap((feature) =>
+const codes = ["001-project-workshop", "002-guarded-release", "003-mcp-server", "004-dev-runtime"].flatMap((feature) =>
   [
     ...read(`../../../../specs/${feature}/contracts/error-codes.md`).matchAll(
       /^\| `([a-z_]+\.[a-z_*]+)` \|/gm,

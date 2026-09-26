@@ -1,4 +1,4 @@
-"""T015, T023, T026, T027 — a runtime is asked for, proposed, created on the person's server, followed,
+"""T015, T023, T026, T027 — a runtime is asked for, proposed, created on the person's server,
 opened by a member and stopped; the production database is refused at every step (004 US1, US3, US5,
 US6, SC-003)."""
 
