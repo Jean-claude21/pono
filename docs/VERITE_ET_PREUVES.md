@@ -35,6 +35,8 @@ Classement : `fait vérifié` · `observation` · `témoignage` · `hypothèse` 
 | La valeur d'un secret trouvé dans un changement n'est jamais conservée : le verdict le signale sans le garder | `apps/api/tests/integration/test_releases.py` (`test_a_secret_is_refused_without_its_value_ever_being_kept`), en CI | 2026-09-26 |
 | Le journal de preuves ne se réécrit pas, ni par le service ni par le propriétaire de la base (002 SC-007) | `apps/api/tests/security/test_journal.py`, en CI | 2026-09-26 |
 | La base de production de Pono est chez Neon, région Francfort (Union européenne) | console Neon, projet `lively-salad-56581629` (D-015) | 2026-09-26 |
+| Claude Code se relie au serveur d'outils de Pono en production par le parcours complet — enregistrement du client, consentement de l'auteur dans la console, jeton — et lit l'atelier réel : trois projets, leurs états, liens, quotas et les cinq verdicts, puis les journaux de preuves de fluxio-runtime-test et lectio-reads (003 US1, US2) | appels `list_projects` et `read_journal` depuis une session Claude Code de l'auteur ; métadonnées publiques `/.well-known/oauth-*` | 2026-09-26 |
+| L'auteur valide une vraie mise en ligne dans la console : proposition n° 3 de fluxio-runtime-test, garde-fous passés, journal `release.approved` par Jean-claude21 (002 T038 étape 3) | journal du projet, lu depuis l'agent | 2026-09-23 |
 
 ## Observations
 
