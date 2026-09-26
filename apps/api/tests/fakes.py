@@ -316,7 +316,7 @@ class FakeDatabase:
     refuse: bool = False
     quotas: dict[str, list[QuotaReading]] = field(default_factory=dict)
     branch_hosts: dict[str, str] = field(
-        default_factory=lambda: {"br-1": "ep-main.db.test", "br-2": "ep-dev.db.test"}
+        default_factory=lambda: {"main": "ep-main.db.test", "dev": "ep-dev.db.test"}
     )
 
     async def read_quotas(self, ref: str) -> list[QuotaReading]:

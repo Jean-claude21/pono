@@ -210,8 +210,13 @@ async def test_the_deploy_key_is_read_only_and_can_be_removed() -> None:
 def _neon(api: Scripted, *, default: bool = False, shared_host: bool = False) -> NeonDatabase:
     api.on(
         "GET",
-        "/api/v2/projects/p1/branches/br-dev",
-        {"branch": {"id": "br-dev", "default": default}},
+        "/api/v2/projects/p1/branches",
+        {
+            "branches": [
+                {"id": "br-dev", "name": "dev", "default": default},
+                {"id": "br-main", "name": "main", "default": not default},
+            ]
+        },
     )
     api.on(
         "GET",
@@ -243,8 +248,11 @@ def _neon(api: Scripted, *, default: bool = False, shared_host: bool = False) ->
     )  # type: ignore[arg-type]
 
 
-async def test_the_runtime_gets_the_development_branch_and_both_hosts() -> None:
-    target = await _neon(Scripted()).development_target("p1", "br-dev", "br-main")
+@pytest.mark.parametrize(("development", "production"), [("br-dev", "br-main"), ("dev", "main")])
+async def test_the_runtime_gets_the_development_branch_and_both_hosts(
+    development: str, production: str
+) -> None:
+    target = await _neon(Scripted()).development_target("p1", development, production)
 
     assert (target.host, target.production_host) == ("ep-dev.neon.tech", "ep-main.neon.tech")
     assert target.url.startswith("postgresql://")

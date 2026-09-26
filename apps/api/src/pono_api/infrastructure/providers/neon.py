@@ -14,6 +14,7 @@ from pono_api.application.ports import (
 from pono_api.domain.projects import ResourceStatus
 from pono_api.domain.quotas import LimitSource, Metric, QuotaReading
 from pono_api.infrastructure.providers.http import (
+    JsonObject,
     KeyedClient,
     as_list,
     as_object,
@@ -160,15 +161,30 @@ class NeonDatabase:
         if production_branch and development_branch == production_branch:
             raise DevelopmentDatabaseError("runtime.production_database")
         project = quote(ref)
-        branch = await self._client.get(
-            f"/projects/{project}/branches/{quote(development_branch)}",
-            "read_branch",
-            allow_missing=True,
-        )
-        if branch is None:
+        # A manifest names a branch by its id or by its name (Fluxio keeps names): accept both.
+        listed = [
+            as_object(item)
+            for item in as_list(
+                as_object(
+                    await self._client.get(f"/projects/{project}/branches", "read_branches")
+                ).get("branches")
+            )
+        ]
+
+        def find(reference: str | None) -> JsonObject | None:
+            if not reference:
+                return None
+            return next((b for b in listed if reference in (text(b, "id"), text(b, "name"))), None)
+
+        detail = find(development_branch)
+        if detail is None:
             raise DevelopmentDatabaseError("runtime.database_missing")
-        detail = as_object(as_object(branch).get("branch"))
         if detail.get("default") is True or detail.get("primary") is True:
+            raise DevelopmentDatabaseError("runtime.production_database")
+        production = find(production_branch)
+        development_branch = text(detail, "id") or development_branch
+        production_branch = text(production, "id") if production else None
+        if production_branch == development_branch:
             raise DevelopmentDatabaseError("runtime.production_database")
         endpoints = as_object(
             await self._client.get(f"/projects/{project}/endpoints", "read_endpoints")
