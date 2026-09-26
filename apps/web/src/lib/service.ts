@@ -1,6 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
-import type { Connection, Me, ProjectDetail, Repository, Workshop } from "@pono/sdk";
+import type {
+  AgentGrant,
+  ConsentRequest,
+  Connection,
+  JournalEntry,
+  Me,
+  ProjectDetail,
+  Release,
+  Repository,
+  Workshop,
+} from "@pono/sdk";
 
 // Reads run on the console's server: it calls the internal service with the visitor's cookie,
 // so the first render already holds the data and the service is never exposed (research R-04).
@@ -44,6 +54,24 @@ export const fetchProject = createServerFn({ method: "GET" })
     read<ProjectDetail>(`/projects/${encodeURIComponent(projectId)}`),
   );
 
+export const fetchReleases = createServerFn({ method: "GET" })
+  .validator((projectId: string) => projectId)
+  .handler(({ data: projectId }) =>
+    read<Release[]>(`/projects/${encodeURIComponent(projectId)}/releases`),
+  );
+
+/** A journal entry as the console shows it; its `detail` holds codes for other readers. */
+export type JournalRow = Omit<JournalEntry, "detail">;
+
+export const fetchJournal = createServerFn({ method: "GET" })
+  .validator((input: { projectId: string; before?: string }) => input)
+  .handler(({ data: { projectId, before } }) =>
+    read<JournalRow[]>(
+      `/projects/${encodeURIComponent(projectId)}/journal` +
+        (before ? `?before=${encodeURIComponent(before)}` : ""),
+    ),
+  );
+
 export const fetchConnections = createServerFn({ method: "GET" }).handler(() =>
   read<Connection[]>("/connections"),
 );
@@ -51,3 +79,13 @@ export const fetchConnections = createServerFn({ method: "GET" }).handler(() =>
 export const fetchRepositories = createServerFn({ method: "GET" }).handler(() =>
   read<Repository[]>("/repositories"),
 );
+
+export const fetchAgents = createServerFn({ method: "GET" }).handler(() =>
+  read<AgentGrant[]>("/agents"),
+);
+
+export const fetchConsent = createServerFn({ method: "GET" })
+  .validator((handle: string) => handle)
+  .handler(({ data: handle }) =>
+    read<ConsentRequest>(`/oauth/consent?request=${encodeURIComponent(handle)}`),
+  );

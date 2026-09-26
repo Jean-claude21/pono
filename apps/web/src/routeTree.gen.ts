@@ -11,12 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HealthRouteImport } from './routes/health'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as WorkshopRouteImport } from './routes/workshop'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as WorkshopIndexRouteImport } from './routes/workshop/index'
 import { Route as WorkshopConnectionsRouteImport } from './routes/workshop/connections'
 import { Route as WorkshopImportRouteImport } from './routes/workshop/import'
 import { Route as WorkshopProjectsProjectIdRouteImport } from './routes/workshop/projects.$projectId'
+import { Route as WorkshopProjectsProjectIdJournalRouteImport } from './routes/workshop/projects.$projectId_.journal'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,6 +31,11 @@ const HealthRoute = HealthRouteImport.update({
   path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkshopRoute = WorkshopRouteImport.update({
   id: '/workshop',
   path: '/workshop',
@@ -36,6 +44,11 @@ const WorkshopRoute = WorkshopRouteImport.update({
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkshopIndexRoute = WorkshopIndexRouteImport.update({
@@ -59,74 +72,100 @@ const WorkshopProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => WorkshopRoute,
   } as any)
+const WorkshopProjectsProjectIdJournalRoute =
+  WorkshopProjectsProjectIdJournalRouteImport.update({
+    id: '/projects/$projectId_/journal',
+    path: '/projects/$projectId/journal',
+    getParentRoute: () => WorkshopRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
+  '/privacy': typeof PrivacyRoute
   '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
+  '/privacy': typeof PrivacyRoute
   '/api/$': typeof ApiSplatRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/health': typeof HealthRoute
+  '/privacy': typeof PrivacyRoute
   '/workshop': typeof WorkshopRouteWithChildren
   '/api/$': typeof ApiSplatRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/workshop/connections': typeof WorkshopConnectionsRoute
   '/workshop/import': typeof WorkshopImportRoute
   '/workshop/': typeof WorkshopIndexRoute
   '/workshop/projects/$projectId': typeof WorkshopProjectsProjectIdRoute
+  '/workshop/projects/$projectId_/journal': typeof WorkshopProjectsProjectIdJournalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/health'
+    | '/privacy'
     | '/workshop'
     | '/api/$'
+    | '/oauth/consent'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop/'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId/journal'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/health'
+    | '/privacy'
     | '/api/$'
+    | '/oauth/consent'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId/journal'
   id:
     | '__root__'
     | '/'
     | '/health'
+    | '/privacy'
     | '/workshop'
     | '/api/$'
+    | '/oauth/consent'
     | '/workshop/connections'
     | '/workshop/import'
     | '/workshop/'
     | '/workshop/projects/$projectId'
+    | '/workshop/projects/$projectId_/journal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HealthRoute: typeof HealthRoute
+  PrivacyRoute: typeof PrivacyRoute
   WorkshopRoute: typeof WorkshopRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
+  OauthConsentRoute: typeof OauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workshop': {
       id: '/workshop'
       path: '/workshop'
@@ -157,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/api/$'
       fullPath: '/api/$'
       preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workshop/': {
@@ -187,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkshopProjectsProjectIdRouteImport
       parentRoute: typeof WorkshopRoute
     }
+    '/workshop/projects/$projectId_/journal': {
+      id: '/workshop/projects/$projectId_/journal'
+      path: '/projects/$projectId/journal'
+      fullPath: '/workshop/projects/$projectId/journal'
+      preLoaderRoute: typeof WorkshopProjectsProjectIdJournalRouteImport
+      parentRoute: typeof WorkshopRoute
+    }
   }
 }
 
@@ -195,6 +255,7 @@ interface WorkshopRouteChildren {
   WorkshopImportRoute: typeof WorkshopImportRoute
   WorkshopIndexRoute: typeof WorkshopIndexRoute
   WorkshopProjectsProjectIdRoute: typeof WorkshopProjectsProjectIdRoute
+  WorkshopProjectsProjectIdJournalRoute: typeof WorkshopProjectsProjectIdJournalRoute
 }
 
 const WorkshopRouteChildren: WorkshopRouteChildren = {
@@ -202,6 +263,7 @@ const WorkshopRouteChildren: WorkshopRouteChildren = {
   WorkshopImportRoute: WorkshopImportRoute,
   WorkshopIndexRoute: WorkshopIndexRoute,
   WorkshopProjectsProjectIdRoute: WorkshopProjectsProjectIdRoute,
+  WorkshopProjectsProjectIdJournalRoute: WorkshopProjectsProjectIdJournalRoute,
 }
 
 const WorkshopRouteWithChildren = WorkshopRoute._addFileChildren(
@@ -211,8 +273,10 @@ const WorkshopRouteWithChildren = WorkshopRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HealthRoute: HealthRoute,
+  PrivacyRoute: PrivacyRoute,
   WorkshopRoute: WorkshopRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
+  OauthConsentRoute: OauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

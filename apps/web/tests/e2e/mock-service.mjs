@@ -88,6 +88,117 @@ function workshop(scenario, state) {
 // The chat linking flow keeps its state here: link, confirm, unlink.
 let chatLinked = false;
 
+// Guarded release (002) on lectio: one refused change, one waiting for approval.
+const HEAD = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
+const guard = (name, status, reason, findings = []) => ({
+  guard: name,
+  status,
+  reason,
+  findings,
+  checkedAt: hoursAgo(0.05),
+});
+const releaseState = { approved: false, protected: false, rolledBack: false };
+
+function releases() {
+  return [
+    {
+      id: "01990000-0000-7000-8000-00000000r001",
+      changeNumber: 12,
+      changeUrl: "https://code-host.example.test/alice/lectio/pull/12",
+      title: "Drop the notes body",
+      author: "coding-agent[bot]",
+      headSha: "ffee0011223344556677889900aabbccddeeff00",
+      headBranch: "feature/drop",
+      verdict: "refused",
+      state: "open",
+      openedAt: hoursAgo(1),
+      evaluatedAt: hoursAgo(0.9),
+      approvedBy: null,
+      approvedAt: null,
+      guards: [
+        guard("secrets", "passed", null),
+        guard("migrations", "failed", "migrations.destructive", [
+          {
+            code: "migrations.destructive",
+            file: "drizzle/0003_drop_notes.sql",
+            line: 2,
+            operation: "drop_column",
+            url: null,
+          },
+        ]),
+        guard("preview", "passed", "preview.ready"),
+      ],
+    },
+    {
+      id: "01990000-0000-7000-8000-00000000r002",
+      changeNumber: 13,
+      changeUrl: "https://code-host.example.test/alice/lectio/pull/13",
+      title: "Add tags",
+      author: "coding-agent[bot]",
+      headSha: HEAD,
+      headBranch: "feature/tags",
+      verdict: releaseState.approved ? "approved" : "awaiting_approval",
+      state: "open",
+      openedAt: hoursAgo(0.5),
+      evaluatedAt: hoursAgo(0.4),
+      approvedBy: releaseState.approved ? "alice" : null,
+      approvedAt: releaseState.approved ? hoursAgo(0) : null,
+      guards: [
+        guard("secrets", "passed", null),
+        guard("migrations", "passed", null),
+        guard("preview", "passed", "preview.ready"),
+      ],
+    },
+  ];
+}
+
+const JOURNAL = [
+  ["release.awaiting_approval", "pono", null, 13],
+  ["release.refused", "pono", null, 12],
+  ["release.opened", "agent", "coding-agent[bot]", 12],
+  ["protection.missing", "pono", null, null],
+].map(([kind, actorKind, actor, changeNumber], index) => ({
+  id: `01990000-0000-7000-8000-0000000j000${index}`,
+  kind,
+  actorKind,
+  actor,
+  headSha: changeNumber ? HEAD : null,
+  changeNumber,
+  occurredAt: hoursAgo(index * 0.2),
+  detail: {},
+}));
+
+// Agents (003): one consent request, the linked agents, and vestio's pending rollback request.
+const CONSENT = "consent-handle-0123456789";
+let agents = [
+  {
+    id: "01990000-0000-7000-8000-00000000g001",
+    clientName: "Claude",
+    access: "act",
+    grantedAt: hoursAgo(48),
+    lastUsedAt: hoursAgo(0.3),
+  },
+  {
+    id: "01990000-0000-7000-8000-00000000g002",
+    clientName: "Codex",
+    access: "read",
+    grantedAt: hoursAgo(2),
+    lastUsedAt: null,
+  },
+];
+let rollbackRequest = {
+  id: "01990000-0000-7000-8000-00000000q001",
+  clientName: "Claude",
+  requestedAt: hoursAgo(0.2),
+};
+const VESTIO = HEALTHY[1].id;
+
+async function bodyOf(request) {
+  let raw = "";
+  for await (const chunk of request) raw += chunk;
+  return raw ? JSON.parse(raw) : {};
+}
+
 function scenarioOf(request) {
   const match = /pono_session=(\w+)/.exec(request.headers.cookie ?? "");
   return match && match[1] in SCENARIOS ? match[1] : null;
@@ -98,9 +209,13 @@ function send(response, status, body) {
   response.end(body === undefined ? "" : JSON.stringify(body));
 }
 
-createServer((request, response) => {
+createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://localhost:${PORT}`);
   if (url.pathname === "/api/v1/health") return send(response, 200, { status: "ok" });
+  // Agents' protocol paths (003): the console must pass them through untouched.
+  if (url.pathname === "/.well-known/oauth-authorization-server" || url.pathname === "/mcp") {
+    return send(response, 200, { relayed: url.pathname, method: request.method });
+  }
   const scenario = scenarioOf(request);
   if (!scenario) return send(response, 401, { error: { code: "auth.session_required" } });
   if (url.pathname === "/api/v1/me/locale" && request.method === "PUT") {
@@ -136,10 +251,39 @@ createServer((request, response) => {
       chatAlertsEnabled: true,
     });
   }
+  if (url.pathname === "/api/v1/oauth/consent") {
+    if (url.searchParams.get("request") !== CONSENT) {
+      return send(response, 404, { error: { code: "oauth.request_not_found" } });
+    }
+    return send(response, 200, {
+      clientName: "Claude",
+      scopes: ["pono:read", "pono:act"],
+      organizationName: "alice",
+      expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    });
+  }
+  const decided = /^\/api\/v1\/oauth\/consent\/(approve|deny)$/.exec(url.pathname);
+  if (decided && request.method === "POST") {
+    const { access } = await bodyOf(request);
+    // Back to "the agent": here, a console page the test can recognize.
+    return send(response, 200, { redirectUrl: `/privacy?decision=${decided[1]}&access=${access}` });
+  }
+  if (url.pathname === "/api/v1/agents") return send(response, 200, agents);
+  const cut = /^\/api\/v1\/agents\/([\w-]+)$/.exec(url.pathname);
+  if (cut && request.method === "DELETE") {
+    agents = agents.filter((agent) => agent.id !== cut[1]);
+    response.writeHead(204);
+    return response.end();
+  }
+  const asked = /^\/api\/v1\/projects\/([\w-]+)\/rollback-requests\/([\w-]+)\/(confirm|dismiss)$/.exec(
+    url.pathname,
+  );
+  // Confirmed or dismissed, the request is gone; the answer is the project detail.
+  if (asked && request.method === "POST") rollbackRequest = null;
   if (url.pathname === "/api/v1/projects") {
     return send(response, 200, workshop(scenario, url.searchParams.get("state")));
   }
-  const detail = /^\/api\/v1\/projects\/([\w-]+)$/.exec(url.pathname);
+  const detail = asked ?? /^\/api\/v1\/projects\/([\w-]+)$/.exec(url.pathname);
   if (detail) {
     const found = SCENARIOS[scenario].find((item) => item.id === detail[1]);
     if (!found) return send(response, 404, { error: { code: "project.not_found" } });
@@ -148,7 +292,43 @@ createServer((request, response) => {
       manifestProposalUrl: null,
       previews: [],
       quotas: found.quota ? [found.quota] : [],
+      protection: {
+        status: releaseState.protected ? "protected" : "unprotected",
+        branch: "main",
+        checkedAt: hoursAgo(0.1),
+      },
+      canRollback: true,
+      rollbackRequest: found.id === VESTIO ? rollbackRequest : null,
     });
+  }
+  const guarded = /^\/api\/v1\/projects\/([\w-]+)\/(releases|journal|protection|rollback)(?:\/([\w-]+)\/(approval|evaluation))?$/.exec(
+    url.pathname,
+  );
+  if (guarded) {
+    const [, , what, , action] = guarded;
+    if (what === "releases" && !action) return send(response, 200, releases());
+    if (action === "approval") {
+      releaseState.approved = true;
+      return send(response, 200, releases()[1]);
+    }
+    if (action === "evaluation") {
+      response.writeHead(202);
+      return response.end();
+    }
+    if (what === "journal") return send(response, 200, JOURNAL);
+    if (what === "protection") {
+      releaseState.protected = true;
+      return send(response, 200, { status: "protected", branch: "main", checkedAt: hoursAgo(0) });
+    }
+    if (what === "rollback") {
+      releaseState.rolledBack = true;
+      return send(response, 202, {
+        id: "01990000-0000-7000-8000-00000000b001",
+        status: "queued",
+        toCommit: "old0001",
+        requestedAt: hoursAgo(0),
+      });
+    }
   }
   if (url.pathname === "/api/v1/connections") return send(response, 200, []);
   if (url.pathname === "/api/v1/repositories") {

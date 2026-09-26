@@ -32,9 +32,12 @@ function Root() {
 }
 
 function Document({ children }: Readonly<{ children: ReactNode }>) {
-  // Two moods, one system: the public page is light, the console is dark (D-011).
+  // Two moods, one system: the public pages are light, the console is dark (D-011). Consenting
+  // to an agent is a console gesture.
   const inConsole = useRouterState({
-    select: (state) => state.location.pathname.startsWith("/workshop"),
+    select: (state) =>
+      state.location.pathname.startsWith("/workshop") ||
+      state.location.pathname.startsWith("/oauth"),
   });
   return (
     <html lang={getLocale()} data-theme={inConsole ? "console" : undefined}>

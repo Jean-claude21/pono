@@ -14,6 +14,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from pono_api.application.connections import refresh_connection_statuses
 from pono_api.application.quotas import read_quotas
 from pono_api.application.refresh_project import Providers, refresh_project
+from pono_api.application.releases import sync_all_releases
+from pono_api.application.rollback import settle_rollbacks
+from pono_api.application.rollback_requests import expire_rollback_requests
 from pono_api.domain.projects import REFRESH_INTERVAL
 from pono_api.infrastructure.database.rls import Principal, unit_of_work
 
@@ -79,6 +82,22 @@ async def read_all_quotas(sessions: async_sessionmaker[AsyncSession], providers:
     return raised
 
 
+async def read_all_releases(
+    sessions: async_sessionmaker[AsyncSession], providers: Providers
+) -> None:
+    """Release attempts of every organization, the rollbacks in progress (002), and agents'
+    rollback requests nobody handled (003)."""
+
+    for organization_id in await organizations(sessions):
+        try:
+            principal = Principal.for_organization(organization_id)
+            await sync_all_releases(sessions, providers, organization_id)
+            await settle_rollbacks(sessions, principal, providers)
+            await expire_rollback_requests(sessions, principal)
+        except Exception:
+            logger.exception("release reading of organization %s failed", organization_id)
+
+
 async def refresh_connections(
     sessions: async_sessionmaker[AsyncSession], providers: Providers
 ) -> None:
@@ -98,6 +117,7 @@ __all__ = [
     "due_projects",
     "organizations",
     "read_all_quotas",
+    "read_all_releases",
     "refresh_connections",
     "refresh_due_projects",
 ]

@@ -13,8 +13,10 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from pono_api.application.actor import event, resolve_actor
 from pono_api.application.connection_events import record_key_uses
 from pono_api.application.connections import active_code_host, link_code_host, load_connections
+from pono_api.application.journal import record
 from pono_api.application.ports import (
     CodeHost,
     Detection,
@@ -26,6 +28,7 @@ from pono_api.application.ports import (
     StoredConnection,
 )
 from pono_api.application.refresh_project import Providers, refresh_project
+from pono_api.domain.agents import Actor
 from pono_api.domain.manifest import (
     ManifestInvalidError,
     ProjectManifest,
@@ -116,6 +119,7 @@ async def import_project(
     principal: Principal,
     providers: Providers,
     repository_name: str,
+    actor: Actor | None = None,
 ) -> UUID:
     if not REPOSITORY_NAME.match(repository_name):
         raise ApiError("request.invalid", 422, "repository")
@@ -160,6 +164,17 @@ async def import_project(
                 },
             )
             await record_key_uses(session, principal.organization_id, log)
+            author = await resolve_actor(session, principal, actor)
+            await record(
+                session,
+                principal.organization_id,
+                event(
+                    project_id,
+                    "project.imported",
+                    author,
+                    detail={"repository": repository.full_name},
+                ),
+            )
     except IntegrityError as error:
         raise ApiError("project.already_imported", 409) from error
 

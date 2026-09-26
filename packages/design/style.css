@@ -281,6 +281,39 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .link-status.unknown, .link-status.missing { color: var(--ink-mute); }
 .notice { margin-top: 20px; padding: 12px 16px; border: 1px solid var(--hairline); font-size: 14px; color: var(--ink-soft); }
 .notice.warning { border-color: var(--warning); color: var(--warning); }
+/* ── Guarded release (002): attempts, guards, protection ─────────── */
+
+.topline-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.topline:has(.topline-actions) { flex-wrap: wrap; }
+.topline:has(.topline-actions) > div:first-child { flex: 1 1 540px; min-width: 0; }
+.console .verdict[role="alertdialog"] { flex-wrap: wrap; }
+.release { margin-top: 16px; padding: 16px 18px; border: 1px solid var(--hairline); border-left: 3px solid var(--idle); }
+.release-failing { border-left-color: var(--failing); background: var(--wash-failing); }
+.release-healthy { border-left-color: var(--healthy); background: var(--wash-healthy); }
+.release-failing .mono-label { color: var(--failing); }
+.release-healthy .mono-label { color: var(--healthy); }
+.release-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.release-head h3 { font-size: 17px; line-height: 24px; font-weight: 600; margin-top: 4px; overflow-wrap: anywhere; }
+.release-head p { font-size: 14px; margin-top: 4px; }
+.release-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.guards { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--hairline); }
+.guard { display: grid; grid-template-columns: 120px 96px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); font-size: 14px; }
+.guard-name { font-weight: 600; }
+.guard-status { white-space: nowrap; }
+.guard-status.passed { color: var(--healthy); }
+.guard-status.failed { color: var(--failing); }
+.guard-status.pending { color: var(--warning); }
+.guard-detail p { color: var(--ink-soft); }
+.guard-detail ul { list-style: none; margin: 4px 0 0; padding: 0; font-size: 13px; color: var(--ink-mute); overflow-wrap: anywhere; }
+.releases-closed { margin-top: 18px; }
+.releases-closed caption { text-align: left; padding-bottom: 6px; }
+.protection.protected { color: var(--healthy); }
+.protection.unprotected { color: var(--failing); }
+.protection.unavailable_on_plan { color: var(--warning); }
+@media (max-width: 640px) {
+  .guard { grid-template-columns: 1fr auto; }
+  .guard-detail { grid-column: 1 / -1; }
+}
 .alerts-channel { margin: 26px 0 10px; font-size: 15px; font-weight: 600; color: var(--ink); }
 .alerts-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
 .form { display: grid; gap: 14px; max-width: 520px; margin-top: 18px; }
@@ -303,3 +336,32 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 }
 .locale-switch button:hover { color: var(--ink); }
 .locale-switch button[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 0 0 1px var(--hairline); }
+
+/* ── Agents (003): consent, access choice, text pages ──────────── */
+
+.page { max-width: 720px; margin: 0 auto; padding: 48px 24px 72px; }
+.page h1 { font-size: 30px; line-height: 38px; font-weight: 600; margin-top: 14px; overflow-wrap: anywhere; }
+.page .lede { color: var(--ink-soft); font-size: 17px; line-height: 27px; margin-top: 12px; }
+.page .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.choices { display: grid; gap: 10px; margin: 14px 0 0; padding: 0; border: 0; }
+.choice {
+  display: grid; grid-template-columns: 18px 1fr; gap: 4px 12px; padding: 14px 16px;
+  border: 1px solid var(--hairline); border-radius: var(--r-sm); cursor: pointer;
+}
+.choice:has(input:checked) { border-color: var(--ink); }
+.choice input { margin: 4px 0 0; accent-color: var(--ink); }
+.choice strong { font-weight: 600; }
+.choice span { grid-column: 2; font-size: 14px; line-height: 21px; color: var(--ink-soft); }
+.doc h2 { font-size: 20px; line-height: 26px; font-weight: 600; margin-top: 36px; }
+.doc ul { margin: 12px 0 0; padding-left: 20px; color: var(--ink-soft); font-size: 16px; line-height: 25px; }
+.doc li + li { margin-top: 8px; }
+.doc p { color: var(--ink-soft); font-size: 16px; line-height: 25px; margin-top: 12px; }
+.address {
+  display: block; margin-top: 8px; padding: 9px 12px; font-family: var(--mono); font-size: 14px;
+  border: 1px solid var(--hairline); border-radius: var(--r-sm); background: var(--paper);
+  overflow-wrap: anywhere; user-select: all;
+}
+@media (max-width: 640px) {
+  .page { padding: 32px 16px 56px; }
+  .page h1 { font-size: 24px; line-height: 31px; }
+}

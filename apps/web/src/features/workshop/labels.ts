@@ -70,7 +70,30 @@ const VERDICTS: Record<string, [(input: { name: string }) => string, () => strin
     m.verdict_project_quota_critical,
     m.verdict_project_quota_critical_body,
   ],
+  "release.refused": [m.verdict_release_refused, m.verdict_release_refused_body],
+  "release.awaiting_approval": [
+    m.verdict_release_awaiting_approval,
+    m.verdict_release_awaiting_approval_body,
+  ],
+  "project.unprotected": [m.verdict_project_unprotected, m.verdict_project_unprotected_body],
+  "project.protection_unavailable": [
+    m.verdict_project_protection_unavailable,
+    m.verdict_project_protection_unavailable_body,
+  ],
+  "release.merged_without_approval": [
+    m.verdict_release_merged_without_approval,
+    m.verdict_release_merged_without_approval_body,
+  ],
+  "rollback.failed": [m.verdict_rollback_failed, m.verdict_rollback_failed_body],
+  "rollback.requested": [m.verdict_rollback_requested, m.verdict_rollback_requested_body],
 };
+
+// Decisions waiting for the person wash green; everything else is a failure to look at.
+const DECISIONS = new Set([
+  "project.manifest_proposed",
+  "release.awaiting_approval",
+  "rollback.requested",
+]);
 
 export function verdictText(code: string, name: string): { title: string; body: string } {
   const [title, body] = VERDICTS[code] ?? VERDICTS["project.production_down"];
@@ -79,7 +102,7 @@ export function verdictText(code: string, name: string): { title: string; body: 
 
 /** Failing verdicts wash red; decisions that are not failures wash green. */
 export function verdictTone(code: string): "failing" | "healthy" {
-  return code === "project.manifest_proposed" ? "healthy" : "failing";
+  return DECISIONS.has(code) ? "healthy" : "failing";
 }
 
 export function environmentLabel(kind: Environment["kind"]): string {

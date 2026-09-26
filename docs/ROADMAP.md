@@ -111,28 +111,30 @@ le moindre écran définitif.
 
 ---
 
-## Phase 1 — L'atelier qui tient les projets · *en ligne sur `dev`, fermeture en attente*
+## Phase 1 — L'atelier qui tient les projets · *fusionnée dans `main` le 2026-09-23, fermeture en attente de la mesure*
 
 > **Où on en est (2026-09-23, après-midi).** Spec Kit : specify → clarify → plan → tasks → analyze →
 > implement → converge, puis une clarification (alertes par Telegram, D-015) → tasks (phase 10) →
-> implement. 90 tâches sur 94 faites ; les 4 restantes attendent l’auteur ou le premier quota franchi (`specs/001-project-workshop/tasks.md`).
+> implement → converge (T095). 92 tâches sur 95 faites ; restent T071 (mesure), T094 (première vraie alerte) et T082 (SMTP, facultatif) (`specs/001-project-workshop/tasks.md`).
 >
 > **Preuves réunies.** Cinq projets réels importés sans saisie, état vérifié à la main chez chaque
 > fournisseur ; imports de 21 à 46 s ; RLS forcée dans chaque migration créatrice et étanchéité de
 > deux organisations prouvée en CI ; aucun nom de fournisseur dans le domaine ni dans
 > l'application ; console, service et worker en ligne sur Coolify, **en HTTPS**
 > (`pono-staging.13.140.178.49.sslip.io`) ; alertes Telegram reliées ; lectio-reads
-> importé en ligne, manifeste fusionné ; 236 tests du service, 17 Vitest, 10 Playwright
+> importé en ligne, manifeste fusionné ; 237 tests du service, 17 Vitest, 10 Playwright
 > (`docs/VERITE_ET_PREUVES.md`).
 >
 > **Tranché le 2026-09-23 (D-015).** Les alertes partent par Telegram (le courriel n'est plus
 > bloquant). Pono reste à Francfort : Neon y ouvre désormais toutes ses fonctionnalités.
 >
 > **Reste, pour fermer.**
-> - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002).
+> - `[bloquant]` Chronométrer la reprise avec les deux premiers utilisateurs (T071, SC-002). Premier
+>   essai de l'auteur : environ 1 min, connexion GitHub comprise ; corrigé depuis (T095 : une session
+>   valide ouvre l'atelier sans repasser par GitHub). À refaire.
+> - `[fait]` Fusion `dev` → `main` (T074, #5) ; nettio importé en ligne.
 > - `[attente]` La première vraie alerte Telegram, au premier quota au-delà de 80 % (T094) : bot
 >   configuré et conversation de l'auteur reliée en production.
-> - `[auteur]` Importer les trois derniers projets en ligne ; fusion `dev` → `main` (T074, #5).
 > - `[facultatif]` Un compte SMTP pour les alertes par courriel (T082).
 
 ### Objective
@@ -162,7 +164,28 @@ Voir l'état réel de ses propres projets au même endroit, et reprendre l'un d'
 
 ---
 
-## Phase 2 — La mise en ligne sous garde-fou
+## Phase 2 — La mise en ligne sous garde-fou · *en cours sur `002-guarded-release`*
+
+> **Où on en est (2026-09-23, soir).** Spec Kit : specify → clarify (3 questions, options
+> recommandées retenues) → plan → tasks → analyze → implement. 38 tâches sur
+> 41 faites ; restent T037, T038, T039 (gestes de l'auteur et preuve réelle).
+>
+> **Ce qui marche, testé.** Trois garde-fous (secrets, migrations SQL, preview du commit de tête),
+> un verdict par proposition, la validation dans la console sur une version exacte, la vérification
+> `pono/release` liée à l'app chez GitHub, la protection posée d'un clic, le retour arrière Netlify
+> et Coolify confirmé par l'hébergeur, le journal de preuves que même le propriétaire de la base ne
+> peut pas réécrire. 337 tests du service (94,6 % de couverture), 17 Vitest, 15 Playwright.
+>
+> **Décision D-016.** Blocage par une vérification obligatoire liée à l'app Pono, protection posée
+> par Pono sur un clic, retour arrière par l'API de l'hébergeur, aucun contournement d'un garde-fou
+> refusé : une destruction voulue se déclare dans le manifeste.
+>
+> **Prouvé sur un projet réel (2026-09-23).** Permissions de l'app acceptées ; lectio-reads protégée
+> depuis la console ; lectio-reads#3 (migration qui supprime une colonne) refusée par Pono et
+> bloquée par GitHub, refus au journal (`docs/VERITE_ET_PREUVES.md`).
+>
+> **Reste, pour fermer.** `[auteur]` Valider une proposition réelle et, si tu le veux, un retour
+> arrière réel (T038, étapes 3 à 5) ; `[bloquant]` enregistrer la démonstration (T039).
 
 ### Objective
 Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniquement, pas par consigne.
@@ -185,7 +208,22 @@ Une mise en ligne qui échoue tant qu'un humain n'a pas validé — mécaniqueme
 
 ---
 
-## Phase 3 — Le serveur MCP et le plugin
+## Phase 3 — Le serveur MCP et le plugin · *en cours sur `003-mcp-server`*
+
+> **Où on en est (2026-09-26).** Spec Kit : specify → clarify → plan → tasks → analyze →
+> implement. 26 tâches sur 28 faites (`specs/003-mcp-server/tasks.md`) : serveur d'autorisation
+> OAuth 2.1 et serveur d'outils MCP dans le service, consentement dans la console, section Agents,
+> demande de retour arrière, relais des chemins des agents, plugin `plugins/pono`, politique de
+> confidentialité `/privacy`. Tests : service (intégration, contrats, sécurité) et 24 parcours de
+> bout en bout, au vert. **Restent** : T027 — déployer depuis `dev`, relier Claude Code,
+> l'application Claude et Codex, chronométrer la connexion d'un agent (SC-003) ; la soumission au
+> répertoire de connecteurs, geste de l'auteur.
+>
+> **Ouverte le 2026-09-23 avant la fermeture des phases 1 et 2 (D-017).** Dettes de preuve
+> restantes, à solder avant d'affirmer quoi que ce soit : chronométrage de la reprise (T071 de la
+> phase 1) ; validation, invalidation et retour arrière réels, démonstration enregistrée (T038
+> étapes 3 à 5, T039 de la phase 2).
+
 
 ### Objective
 Piloter ses projets depuis Claude et depuis Codex, avec exactement les mêmes droits que dans la

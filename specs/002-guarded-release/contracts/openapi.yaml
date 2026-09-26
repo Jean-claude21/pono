@@ -1,0 +1,203 @@
+openapi: 3.1.0
+info:
+  title: Pono API — phase 2 additions
+  version: 0.2.0
+  description: >
+    Routes and schemas added or changed by 002-guarded-release. The contract check merges this
+    document over specs/001-project-workshop/contracts/openapi.yaml; a schema defined here replaces
+    the phase 1 schema of the same name (research R-10).
+servers:
+  - url: /api/v1
+security:
+  - session: []
+
+paths:
+  /projects/{projectId}/releases:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Release attempts of the project, open ones first, then the 20 most recent closed.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Release" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/releases/{releaseId}/evaluation:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: releaseId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Evaluate the guards now instead of waiting for the next reading.
+      responses:
+        "202": { description: Evaluation queued. }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/releases/{releaseId}/approval:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: releaseId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: >
+        Approve the exact version the person saw. Only a signed-in person can call it; the
+        code host check turns green on that commit only (FR-009 to FR-012).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [headSha]
+              properties:
+                headSha: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Release" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/protection:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Apply the production branch protection (FR-015), then read it back.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Protection" }
+        "404": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/rollback:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      summary: Bring production back to the previous successful deployment (FR-016).
+      responses:
+        "202":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Rollback" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+
+  /projects/{projectId}/journal:
+    parameters:
+      - { name: projectId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: The project's evidence log, most recent first, 50 entries per page.
+      parameters:
+        - name: before
+          in: query
+          required: false
+          description: Id of the oldest entry already shown.
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/JournalEntry" }
+        "404": { $ref: "#/components/responses/Error" }
+
+components:
+  schemas:
+    Verdict:
+      type: string
+      enum: [evaluating, refused, awaiting_approval, approved]
+    GuardResult:
+      type: object
+      required: [guard, status, findings, checkedAt]
+      properties:
+        guard: { type: string, enum: [secrets, migrations, preview] }
+        status: { type: string, enum: [pending, passed, failed] }
+        reason:
+          type: [string, "null"]
+          description: Stable code, translated by the console (error-codes.md).
+        findings:
+          type: array
+          description: Where the guard failed. Never carries a secret value.
+          items:
+            type: object
+            required: [code]
+            properties:
+              code: { type: string }
+              file: { type: [string, "null"] }
+              line: { type: [integer, "null"] }
+              operation: { type: [string, "null"] }
+              url: { type: [string, "null"] }
+        checkedAt: { type: string, format: date-time }
+    Release:
+      type: object
+      required: [id, changeNumber, changeUrl, title, author, headSha, verdict, state, openedAt, guards]
+      properties:
+        id: { type: string, format: uuid }
+        changeNumber: { type: integer }
+        changeUrl: { type: string }
+        title: { type: string }
+        author: { type: string }
+        headSha: { type: string }
+        headBranch: { type: [string, "null"] }
+        verdict: { $ref: "#/components/schemas/Verdict" }
+        state: { type: string, enum: [open, merged, closed] }
+        openedAt: { type: string, format: date-time }
+        evaluatedAt: { type: [string, "null"], format: date-time }
+        approvedBy: { type: [string, "null"] }
+        approvedAt: { type: [string, "null"], format: date-time }
+        guards:
+          type: array
+          items: { $ref: "#/components/schemas/GuardResult" }
+    Protection:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [protected, unprotected, unavailable_on_plan, unknown] }
+        branch: { type: [string, "null"] }
+        checkedAt: { type: [string, "null"], format: date-time }
+    Rollback:
+      type: object
+      required: [id, status, requestedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, succeeded, failed] }
+        toCommit: { type: [string, "null"] }
+        requestedAt: { type: string, format: date-time }
+    JournalEntry:
+      type: object
+      required: [id, kind, actorKind, occurredAt, detail]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, example: release.refused }
+        actorKind: { type: string, enum: [person, agent, pono] }
+        actor: { type: [string, "null"] }
+        headSha: { type: [string, "null"] }
+        changeNumber: { type: [integer, "null"] }
+        occurredAt: { type: string, format: date-time }
+        detail: { type: object }
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/ProjectSummary"
+        - type: object
+          required: [protection, canRollback]
+          properties:
+            manifestProposalUrl: { type: [string, "null"] }
+            previews:
+              type: array
+              items: { $ref: "#/components/schemas/Environment" }
+            quotas:
+              type: array
+              items: { $ref: "#/components/schemas/Quota" }
+            protection: { $ref: "#/components/schemas/Protection" }
+            canRollback:
+              type: boolean
+              description: False when production has no earlier successful deployment.

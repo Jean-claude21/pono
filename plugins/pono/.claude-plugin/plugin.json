@@ -1,0 +1,12 @@
+{
+  "name": "pono",
+  "description": "Pono's control room from your agent: the real state of your projects, their guarded releases and their evidence journal. The server carries the know-how; this plugin only connects to it.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Jean-claude21",
+    "url": "https://github.com/Jean-claude21"
+  },
+  "homepage": "https://pono-staging.13.140.178.49.sslip.io",
+  "repository": "https://github.com/Jean-claude21/pono",
+  "keywords": ["projects", "releases", "guardrails", "deployments"]
+}

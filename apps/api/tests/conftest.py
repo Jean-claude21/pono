@@ -4,6 +4,7 @@ Locally they target the disposable Neon `test` branch; in CI, a Postgres service
 Both expose PONO_TEST_OWNER_URL and PONO_TEST_APP_URL.
 """
 
+import asyncio
 import os
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
@@ -23,6 +24,16 @@ from tests.fakes import World, make_world
 
 API_ROOT = Path(__file__).resolve().parents[1]
 TABLES_TO_CLEAN = (
+    "rollback_requests",
+    "agent_tokens",
+    "agent_grants",
+    "agent_requests",
+    "agent_clients",
+    "project_events",
+    "rollbacks",
+    "release_approvals",
+    "release_checks",
+    "releases",
     "alerts",
     "quota_readings",
     "deployments",
@@ -139,8 +150,24 @@ async def client(
 ) -> AsyncIterator[httpx.AsyncClient]:
     app = create_app(settings, identity, world.providers)
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://console.test") as http:
+    # The tools server (003) needs its session manager running, which only a lifespan would start.
+    # Its task group must close in the task that opened it: it gets a task of its own.
+    tools = getattr(app.state, "tools", None)
+    running, stop = asyncio.Event(), asyncio.Event()
+
+    async def keep_running() -> None:
+        async with tools.session_manager.run():
+            running.set()
+            await stop.wait()
+
+    manager = asyncio.create_task(keep_running()) if tools is not None else None
+    if manager is not None:
+        await running.wait()
+    async with httpx.AsyncClient(transport=transport, base_url=settings.public_url) as http:
         yield http
+    stop.set()
+    if manager is not None:
+        await manager
     engine = app.state.engine
     if engine is not None:
         await engine.dispose()
@@ -152,6 +179,8 @@ async def sign_in_as(
     """Drive the real sign-in flow: login redirect, then callback with the matching state."""
 
     identity.next_user = user
+    # A valid session skips the code host (SC-002): start from a signed-out browser.
+    client.cookies.delete("pono_session")
     login = await client.get("/api/v1/auth/login")
     state = parse_qs(urlsplit(login.headers["location"]).query)["state"][0]
     return await client.get("/api/v1/auth/callback", params={"code": "ok", "state": state})

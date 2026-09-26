@@ -51,6 +51,17 @@ async def test_security_definer_functions_are_owned_by_a_bypassing_role(
         "pono_find_person",
         "pono_worker_organizations",
         "pono_alert_recipients",
+        "pono_agent_register",
+        "pono_agent_client",
+        "pono_agent_open_request",
+        "pono_agent_request",
+        "pono_agent_decide",
+        "pono_agent_code",
+        "pono_agent_issue",
+        "pono_agent_token",
+        "pono_agent_rotate",
+        "pono_agent_revoke",
+        "pono_agent_touch",
     }
     assert all(row["rolbypassrls"] for row in owners)
 

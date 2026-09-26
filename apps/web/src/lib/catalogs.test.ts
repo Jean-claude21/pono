@@ -6,11 +6,13 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const fr = JSON.parse(read("../../messages/fr.json")) as Record<string, string>;
 const en = JSON.parse(read("../../messages/en.json")) as Record<string, string>;
-const codes = [
-  ...read("../../../../specs/001-project-workshop/contracts/error-codes.md").matchAll(
-    /^\| `([a-z_]+\.[a-z_*]+)` \|/gm,
-  ),
-].map((match) => match[1]);
+const codes = ["001-project-workshop", "002-guarded-release", "003-mcp-server"].flatMap((feature) =>
+  [
+    ...read(`../../../../specs/${feature}/contracts/error-codes.md`).matchAll(
+      /^\| `([a-z_]+\.[a-z_*]+)` \|/gm,
+    ),
+  ].map((match) => match[1]),
+);
 
 describe("catalogs", () => {
   it("hold the same keys in French and English", () => {
@@ -35,8 +37,9 @@ describe("catalogs", () => {
       if (code.includes("*")) continue;
       const key = `error_${code.replaceAll(".", "_")}`;
       const verdict = `verdict_${code.replaceAll(".", "_")}`;
-      expect(key in fr || verdict in fr, code).toBe(true);
-      expect(key in en || verdict in en, code).toBe(true);
+      const guard = `guard_${code.replaceAll(".", "_")}`;
+      expect(key in fr || verdict in fr || guard in fr, code).toBe(true);
+      expect(key in en || verdict in en || guard in en, code).toBe(true);
     }
   });
 });

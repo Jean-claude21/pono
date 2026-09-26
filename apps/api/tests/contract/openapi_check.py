@@ -12,13 +12,14 @@ from uuid import UUID
 
 import yaml
 
-CONTRACT = (
-    Path(__file__).resolve().parents[4]
-    / "specs"
-    / "001-project-workshop"
-    / "contracts"
-    / "openapi.yaml"
+SPECS = Path(__file__).resolve().parents[4] / "specs"
+# One document per phase; a later phase adds paths and replaces same-named schemas (002 R-10).
+CONTRACTS = (
+    SPECS / "001-project-workshop" / "contracts" / "openapi.yaml",
+    SPECS / "002-guarded-release" / "contracts" / "openapi.yaml",
+    SPECS / "003-mcp-server" / "contracts" / "openapi.yaml",
 )
+HTTP_METHODS = frozenset({"get", "put", "post", "delete", "patch"})
 Schema = dict[str, Any]
 
 _TYPES: dict[str, tuple[type, ...]] = {
@@ -33,7 +34,13 @@ _TYPES: dict[str, tuple[type, ...]] = {
 
 
 def load_contract() -> Schema:
-    return cast(Schema, yaml.safe_load(CONTRACT.read_text(encoding="utf-8")))
+    merged: Schema = {"paths": {}, "components": {"schemas": {}, "responses": {}}}
+    for contract in CONTRACTS:
+        document = cast(Schema, yaml.safe_load(contract.read_text(encoding="utf-8")))
+        merged["paths"].update(document.get("paths", {}))
+        for section, items in document.get("components", {}).items():
+            merged["components"].setdefault(section, {}).update(items)
+    return merged
 
 
 class ContractChecker:
@@ -107,4 +114,4 @@ class ContractChecker:
         return cast(Schema, content["schema"]) if content else None
 
 
-__all__ = ["ContractChecker", "load_contract"]
+__all__ = ["HTTP_METHODS", "ContractChecker", "load_contract"]

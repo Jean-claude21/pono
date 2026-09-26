@@ -225,6 +225,50 @@ n'existe qu'aux États-Unis, la décision de région se rouvre, serveur compris.
 
 ---
 
+## D-016 — Mise en ligne sous garde-fou : deux écritures chez les fournisseurs, aucun contournement
+
+**Validé le 2026-09-23** par l'auteur (clarifications de `specs/002-guarded-release`).
+
+**Tranché ainsi.**
+1. Le blocage d'une mise en production est une vérification `pono/release` obligatoire sur la
+   branche de production, **liée à l'app Pono** chez le fournisseur de code. Pono ne fusionne jamais.
+2. Pono pose lui-même la protection de la branche de production, sur un clic de la personne. C'est
+   sa seule écriture hors de ses branches de proposition ; l'app demande pour cela le droit
+   d'administration du dépôt.
+3. Les adaptateurs d'hébergement gagnent une seule écriture : le retour arrière de la production
+   (restauration Netlify, retour arrière Coolify). Amende D-014 (« Coolify en lecture seule »).
+4. Aucun garde-fou refusé ne se contourne depuis Pono. Une destruction voulue est déclarée dans le
+   manifeste versionné et arrive seule dans son changement.
+5. Sans preview, le garde-fou de la preview bloque.
+
+**Pourquoi.** D-004 : un garde-fou qu'on peut contourner d'un clic finit contourné par un humain
+pressé ou par un agent qui argumente. La déclaration dans le dépôt garde la décision écrite et
+relue.
+
+**Ce que ça coûte.** Deux permissions de plus pour l'app (administration, vérifications), à
+accepter par chaque personne ; un projet sans preview doit l'activer avant sa prochaine mise en
+production.
+
+---
+
+## D-017 — La phase 3 s'ouvre avant la fermeture formelle des phases 1 et 2
+
+**Validé le 2026-09-23** par l'auteur (« Supposons que ça marche. Passons au suivant »).
+
+**Tranché ainsi.** La phase 3 (serveur MCP et plugin) commence sans attendre les preuves encore
+ouvertes : le chronométrage de la reprise (phase 1, T071), la validation, l'invalidation et le
+retour arrière sur un projet réel, et la démonstration enregistrée (phase 2, T038 étapes 3 à 5,
+T039). Amende la dépendance « Phases 1 et 2 fermées » de la ROADMAP pour cette phase seulement.
+
+**Ce qui ne change pas.** Ces preuves restent des dettes visibles dans la ROADMAP et dans les
+tâches. Rien n'est écrit dans `docs/VERITE_ET_PREUVES.md` tant qu'elles ne sont pas mesurées :
+« supposons que ça marche » n'est pas une preuve.
+
+**Ce que ça coûte.** Si une preuve échoue plus tard, la correction passe avant la suite de la
+phase 3.
+
+---
+
 ## Les trois signaux qui invalideraient le positionnement
 
 Écrits à froid, pour ne pas être négociés à chaud.

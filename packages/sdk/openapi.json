@@ -1,6 +1,53 @@
 {
   "components": {
     "schemas": {
+      "AgentGrant": {
+        "properties": {
+          "access": {
+            "enum": [
+              "read",
+              "act"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "clientName": {
+            "title": "Clientname",
+            "type": "string"
+          },
+          "grantedAt": {
+            "format": "date-time",
+            "title": "Grantedat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastusedat"
+          }
+        },
+        "required": [
+          "id",
+          "clientName",
+          "access",
+          "grantedAt",
+          "lastUsedAt"
+        ],
+        "title": "AgentGrant",
+        "type": "object"
+      },
       "AlertAddress": {
         "properties": {
           "email": {
@@ -14,6 +61,21 @@
           "email"
         ],
         "title": "AlertAddress",
+        "type": "object"
+      },
+      "ApprovalRequest": {
+        "properties": {
+          "headSha": {
+            "description": "The exact commit the person saw.",
+            "minLength": 7,
+            "title": "Headsha",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headSha"
+        ],
+        "title": "ApprovalRequest",
         "type": "object"
       },
       "ChatLink": {
@@ -129,6 +191,85 @@
           "authorization"
         ],
         "title": "ConnectionRequest",
+        "type": "object"
+      },
+      "ConsentDecision": {
+        "properties": {
+          "access": {
+            "anyOf": [
+              {
+                "enum": [
+                  "read",
+                  "act"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Required to approve.",
+            "title": "Access"
+          },
+          "request": {
+            "minLength": 16,
+            "title": "Request",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request"
+        ],
+        "title": "ConsentDecision",
+        "type": "object"
+      },
+      "ConsentRedirect": {
+        "properties": {
+          "redirectUrl": {
+            "title": "Redirecturl",
+            "type": "string"
+          }
+        },
+        "required": [
+          "redirectUrl"
+        ],
+        "title": "ConsentRedirect",
+        "type": "object"
+      },
+      "ConsentRequest": {
+        "properties": {
+          "clientName": {
+            "title": "Clientname",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "organizationName": {
+            "title": "Organizationname",
+            "type": "string"
+          },
+          "scopes": {
+            "items": {
+              "enum": [
+                "pono:read",
+                "pono:act"
+              ],
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "clientName",
+          "scopes",
+          "organizationName",
+          "expiresAt"
+        ],
+        "title": "ConsentRequest",
         "type": "object"
       },
       "Deployment": {
@@ -310,6 +451,118 @@
         "title": "Environment",
         "type": "object"
       },
+      "Finding": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "Finding",
+        "type": "object"
+      },
+      "GuardResult": {
+        "properties": {
+          "checkedAt": {
+            "format": "date-time",
+            "title": "Checkedat",
+            "type": "string"
+          },
+          "findings": {
+            "description": "Where the guard failed; never a secret value.",
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "guard": {
+            "enum": [
+              "secrets",
+              "migrations",
+              "preview"
+            ],
+            "title": "Guard",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Stable code, translated by the console.",
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "passed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "guard",
+          "status",
+          "findings",
+          "checkedAt"
+        ],
+        "title": "GuardResult",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -337,6 +590,86 @@
           "repository"
         ],
         "title": "ImportRequest",
+        "type": "object"
+      },
+      "JournalEntry": {
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "actorKind": {
+            "enum": [
+              "person",
+              "agent",
+              "pono"
+            ],
+            "title": "Actorkind",
+            "type": "string"
+          },
+          "changeNumber": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changenumber"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "headSha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headsha"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "examples": [
+              "release.refused"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "title": "Occurredat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "actorKind",
+          "actor",
+          "headSha",
+          "changeNumber",
+          "occurredAt",
+          "detail"
+        ],
+        "title": "JournalEntry",
         "type": "object"
       },
       "LocaleChoice": {
@@ -442,6 +775,11 @@
       },
       "ProjectDetail": {
         "properties": {
+          "canRollback": {
+            "description": "False when production has no earlier successful deployment.",
+            "title": "Canrollback",
+            "type": "boolean"
+          },
           "databaseStatus": {
             "anyOf": [
               {
@@ -524,6 +862,9 @@
             "title": "Previews",
             "type": "array"
           },
+          "protection": {
+            "$ref": "#/components/schemas/Protection"
+          },
           "quota": {
             "anyOf": [
               {
@@ -556,6 +897,17 @@
           "repository": {
             "title": "Repository",
             "type": "string"
+          },
+          "rollbackRequest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RollbackRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An agent's rollback request waiting for a person (003 FR-011)."
           },
           "stale": {
             "description": "The last reading was incomplete; values date from refreshedAt.",
@@ -594,7 +946,9 @@
           "stale",
           "manifestProposalUrl",
           "previews",
-          "quotas"
+          "quotas",
+          "protection",
+          "canRollback"
         ],
         "title": "ProjectDetail",
         "type": "object"
@@ -730,6 +1084,48 @@
         "title": "ProjectSummary",
         "type": "object"
       },
+      "Protection": {
+        "properties": {
+          "branch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch"
+          },
+          "checkedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkedat"
+          },
+          "status": {
+            "enum": [
+              "protected",
+              "unprotected",
+              "unavailable_on_plan",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "Protection",
+        "type": "object"
+      },
       "Quota": {
         "properties": {
           "limit": {
@@ -794,6 +1190,130 @@
         "title": "Quota",
         "type": "object"
       },
+      "Release": {
+        "properties": {
+          "approvedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approvedat"
+          },
+          "approvedBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approvedby"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "changeNumber": {
+            "title": "Changenumber",
+            "type": "integer"
+          },
+          "changeUrl": {
+            "title": "Changeurl",
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluatedat"
+          },
+          "guards": {
+            "items": {
+              "$ref": "#/components/schemas/GuardResult"
+            },
+            "title": "Guards",
+            "type": "array"
+          },
+          "headBranch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headbranch"
+          },
+          "headSha": {
+            "title": "Headsha",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "openedAt": {
+            "format": "date-time",
+            "title": "Openedat",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "open",
+              "merged",
+              "closed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "evaluating",
+              "refused",
+              "awaiting_approval",
+              "approved"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "changeNumber",
+          "changeUrl",
+          "title",
+          "author",
+          "headSha",
+          "headBranch",
+          "verdict",
+          "state",
+          "openedAt",
+          "evaluatedAt",
+          "approvedBy",
+          "approvedAt",
+          "guards"
+        ],
+        "title": "Release",
+        "type": "object"
+      },
       "Repository": {
         "properties": {
           "alreadyImported": {
@@ -829,6 +1349,73 @@
           "projectId"
         ],
         "title": "Repository",
+        "type": "object"
+      },
+      "Rollback": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "requestedAt": {
+            "format": "date-time",
+            "title": "Requestedat",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "toCommit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tocommit"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "toCommit",
+          "requestedAt"
+        ],
+        "title": "Rollback",
+        "type": "object"
+      },
+      "RollbackRequest": {
+        "properties": {
+          "clientName": {
+            "title": "Clientname",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "requestedAt": {
+            "format": "date-time",
+            "title": "Requestedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "clientName",
+          "requestedAt"
+        ],
+        "title": "RollbackRequest",
         "type": "object"
       },
       "ValidationError": {
@@ -944,6 +1531,111 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/agents": {
+      "get": {
+        "operationId": "read_agents_api_v1_agents_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentGrant"
+                  },
+                  "title": "Response Read Agents Api V1 Agents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Agents",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/api/v1/agents/{grant_id}": {
+      "delete": {
+        "operationId": "cut_agent_api_v1_agents__grant_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Grant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cut Agent",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
     "/api/v1/auth/callback": {
       "get": {
         "operationId": "callback_api_v1_auth_callback_get",
@@ -981,6 +1673,22 @@
               ],
               "title": "Pono Oauth State"
             }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_return_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Return To"
+            }
           }
         ],
         "responses": {
@@ -1012,6 +1720,41 @@
     "/api/v1/auth/login": {
       "get": {
         "operationId": "login_api_v1_auth_login_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -1020,6 +1763,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Login",
@@ -1595,6 +2348,138 @@
         ]
       }
     },
+    "/api/v1/oauth/consent": {
+      "get": {
+        "operationId": "read_consent_api_v1_oauth_consent_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "request",
+            "required": true,
+            "schema": {
+              "minLength": 16,
+              "title": "Request",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentRequest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Consent",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/api/v1/oauth/consent/{decision}": {
+      "post": {
+        "description": "Only a signed-in person reaches this: the consent is a human gesture (003 FR-002).",
+        "operationId": "decide_api_v1_oauth_consent__decision__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision",
+            "required": true,
+            "schema": {
+              "enum": [
+                "approve",
+                "deny"
+              ],
+              "title": "Decision",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentRedirect"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
     "/api/v1/projects": {
       "get": {
         "operationId": "read_workshop_api_v1_projects_get",
@@ -1783,6 +2668,86 @@
         ]
       }
     },
+    "/api/v1/projects/{project_id}/journal": {
+      "get": {
+        "operationId": "read_journal_api_v1_projects__project_id__journal_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JournalEntry"
+                  },
+                  "title": "Response Read Journal Api V1 Projects  Project Id  Journal Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Journal",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
     "/api/v1/projects/{project_id}/manifest-proposal": {
       "post": {
         "description": "Propose a manifest again after the person closed the previous proposal.",
@@ -1843,6 +2808,65 @@
         ]
       }
     },
+    "/api/v1/projects/{project_id}/protection": {
+      "post": {
+        "operationId": "protect_api_v1_projects__project_id__protection_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Protection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Protect",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
     "/api/v1/projects/{project_id}/refresh": {
       "post": {
         "description": "Queue an immediate reading (FR-022). A foreign project is unknown: 404, never 403.",
@@ -1898,6 +2922,358 @@
         "summary": "Request Refresh",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/releases": {
+      "get": {
+        "operationId": "read_releases_api_v1_projects__project_id__releases_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Release"
+                  },
+                  "title": "Response Read Releases Api V1 Projects  Project Id  Releases Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Releases",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/releases/{release_id}/approval": {
+      "post": {
+        "description": "Only a person's session reaches this route: no key, no agent token exists (FR-011).",
+        "operationId": "approve_api_v1_projects__project_id__releases__release_id__approval_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "release_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Release Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Release"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/releases/{release_id}/evaluation": {
+      "post": {
+        "operationId": "request_release_evaluation_api_v1_projects__project_id__releases__release_id__evaluation_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "release_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Release Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Release Evaluation",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/rollback": {
+      "post": {
+        "operationId": "rollback_api_v1_projects__project_id__rollback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rollback"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rollback",
+        "tags": [
+          "releases"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/rollback-requests/{request_id}/{decision}": {
+      "post": {
+        "description": "A person confirms (the rollback runs) or dismisses an agent's rollback request.",
+        "operationId": "decide_rollback_api_v1_projects__project_id__rollback_requests__request_id___decision__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "decision",
+            "required": true,
+            "schema": {
+              "enum": [
+                "confirm",
+                "dismiss"
+              ],
+              "title": "Decision",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "pono_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pono Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide Rollback",
+        "tags": [
+          "agents"
         ]
       }
     },
