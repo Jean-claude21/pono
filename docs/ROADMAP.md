@@ -251,10 +251,11 @@ console.
 
 ## Phase 4 — Le runtime de développement · *ouverte le 2026-09-26 (D-018)*
 
-> **Où on en est (2026-09-26).** Spec Kit : specify fait (`specs/004-dev-runtime`, branche
-> `004-dev-runtime`). Trois questions attendent l'auteur : le chemin d'écriture dans la console
-> (principe VIII), qui écrit dans le dépôt (amendement de D-016), les limites des runtimes.
-> Ensuite : clarify → plan → tasks → analyze → implement.
+> **Où on en est (2026-09-26).** Spec Kit : specify → clarify (3 réponses de l'auteur, D-019) →
+> plan → tasks (34) → analyze faits (`specs/004-dev-runtime`, branche `004-dev-runtime`).
+> Implémentation en cours. Le runtime tourne sur le serveur Coolify de la personne, derrière un
+> portier versionné dans son dépôt (`.pono/runtime/`) ; Pono écrit seulement sur la branche de
+> développement. Hors périmètre noté : retirer un projet de Pono (et son runtime), au backlog.
 
 ### Objective
 Écrire depuis son agent et voir l'écran changer en quelques secondes, sans poste local.
