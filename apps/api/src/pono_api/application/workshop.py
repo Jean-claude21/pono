@@ -222,7 +222,10 @@ def _project(
         "state": row.state,
         "stateReason": row.state_reason,
         "manifestStatus": row.manifest_status,
-        "manifestProposalUrl": row.manifest_proposal_url,
+        # Once merged or closed, the proposal is history: only a pending one is worth a link.
+        "manifestProposalUrl": (
+            row.manifest_proposal_url if row.manifest_status == "proposed" else None
+        ),
         "databaseStatus": row.database_status,
         "environments": [_environment(e) for e in [*standing, *previews[:1]]],
         "previews": [_environment(e) for e in previews],
